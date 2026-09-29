@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /track-booking
+Disallow: /booking/save
+
+Sitemap: https://artizenevents.com/sitemap.xml
