@@ -138,7 +138,20 @@ class EventController extends Controller
             });
         }
 
-        return view('events.index', compact('categories', 'packages', 'selectedCategory', 'selectedCategoryName'));
+        // Support header search query (q or search)
+        $searchQuery = trim($request->query('q', $request->query('search', '')));
+        if (!empty($searchQuery)) {
+            $lowerQ = strtolower($searchQuery);
+            $packages = array_values(array_filter($packages, function ($p) use ($lowerQ) {
+                return str_contains(strtolower($p['title'] ?? ''), $lowerQ) ||
+                       str_contains(strtolower($p['category_name'] ?? ''), $lowerQ) ||
+                       str_contains(strtolower($p['desc'] ?? ''), $lowerQ) ||
+                       str_contains(strtolower(json_encode($p['inclusions'] ?? [])), $lowerQ);
+            }));
+            $selectedCategoryName = 'Search: "' . htmlspecialchars($searchQuery) . '"';
+        }
+
+        return view('events.index', compact('categories', 'packages', 'selectedCategory', 'selectedCategoryName', 'searchQuery'));
     }
 
     /**

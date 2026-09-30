@@ -14,7 +14,7 @@
         <!-- Gallery Hero Banner Header -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 dark:border-white/10 pb-8 mb-10 gap-6 text-left">
             <div>
-                <span class="text-[10px] font-heading font-extrabold uppercase tracking-widest text-amber-600 dark:text-amber-400 mb-2 inline-flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/40 px-3 py-1 rounded-full border border-amber-200 dark:border-amber-900/50">
+                <span class="text-[10px] font-heading font-extrabold uppercase tracking-widest text-gold mb-2 inline-flex items-center gap-1.5 bg-gold/10 px-3 py-1 rounded-full border border-gold/30">
                     <i class="fa-solid fa-camera"></i> ARTIZEN CELEBRATION MEMORIES
                 </span>
                 <h1 class="font-heading font-extrabold text-3xl md:text-5xl uppercase tracking-tight text-gray-900 dark:text-white leading-tight">
@@ -26,7 +26,7 @@
             </div>
 
             <div class="flex items-center gap-3 bg-white dark:bg-[#121212] border border-gray-200 dark:border-white/10 rounded-2xl py-3 px-5 shadow-sm shrink-0">
-                <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg font-bold">
+                <div class="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 text-gold flex items-center justify-center text-lg font-bold">
                     <i class="fa-solid fa-images"></i>
                 </div>
                 <div class="text-left">
@@ -38,7 +38,7 @@
 
         <!-- Category Filter Pills -->
         <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-hide">
-            <button onclick="filterGallery('all', this)" class="gallery-filter-btn active px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition-all bg-[#EA741D] text-white shadow-md border border-transparent">
+            <button onclick="filterGallery('all', this)" class="gallery-filter-btn active px-4 py-2 rounded-xl text-xs font-extrabold shrink-0 transition-all bg-[#FFD600] text-[#171719] shadow-md border border-transparent">
                 All Photos ({{ count($galleryItems) }})
             </button>
             @foreach($categoriesList as $cat)
@@ -47,7 +47,7 @@
                         $cSlug = $cat['slug'] ?? \Illuminate\Support\Str::slug($cat['title'] ?? '');
                         if ($cSlug === 'adult-birthdays') $cSlug = 'birthdays';
                     @endphp
-                    <button onclick="filterGallery('{{ $cSlug }}', this)" class="gallery-filter-btn px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition-all bg-white dark:bg-[#121212] text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-amber-500">
+                    <button onclick="filterGallery('{{ $cSlug }}', this)" class="gallery-filter-btn px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition-all bg-white dark:bg-[#121212] text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-gold">
                         {{ $cat['title'] ?? '' }}
                     </button>
                 @endif
@@ -72,7 +72,7 @@
                             <span class="text-xs font-bold text-gray-900 dark:text-white truncate">
                                 {{ $item['title'] }}
                             </span>
-                            <a href="{{ route('category.show', $item['package_slug'] ?? 'birthdays') }}" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 dark:text-amber-300 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all shrink-0">
+                            <a href="{{ route('category.show', $item['package_slug'] ?? 'birthdays') }}" class="px-3 py-1.5 bg-gold/10 hover:bg-gold/20 text-[#171719] dark:text-gold border border-gold/20 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all shrink-0">
                                 View Setup
                             </a>
                         </div>
@@ -82,12 +82,12 @@
         @else
             <!-- Clean Empty State -->
             <div class="bg-white dark:bg-[#121212] border border-gray-200 dark:border-white/10 p-16 rounded-3xl text-center flex flex-col items-center justify-center gap-4">
-                <div class="w-16 h-16 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center text-2xl">
+                <div class="w-16 h-16 rounded-full bg-gold/10 border border-gold/20 text-gold flex items-center justify-center text-2xl">
                     <i class="fa-solid fa-camera-retro"></i>
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white">No Gallery Images Available Yet</h3>
                 <p class="text-xs text-gray-500 dark:text-gray-400 max-w-md">Gallery setup photos are currently being updated by the Artizen team. Check back soon!</p>
-                <a href="{{ route('events.index') }}" class="px-5 py-2.5 bg-[#EA741D] hover:bg-[#D6630F] text-white text-xs font-bold rounded-xl shadow-md">
+                <a href="{{ route('events.index') }}" class="px-5 py-2.5 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] text-xs font-bold rounded-xl shadow-md">
                     Explore Event Packages
                 </a>
             </div>
@@ -99,7 +99,7 @@
 <!-- Simple Lightbox Modal -->
 <div id="gallery-lightbox-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4" onclick="closeGalleryLightbox()">
     <div class="relative max-w-4xl w-full flex flex-col items-center gap-4" onclick="event.stopPropagation()">
-        <button onclick="closeGalleryLightbox()" aria-label="Close image lightbox" class="absolute -top-10 right-0 text-white hover:text-amber-400 text-2xl font-bold">
+        <button onclick="closeGalleryLightbox()" aria-label="Close image lightbox" class="absolute -top-10 right-0 text-white hover:text-gold text-2xl font-bold">
             <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         </button>
         <img id="lightbox-modal-img" src="" alt="Gallery Preview" class="max-h-[80vh] w-auto object-contain rounded-2xl border border-white/10 shadow-2xl">
@@ -110,11 +110,11 @@
 <script>
     function filterGallery(category, btn) {
         document.querySelectorAll('.gallery-filter-btn').forEach(b => {
-            b.classList.remove('bg-[#EA741D]', 'text-white', 'shadow-md');
+            b.classList.remove('bg-[#FFD600]', 'text-[#171719]', 'shadow-md');
             b.classList.add('bg-white', 'dark:bg-[#121212]', 'text-gray-700', 'dark:text-gray-200');
         });
         btn.classList.remove('bg-white', 'dark:bg-[#121212]', 'text-gray-700', 'dark:text-gray-200');
-        btn.classList.add('bg-[#EA741D]', 'text-white', 'shadow-md');
+        btn.classList.add('bg-[#FFD600]', 'text-[#171719]', 'shadow-md');
 
         document.querySelectorAll('.gallery-card').forEach(card => {
             if (category === 'all' || card.dataset.category === category) {

@@ -164,10 +164,32 @@
         </div>
 
     </div>
-</section>               const target = pill.getAttribute('data-target');
-                        if (target === sectionId || target === altAttr || ('cat-' + target) === sectionId) {
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const sections = document.querySelectorAll('.category-row-wrapper');
+        const pills = document.querySelectorAll('.category-nav-pill');
+        const navContainer = document.querySelector('.category-sticky-nav');
+
+        if (!sections.length || !pills.length) return;
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -70% 0px',
+            threshold: 0
+        };
+
+        const sectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const sectionId = entry.target.id;
+                    const altAttr = entry.target.getAttribute('data-cat-alt');
+
+                    pills.forEach(pill => {
+                        const target = pill.id ? pill.id.replace('pill-', '') : '';
+                        if (target === sectionId || ('cat-' + target) === sectionId || target === altAttr) {
                             pill.classList.add('active');
-                            // Smoothly scroll nav bar horizontally to keep active pill visible
                             if (navContainer) {
                                 const pillLeft = pill.offsetLeft;
                                 const pillWidth = pill.offsetWidth;

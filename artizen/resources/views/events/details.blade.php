@@ -15,7 +15,7 @@
     </script>
 
     <!-- Clean Hospitality Theme Container for Details Page -->
-    <div class="package-detail-page min-h-screen bg-white dark:bg-[#0C0C0E] text-[#171717] font-body selection:bg-[#EA741D] selection:text-white pb-24 pt-4 md:pt-6">
+    <div class="package-detail-page min-h-screen bg-white dark:bg-[#0C0C0E] text-[#171717] font-body selection:bg-[#FFD600] selection:text-[#171719] pb-24 pt-4 md:pt-6">
         <div class="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8">
 
             <!-- 1. Breadcrumb Navigation -->
@@ -73,7 +73,7 @@
                                 <!-- Category / Tier Tag -->
                                 <div class="inline-flex">
                                     <span id="detail-tag"
-                                        class="text-[10px] font-heading font-extrabold text-[#EA741D] bg-[#EA741D]/10 border border-[#EA741D]/25 px-2.5 py-1 rounded-md uppercase tracking-wider leading-none">
+                                        class="text-[10px] font-heading font-extrabold text-[#171719] dark:text-[#FFD600] bg-[#FFD600]/20 border border-[#FFD600]/40 px-2.5 py-1 rounded-md uppercase tracking-wider leading-none">
                                         {{ $event['tiers'][$selectedTierIdx]['badge'] ?? 'LUXURY PACKAGE' }}
                                     </span>
                                 </div>
@@ -95,11 +95,11 @@
 
                             <!-- Key Inclusions Block -->
                             <div class="pt-2 border-t border-[#E8E5DF] dark:border-white/10">
-                                <h4 class="text-[10px] font-heading font-extrabold text-[#EA741D] uppercase tracking-wider mb-2">KEY INCLUSIONS</h4>
+                                <h4 class="text-[10px] font-heading font-extrabold text-gold uppercase tracking-wider mb-2">KEY INCLUSIONS</h4>
                                 <ul id="meta-inclusions-list" class="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-1.5 list-none pl-0">
                                     @foreach(array_slice($event['tiers'][$selectedTierIdx]['inclusions'] ?? [], 0, 6) as $inc)
                                         <li class="flex items-center gap-2 py-0.5 text-xs text-[#333333] dark:text-[#D4D4D8] font-medium font-body">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#EA741D] shrink-0"></span>
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#FFD600] shrink-0"></span>
                                             <span class="truncate">{{ $inc }}</span>
                                         </li>
                                     @endforeach
@@ -109,19 +109,19 @@
                             <!-- Setup Highlights & Perks (Clean Minimal Dots) -->
                             <div class="grid grid-cols-2 gap-2 pt-2 border-t border-[#E8E5DF] dark:border-white/10 text-xs text-[#555555] dark:text-[#D4D4D8]">
                                 <div class="flex items-center gap-2">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#EA741D] shrink-0"></span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#FFD600] shrink-0"></span>
                                     <span class="text-[11px] font-medium text-main-text">Customizable Themes</span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#EA741D] shrink-0"></span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#FFD600] shrink-0"></span>
                                     <span class="text-[11px] font-medium text-main-text">Verified Team & Crew</span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#EA741D] shrink-0"></span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#FFD600] shrink-0"></span>
                                     <span class="text-[11px] font-medium text-main-text">Flexible Setup Timings</span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#EA741D] shrink-0"></span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#FFD600] shrink-0"></span>
                                     <span class="text-[11px] font-medium text-main-text">All Indore Locations</span>
                                 </div>
                             </div>
@@ -130,7 +130,7 @@
                             <div class="grid grid-cols-3 gap-2 bg-[#FAF9F5] dark:bg-white/[0.04] border border-[#E8E5DF] dark:border-white/10 rounded-xl p-3">
                                 <!-- Setup Time -->
                                 <div class="flex items-center gap-2">
-                                    <i class="fa-regular fa-clock text-[#EA741D] text-base shrink-0" aria-hidden="true"></i>
+                                    <i class="fa-regular fa-clock text-gold text-base shrink-0" aria-hidden="true"></i>
                                     <div class="leading-none text-left">
                                         <span id="detail-duration" class="font-heading text-xs font-bold text-main-text block">3-4 Hours</span>
                                         <span class="text-[10px] text-[#777777] dark:text-[#A1A1AA] font-medium block mt-1">Setup Time</span>
@@ -139,7 +139,7 @@
 
                                 <!-- Ideal For -->
                                 <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-users text-[#EA741D] text-base shrink-0" aria-hidden="true"></i>
+                                    <i class="fa-solid fa-users text-gold text-base shrink-0" aria-hidden="true"></i>
                                     <div class="leading-none text-left">
                                         <span id="detail-ideal-for" class="font-heading text-xs font-bold text-main-text block">100+ Guests</span>
                                         <span class="text-[10px] text-[#777777] dark:text-[#A1A1AA] font-medium block mt-1">Ideal For</span>
@@ -148,7 +148,7 @@
 
                                 <!-- Location -->
                                 <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-location-dot text-[#EA741D] text-base shrink-0" aria-hidden="true"></i>
+                                    <i class="fa-solid fa-location-dot text-gold text-base shrink-0" aria-hidden="true"></i>
                                     <div class="leading-none text-left">
                                         <span id="detail-setup-location" class="font-heading text-xs font-bold text-main-text block">Indoor & Out</span>
                                         <span class="text-[10px] text-[#777777] dark:text-[#A1A1AA] font-medium block mt-1">Location</span>
@@ -162,7 +162,7 @@
                     <div class="border border-[#E8E5DF] dark:border-white/10 bg-white dark:bg-[#141416] p-6 sm:p-7 rounded-2xl text-left flex flex-col gap-4 shadow-sm">
                         <div>
                             <h3 class="font-heading font-extrabold text-base uppercase tracking-wider text-main-text mb-2 flex items-center gap-2">
-                                <i class="fa-solid fa-circle-info text-[#EA741D]"></i> About This Package
+                                <i class="fa-solid fa-circle-info text-gold"></i> About This Package
                             </h3>
                             <p id="detail-about-desc" class="font-body text-xs sm:text-[13px] text-[#555555] dark:text-[#A1A1AA] leading-relaxed">
                                 {{ $event['tiers'][$selectedTierIdx]['desc'] ?? ($event['desc'] ?? 'Experience a flawless celebration with our premium setup. This curated package comes fully equipped with complete decor, professional sound, ambient illumination, and on-site coordination. Our verified team manages the entire setup and logistics, ensuring every detail is executed to perfection.') }}
@@ -173,7 +173,7 @@
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
                             <!-- Fact 1 -->
                             <div class="border border-[#E8E5DF] dark:border-white/10 rounded-xl p-3 flex items-center gap-2.5 bg-[#FAF9F5] dark:bg-white/[0.04]">
-                                <span class="w-2 h-2 rounded-full bg-[#EA741D] shrink-0"></span>
+                                <span class="w-2 h-2 rounded-full bg-[#FFD600] shrink-0"></span>
                                 <div>
                                     <h4 class="font-heading font-bold text-xs text-main-text">Affordable Price</h4>
                                     <p class="text-[10px] text-[#777777] dark:text-[#A1A1AA] font-medium">Best value for money</p>
@@ -182,7 +182,7 @@
 
                             <!-- Fact 2 -->
                             <div class="border border-[#E8E5DF] dark:border-white/10 rounded-xl p-3 flex items-center gap-2.5 bg-[#FAF9F5] dark:bg-white/[0.04]">
-                                <span class="w-2 h-2 rounded-full bg-[#EA741D] shrink-0"></span>
+                                <span class="w-2 h-2 rounded-full bg-[#FFD600] shrink-0"></span>
                                 <div>
                                     <h4 class="font-heading font-bold text-xs text-main-text">Hassle Free</h4>
                                     <p class="text-[10px] text-[#777777] dark:text-[#A1A1AA] font-medium">We handle everything</p>
@@ -191,7 +191,7 @@
 
                             <!-- Fact 3 -->
                             <div class="border border-[#E8E5DF] dark:border-white/10 rounded-xl p-3 flex items-center gap-2.5 bg-[#FAF9F5] dark:bg-white/[0.04]">
-                                <span class="w-2 h-2 rounded-full bg-[#EA741D] shrink-0"></span>
+                                <span class="w-2 h-2 rounded-full bg-[#FFD600] shrink-0"></span>
                                 <div>
                                     <h4 class="font-heading font-bold text-xs text-main-text">Professional Team</h4>
                                     <p class="text-[10px] text-[#777777] dark:text-[#A1A1AA] font-medium">Experienced & verified</p>
@@ -200,7 +200,7 @@
 
                             <!-- Fact 4 -->
                             <div class="border border-[#E8E5DF] dark:border-white/10 rounded-xl p-3 flex items-center gap-2.5 bg-[#FAF9F5] dark:bg-white/[0.04]">
-                                <span class="w-2 h-2 rounded-full bg-[#EA741D] shrink-0"></span>
+                                <span class="w-2 h-2 rounded-full bg-[#FFD600] shrink-0"></span>
                                 <div>
                                     <h4 class="font-heading font-bold text-xs text-main-text">On-Time Delivery</h4>
                                     <p class="text-[10px] text-[#777777] dark:text-[#A1A1AA] font-medium">Always on schedule</p>
@@ -265,7 +265,7 @@
                         <div class="flex flex-col gap-2 pt-0.5">
                             <!-- Primary CTA Button -->
                             <button onclick="bookPackageNow()"
-                                class="w-full py-3.5 bg-[#EA741D] hover:bg-[#D6630F] text-white text-xs font-heading font-extrabold uppercase tracking-widest rounded-xl shadow-sm hover:shadow transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                class="w-full py-3.5 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] text-xs font-heading font-extrabold uppercase tracking-widest rounded-xl shadow-sm hover:shadow transition-all flex items-center justify-center gap-2 cursor-pointer">
                                 <i class="fa-solid fa-calendar-check text-xs" aria-hidden="true"></i> Book This Package
                             </button>
 
@@ -332,9 +332,9 @@
                     </div>
 
                     <!-- Travel Note Alert -->
-                    <div class="border border-[#EA741D]/25 bg-[#EA741D]/5 p-3.5 rounded-lg flex items-start gap-2.5 mt-auto text-left">
-                        <i class="fa-solid fa-circle-info text-[#EA741D] text-sm shrink-0 mt-0.5" aria-hidden="true"></i>
-                        <p class="text-xs text-[#EA741D] dark:text-gray-300 font-medium leading-normal">
+                    <div class="border border-[#FFD600]/30 bg-[#FFD600]/5 p-3.5 rounded-lg flex items-start gap-2.5 mt-auto text-left">
+                        <i class="fa-solid fa-circle-info text-gold text-sm shrink-0 mt-0.5" aria-hidden="true"></i>
+                        <p class="text-xs text-[#171719] dark:text-[#FFD600] font-medium leading-normal">
                             Note: Travel charges may apply based on your exact venue location in Indore.
                         </p>
                     </div>
@@ -386,7 +386,7 @@
                     <!-- Left: Overall Rating Box -->
                     <div class="lg:col-span-3 bg-[#FAF9F5] border border-[#E8E5DF] rounded-xl p-5 sm:p-6 flex flex-col items-center justify-center text-center">
                         <span class="font-heading font-extrabold text-5xl text-[#171717] leading-none mb-2">4.8</span>
-                        <div class="flex items-center gap-1 text-[#EA741D] text-sm mb-2">
+                        <div class="flex items-center gap-1 text-gold text-sm mb-2">
                             <i class="fa-solid fa-star" aria-hidden="true"></i>
                             <i class="fa-solid fa-star" aria-hidden="true"></i>
                             <i class="fa-solid fa-star" aria-hidden="true"></i>
@@ -415,7 +415,7 @@
                                             <p class="text-[10px] text-[#777777]">Saket, Indore · 12 Jun 2024</p>
                                         </div>
                                     </div>
-                                    <div class="flex items-center text-[#EA741D] text-[10px]">
+                                    <div class="flex items-center text-gold text-[10px]">
                                         <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
                                     </div>
                                 </div>
@@ -440,7 +440,7 @@
                                             <p class="text-[10px] text-[#777777]">Vijay Nagar, Indore · 6 Jun 2024</p>
                                         </div>
                                     </div>
-                                    <div class="flex items-center text-[#EA741D] text-[10px]">
+                                    <div class="flex items-center text-gold text-[10px]">
                                         <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
                                     </div>
                                 </div>
@@ -465,7 +465,7 @@
                                             <p class="text-[10px] text-[#777777]">Nipania, Indore · 1 Jun 2024</p>
                                         </div>
                                     </div>
-                                    <div class="flex items-center text-[#EA741D] text-[10px]">
+                                    <div class="flex items-center text-gold text-[10px]">
                                         <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
                                     </div>
                                 </div>
@@ -707,7 +707,7 @@
             <span id="mobile-sticky-price" class="text-base font-extrabold text-main-text">₹{{ number_format($event['tiers'][$selectedTierIdx]['price'] ?? 6000) }}</span>
         </div>
         <button onclick="bookPackageNow()"
-            class="px-5 py-2.5 bg-[#EA741D] hover:bg-[#D6630F] text-white text-xs font-extrabold uppercase tracking-wider rounded-lg shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
+            class="px-5 py-2.5 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] text-xs font-extrabold uppercase tracking-wider rounded-lg shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
             <i class="fa-solid fa-calendar-check"></i> Book Package
         </button>
     </div>
@@ -741,28 +741,28 @@
                 <div class="border-b border-[#E8E5DF] pb-3">
                     <div class="flex justify-between items-center mb-1">
                         <span class="font-heading font-bold text-xs text-[#171717]">Priya Sharma (Saket, Indore)</span>
-                        <div class="text-[#EA741D] text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                        <div class="text-gold text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
                     </div>
                     <p class="text-xs text-[#555555]">The team arrived on time, decorated everything exactly as shown in the photos. Balloon arch was stunning and the LED setup created such a vibe!</p>
                 </div>
                 <div class="border-b border-[#E8E5DF] pb-3">
                     <div class="flex justify-between items-center mb-1">
                         <span class="font-heading font-bold text-xs text-[#171717]">Rohit Verma (Vijay Nagar, Indore)</span>
-                        <div class="text-[#EA741D] text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                        <div class="text-gold text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
                     </div>
                     <p class="text-xs text-[#555555]">Setup was beautiful overall. Team was professional and courteous. Decoration quality was top-notch.</p>
                 </div>
                 <div class="border-b border-[#E8E5DF] pb-3">
                     <div class="flex justify-between items-center mb-1">
                         <span class="font-heading font-bold text-xs text-[#171717]">Ananya Kapoor (Nipania, Indore)</span>
-                        <div class="text-[#EA741D] text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                        <div class="text-gold text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
                     </div>
                     <p class="text-xs text-[#555555]">Booked the platinum package for my mom's 50th. The floral arch, fairy lights, and photo corner were beyond expectations. 10/10!</p>
                 </div>
                 <div>
                     <div class="flex justify-between items-center mb-1">
                         <span class="font-heading font-bold text-xs text-[#171717]">Siddharth Jain (Bypass Road, Indore)</span>
-                        <div class="text-[#EA741D] text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                        <div class="text-gold text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
                     </div>
                     <p class="text-xs text-[#555555]">Everything from WhatsApp inquiry to final event setup was smooth. The team understood our vision perfectly.</p>
                 </div>

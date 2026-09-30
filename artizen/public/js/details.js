@@ -76,11 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Custom icons for add-ons to look premium (Font Awesome 6)
     const iconSVGs = {
-        extra_balloons: `<i class="fa-regular fa-lightbulb text-sm text-[#EA741D]" aria-hidden="true"></i>`,
-        led_numbers: `<i class="fa-solid fa-bolt text-sm text-[#EA741D]" aria-hidden="true"></i>`,
-        photographer: `<i class="fa-solid fa-camera text-sm text-[#EA741D]" aria-hidden="true"></i>`,
-        cake: `<i class="fa-solid fa-cake-candles text-sm text-[#EA741D]" aria-hidden="true"></i>`,
-        cold_pyro: `<i class="fa-solid fa-wand-magic-sparkles text-sm text-[#EA741D]" aria-hidden="true"></i>`
+        extra_balloons: `<i class="fa-regular fa-lightbulb text-sm text-[#FFD600]" aria-hidden="true"></i>`,
+        led_numbers: `<i class="fa-solid fa-bolt text-sm text-[#FFD600]" aria-hidden="true"></i>`,
+        photographer: `<i class="fa-solid fa-camera text-sm text-[#FFD600]" aria-hidden="true"></i>`,
+        cake: `<i class="fa-solid fa-cake-candles text-sm text-[#FFD600]" aria-hidden="true"></i>`,
+        cold_pyro: `<i class="fa-solid fa-wand-magic-sparkles text-sm text-[#FFD600]" aria-hidden="true"></i>`
     };
 
     // Populate Tier Dropdown once
@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
             thumbContainer.innerHTML = '';
             galleryImages.forEach((imgSrc, index) => {
                 const thumbBtn = document.createElement('button');
-                thumbBtn.className = `thumbnail-btn w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden border-2 transition-all shrink-0 cursor-pointer ${index === 0 ? 'border-[#EA741D] ring-2 ring-[#EA741D]/20' : 'border-[#E8E5DF] hover:border-gray-400'}`;
+                thumbBtn.className = `thumbnail-btn w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden border-2 transition-all shrink-0 cursor-pointer ${index === 0 ? 'border-[#FFD600] ring-2 ring-[#FFD600]/20' : 'border-[#E8E5DF] hover:border-gray-400'}`;
                 thumbBtn.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover">`;
 
                 thumbBtn.addEventListener('click', () => {
@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     thumbContainer.querySelectorAll('button').forEach(btn => {
                         btn.className = 'thumbnail-btn w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden border-2 transition-all shrink-0 cursor-pointer border-[#E8E5DF] hover:border-gray-400';
                     });
-                    thumbBtn.className = 'thumbnail-btn w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden border-2 transition-all shrink-0 cursor-pointer border-[#EA741D] ring-2 ring-[#EA741D]/20';
+                    thumbBtn.className = 'thumbnail-btn w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden border-2 transition-all shrink-0 cursor-pointer border-[#FFD600] ring-2 ring-[#FFD600]/20';
                 });
 
                 thumbContainer.appendChild(thumbBtn);
@@ -357,10 +357,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const item = document.createElement('div');
                 item.className = 'flex items-center gap-2.5 py-1 bg-transparent';
                 item.innerHTML = `
-                    <div class="w-5 h-5 rounded-full border border-[#EA741D]/30 flex items-center justify-center shrink-0 bg-[#EA741D]/10">
-                        <i class="fa-solid fa-check text-[10px] text-[#EA741D]" aria-hidden="true"></i>
+                    <div class="w-5 h-5 rounded-full border border-[#FFD600]/40 flex items-center justify-center shrink-0 bg-[#FFD600]/10">
+                        <i class="fa-solid fa-check text-[10px] text-[#171719] dark:text-[#FFD600]" aria-hidden="true"></i>
                     </div>
-                    <span class="text-xs text-[#333333] font-medium font-body leading-tight">${inc}</span>
+                    <span class="text-xs text-[#333333] dark:text-[#D4D4D8] font-medium font-body leading-tight">${inc}</span>
                 `;
                 container.appendChild(item);
             });
@@ -372,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const item = document.createElement('li');
                 item.className = 'flex items-center gap-2 py-0.5 text-xs text-[#333333] dark:text-[#D4D4D8] font-medium font-body';
                 item.innerHTML = `
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#EA741D] shrink-0"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#FFD600] shrink-0"></span>
                     <span class="truncate">${inc}</span>
                 `;
                 metaInclusionsContainer.appendChild(item);
@@ -405,18 +405,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const isAdded = selectedAddons.has(addon.id);
             card.className = `py-3 border-b border-[#F0EFEB] last:border-0 flex items-center justify-between gap-3 transition-colors`;
 
-            const iconHtml = addon.faClass ? `<i class="${addon.faClass} text-[#EA741D] text-sm"></i>` : (iconSVGs[addon.icon] || '<i class="fa-solid fa-wand-magic-sparkles text-[#EA741D] text-sm"></i>');
+            const iconHtml = addon.faClass ? `<i class="${addon.faClass} text-[#FFD600] text-sm"></i>` : (iconSVGs[addon.icon] || '<i class="fa-solid fa-wand-magic-sparkles text-[#FFD600] text-sm"></i>');
 
             card.innerHTML = `
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-[#EA741D]/10 text-[#EA741D] flex items-center justify-center shrink-0 border border-[#EA741D]/25">
+                    <div class="w-8 h-8 rounded-full bg-[#FFD600]/10 text-[#171719] dark:text-[#FFD600] flex items-center justify-center shrink-0 border border-[#FFD600]/30">
                         ${iconHtml}
                     </div>
-                    <span class="font-heading font-bold text-xs sm:text-sm text-[#171717]">${addon.name}</span>
+                    <span class="font-heading font-bold text-xs sm:text-sm text-[#171717] dark:text-white">${addon.name}</span>
                 </div>
                 <div class="flex items-center gap-4">
-                    <span class="font-heading font-bold text-xs sm:text-sm text-[#171717]">+₹${addon.price.toLocaleString('en-IN')}</span>
-                    <button id="addon-btn-${addon.id}" class="px-4 py-1.5 rounded-lg text-xs font-heading font-bold transition-all cursor-pointer ${isAdded ? 'bg-[#EA741D] text-white border border-[#EA741D]' : 'bg-white text-[#EA741D] border border-[#E8E5DF] hover:border-[#EA741D] hover:text-[#EA741D]'}">
+                    <span class="font-heading font-bold text-xs sm:text-sm text-[#171717] dark:text-white">+₹${addon.price.toLocaleString('en-IN')}</span>
+                    <button id="addon-btn-${addon.id}" class="px-4 py-1.5 rounded-lg text-xs font-heading font-bold transition-all cursor-pointer ${isAdded ? 'bg-[#FFD600] text-[#171719] border border-[#FFD600]' : 'bg-white dark:bg-[#202024] text-[#171719] dark:text-white border border-[#E8E5DF] dark:border-white/10 hover:border-[#FFD600] hover:text-[#171719]'}">
                         ${isAdded ? 'Added' : 'Add'}
                     </button>
                 </div>
@@ -432,12 +432,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (selectedAddons.has(addonId)) {
             selectedAddons.delete(addonId);
             btnEl.innerText = 'Add';
-            btnEl.className = 'px-4 py-1.5 rounded-lg text-xs font-heading font-bold transition-all cursor-pointer bg-white text-[#EA741D] border border-[#E8E5DF] hover:border-[#EA741D] hover:text-[#EA741D]';
+            btnEl.className = 'px-4 py-1.5 rounded-lg text-xs font-heading font-bold transition-all cursor-pointer bg-white dark:bg-[#202024] text-[#171719] dark:text-white border border-[#E8E5DF] dark:border-white/10 hover:border-[#FFD600] hover:text-[#171719]';
         } else {
             selectedAddons.add(addonId);
             btnEl.innerText = 'Added';
-            btnEl.className = 'px-4 py-1.5 rounded-lg text-xs font-heading font-bold transition-all cursor-pointer bg-[#EA741D] text-white border border-[#EA741D]';
+            btnEl.className = 'px-4 py-1.5 rounded-lg text-xs font-heading font-bold transition-all cursor-pointer bg-[#FFD600] text-[#171719] border border-[#FFD600]';
         }
+
+        updateLivePrice();
+    }
 
         updateLivePrice();
     }

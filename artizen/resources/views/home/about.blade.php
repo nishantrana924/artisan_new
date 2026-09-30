@@ -17,8 +17,8 @@
                 </div>
                 <div class="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent z-10 pointer-events-none"></div>
                 <!-- Premium Overlay Tag -->
-                <span class="absolute bottom-4 left-4 bg-black/85 backdrop-blur-md text-[#EA741D] text-[10px] md:text-xs font-bold px-3.5 py-1.5 rounded-full uppercase tracking-wider border border-[#EA741D]/40 shadow-lg z-20 flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#EA741D]"></span>
+                <span class="absolute bottom-4 left-4 bg-black/85 backdrop-blur-md text-[#FFD600] text-[10px] md:text-xs font-bold px-3.5 py-1.5 rounded-full uppercase tracking-wider border border-[#FFD600]/40 shadow-lg z-20 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#FFD600]"></span>
                     Indore Event Experts
                 </span>
             </div>

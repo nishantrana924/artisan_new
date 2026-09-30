@@ -1263,5 +1263,230 @@ window.initCardImageScrubbers = function () {
 
 document.addEventListener('DOMContentLoaded', () => {
     window.initCardImageScrubbers();
+    if (window.initLenisSmoothScroll) window.initLenisSmoothScroll();
+    if (window.initMegaMenuAnimations) window.initMegaMenuAnimations();
 });
+
+// ==========================================
+// LENIS SMOOTH SCROLL INITIALIZATION
+// ==========================================
+window.initLenisSmoothScroll = function () {
+    if (typeof Lenis === 'undefined') return;
+    try {
+        const lenis = new Lenis({
+            duration: 1.2,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            orientation: 'vertical',
+            gestureOrientation: 'vertical',
+            smoothWheel: true,
+            wheelMultiplier: 1.0,
+            touchMultiplier: 1.5,
+        });
+        window.lenis = lenis;
+
+        function raf(time) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
+
+        // Override scrollToTop with Lenis
+        window.scrollToTop = function () {
+            if (window.lenis) {
+                window.lenis.scrollTo(0, { duration: 1.2 });
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        };
+    } catch (e) {
+        console.warn('Lenis scroll init notice:', e);
+    }
+};
+
+// ==========================================
+// GSAP BUTTER-SMOOTH MEGA MENU CONTROLLER
+// (Hover-Intent Protection + Top-to-Bottom Curtain Open & Close)
+// ==========================================
+window.initMegaMenuAnimations = function () {
+    if (typeof gsap === 'undefined') return;
+
+    const navItems = document.querySelectorAll('.mega-nav-item');
+    if (!navItems.length) return;
+
+    let activeItem = null;
+    let openTimer = null;
+    let closeTimer = null;
+
+    // Helper: Close a dropdown with bottom-to-top curtain collapse
+    function closeDropdown(item, instant = false) {
+        if (!item) return;
+        const panel = item.querySelector('.mega-dropdown-panel');
+        const card = item.querySelector('.mega-dropdown-card');
+        if (!panel || !card) return;
+
+        panel.style.pointerEvents = 'none';
+        gsap.killTweensOf(card);
+
+        if (instant) {
+            gsap.set(card, { clipPath: 'inset(0% 0% 100% 0%)', opacity: 0, y: -8 });
+            panel.style.visibility = 'hidden';
+            if (activeItem === item) activeItem = null;
+        } else {
+            gsap.to(card, {
+                clipPath: 'inset(0% 0% 100% 0%)',
+                opacity: 0,
+                y: -8,
+                duration: 0.2,
+                ease: 'power2.in',
+                onComplete: () => {
+                    panel.style.visibility = 'hidden';
+                    if (activeItem === item) activeItem = null;
+                }
+            });
+        }
+    }
+
+    // Helper: Open a dropdown with top-to-bottom curtain reveal
+    function openDropdown(item) {
+        if (!item) return;
+        const panel = item.querySelector('.mega-dropdown-panel');
+        const card = item.querySelector('.mega-dropdown-card');
+        if (!panel || !card) return;
+
+        // Cancel any pending close or open timers
+        if (closeTimer) {
+            clearTimeout(closeTimer);
+            closeTimer = null;
+        }
+        if (openTimer) {
+            clearTimeout(openTimer);
+            openTimer = null;
+        }
+
+        // If another item was open, close it instantly without lag
+        if (activeItem && activeItem !== item) {
+            closeDropdown(activeItem, true);
+        }
+
+        activeItem = item;
+
+        gsap.killTweensOf(card);
+        panel.style.visibility = 'visible';
+        panel.style.pointerEvents = 'auto';
+
+        // Silky smooth curtain reveal from top to bottom
+        gsap.fromTo(card,
+            {
+                clipPath: 'inset(0% 0% 100% 0%)',
+                opacity: 0,
+                y: -8
+            },
+            {
+                clipPath: 'inset(0% 0% 0% 0%)',
+                opacity: 1,
+                y: 0,
+                duration: 0.32,
+                ease: 'power2.out',
+                overwrite: 'auto'
+            }
+        );
+    }
+
+    // Schedule closing with a brief grace window (160ms) for moving cursor into dropdown
+    function scheduleClose() {
+        if (openTimer) {
+            clearTimeout(openTimer);
+            openTimer = null;
+        }
+        if (closeTimer) clearTimeout(closeTimer);
+        closeTimer = setTimeout(() => {
+            if (activeItem) {
+                const closingTarget = activeItem;
+                activeItem = null;
+                closeDropdown(closingTarget, false);
+            }
+        }, 160);
+    }
+
+    // Bind event listeners with Hover-Intent threshold
+    navItems.forEach(item => {
+        const link = item.querySelector(':scope > a');
+        const panel = item.querySelector('.mega-dropdown-panel');
+        const card = item.querySelector('.mega-dropdown-card');
+        if (!link || !panel || !card) return;
+
+        // 1. Mouse enters nav link: require intentional hover (180ms delay) if no menu is open, or switch immediately if already exploring menus
+        link.addEventListener('mouseenter', () => {
+            if (closeTimer) {
+                clearTimeout(closeTimer);
+                closeTimer = null;
+            }
+
+            if (activeItem) {
+                // User is already active in menu navigation: switch fast
+                openDropdown(item);
+            } else {
+                // User is moving cursor from page: wait 180ms to confirm intention and avoid accidental triggers
+                if (openTimer) clearTimeout(openTimer);
+                openTimer = setTimeout(() => {
+                    openDropdown(item);
+                }, 180);
+            }
+        });
+
+        // 2. Mouse leaves nav item container: cancel pending open and schedule close
+        item.addEventListener('mouseleave', () => {
+            if (openTimer) {
+                clearTimeout(openTimer);
+                openTimer = null;
+            }
+            if (activeItem) {
+                scheduleClose();
+            }
+        });
+
+        // 3. Hovering the dropdown panel keeps it open
+        panel.addEventListener('mouseenter', () => {
+            if (activeItem === item) {
+                if (closeTimer) {
+                    clearTimeout(closeTimer);
+                    closeTimer = null;
+                }
+            }
+        });
+
+        // 4. Leaving dropdown panel schedules close
+        panel.addEventListener('mouseleave', () => {
+            if (activeItem === item) {
+                scheduleClose();
+            }
+        });
+    });
+
+    // Close on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (openTimer) {
+                clearTimeout(openTimer);
+                openTimer = null;
+            }
+            if (activeItem) {
+                closeDropdown(activeItem, true);
+                activeItem = null;
+            }
+        }
+    });
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+        if (activeItem && !activeItem.contains(e.target)) {
+            if (openTimer) {
+                clearTimeout(openTimer);
+                openTimer = null;
+            }
+            closeDropdown(activeItem, true);
+            activeItem = null;
+        }
+    });
+};
 

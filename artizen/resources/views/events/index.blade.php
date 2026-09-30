@@ -166,7 +166,7 @@
                             @php $dividerShown = true; @endphp
                             <div id="other-packages-divider" class="col-span-2 lg:col-span-3 pt-6 pb-2 border-t border-[#EAEAEA] dark:border-white/10 mt-4 mb-2 flex items-center justify-between">
                                 <div>
-                                    <span class="text-[10px] font-heading font-extrabold text-[#EA741D] uppercase tracking-widest block mb-0.5">Explore More</span>
+                                    <span class="text-[10px] font-heading font-extrabold text-gold uppercase tracking-widest block mb-0.5">Explore More</span>
                                     <h4 class="text-sm md:text-base font-heading font-extrabold text-black dark:text-white uppercase tracking-wider">Other Celebration Packages</h4>
                                 </div>
                                 <span class="text-[11px] text-muted-text font-body hidden sm:inline-block">Browse all celebration packages</span>
@@ -267,7 +267,7 @@
                     @if(!$dividerShown)
                         <div id="other-packages-divider" class="hidden col-span-2 lg:col-span-3 pt-6 pb-2 border-t border-[#EAEAEA] dark:border-white/10 mt-4 mb-2 flex items-center justify-between">
                             <div>
-                                <span class="text-[10px] font-heading font-extrabold text-[#EA741D] uppercase tracking-widest block mb-0.5">Explore More</span>
+                                <span class="text-[10px] font-heading font-extrabold text-gold uppercase tracking-widest block mb-0.5">Explore More</span>
                                 <h4 class="text-sm md:text-base font-heading font-extrabold text-black dark:text-white uppercase tracking-wider">Other Celebration Packages</h4>
                             </div>
                             <span class="text-[11px] text-muted-text font-body hidden sm:inline-block">Browse all celebration packages</span>
@@ -291,7 +291,7 @@
 <!-- Floating Compare Bar -->
 <div id="compare-bar" class="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-40 bg-black/85 backdrop-blur-md border border-white/10 rounded-2xl py-3 px-4 md:px-6 shadow-2xl flex items-center justify-between gap-4 md:gap-8 w-[92%] max-w-xl transition-all duration-500 transform translate-y-28 opacity-0 hidden">
     <div class="flex items-center gap-3">
-        <span class="bg-[#EA741D] text-white font-heading font-extrabold text-[10px] md:text-xs uppercase tracking-wider py-1 px-2.5 rounded-lg shadow-md" id="compare-count-badge">
+        <span class="bg-[#FFD600] text-[#171719] font-heading font-extrabold text-[10px] md:text-xs uppercase tracking-wider py-1 px-2.5 rounded-lg shadow-md" id="compare-count-badge">
             Compare (0/3)
         </span>
         <!-- Selected thumbnails container -->
@@ -303,7 +303,7 @@
         <button onclick="clearCompare()" class="text-[10px] md:text-xs font-heading font-bold uppercase tracking-wider text-gray-400 hover:text-white transition-colors cursor-pointer bg-transparent border-0 focus:outline-none">
             Clear
         </button>
-        <button onclick="openCompareModal()" class="bg-[#EA741D] text-white font-heading font-bold text-[10px] md:text-xs uppercase tracking-wider py-2 px-4 rounded-xl hover:opacity-90 transition-opacity cursor-pointer shadow-lg shadow-orange-500/20 focus:outline-none border-0">
+        <button onclick="openCompareModal()" class="bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] font-heading font-bold text-[10px] md:text-xs uppercase tracking-wider py-2 px-4 rounded-xl transition-all cursor-pointer shadow-lg focus:outline-none border-0">
             Compare Now
         </button>
     </div>
@@ -715,26 +715,26 @@
             }
             comparedPackages.push({ id, title, price, image, rating, inclusions, url });
             
-            // Flip container styling to orange
+            // Flip container styling to gold
             checkbox.parentElement.classList.remove('bg-black/70', 'text-white');
-            checkbox.parentElement.classList.add('bg-[#EA741D]', 'text-white', 'border-[#EA741D]');
+            checkbox.parentElement.classList.add('bg-[#FFD600]', 'text-[#171719]', 'border-[#FFD600]');
             
             // Flip elements color
             label.classList.remove('text-gray-300');
-            label.classList.add('text-white');
+            label.classList.add('text-[#171719]');
             icon.classList.remove('text-gray-400');
-            icon.classList.add('text-white');
+            icon.classList.add('text-[#171719]');
         } else {
             comparedPackages = comparedPackages.filter(pkg => pkg.id !== id);
             
             // Restore container styling
-            checkbox.parentElement.classList.remove('bg-[#EA741D]', 'text-white', 'border-[#EA741D]');
+            checkbox.parentElement.classList.remove('bg-[#FFD600]', 'text-[#171719]', 'border-[#FFD600]');
             checkbox.parentElement.classList.add('bg-black/70', 'text-white');
             
             // Restore elements color
-            label.classList.remove('text-white');
+            label.classList.remove('text-[#171719]');
             label.classList.add('text-gray-300');
-            icon.classList.remove('text-white');
+            icon.classList.remove('text-[#171719]');
             icon.classList.add('text-gray-400');
         }
 
@@ -778,15 +778,15 @@
             cb.checked = false;
             
             // Restore container styling
-            cb.parentElement.classList.remove('bg-[#EA741D]', 'text-white', 'border-[#EA741D]');
+            cb.parentElement.classList.remove('bg-[#FFD600]', 'text-[#171719]', 'border-[#FFD600]');
             cb.parentElement.classList.add('bg-black/70', 'text-white');
             
             // Restore elements color
             const label = cb.parentElement.querySelector('.compare-label');
             const icon = cb.parentElement.querySelector('.compare-icon');
-            label.classList.remove('text-white');
+            label.classList.remove('text-[#171719]');
             label.classList.add('text-gray-300');
-            icon.classList.remove('text-white');
+            icon.classList.remove('text-[#171719]');
             icon.classList.add('text-gray-400');
         });
         updateCompareBar();
@@ -881,7 +881,7 @@
             const actionUrl = pkg.url.startsWith('javascript:') ? pkg.url.substring(11) : pkg.url;
             bodyHtml += `
                 <td class="py-4 px-4">
-                    <span onclick="closeCompareModal(); ${actionUrl};" class="cursor-pointer bg-[#EA741D] text-white font-heading font-bold uppercase tracking-wider rounded-xl py-1.5 md:py-2 px-3 md:px-4 inline-flex items-center justify-center gap-1 hover:opacity-90 transition-opacity text-[9px] md:text-[10px] border border-[#EA741D]">
+                    <span onclick="closeCompareModal(); ${actionUrl};" class="cursor-pointer bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] font-heading font-bold uppercase tracking-wider rounded-xl py-1.5 md:py-2 px-3 md:px-4 inline-flex items-center justify-center gap-1 transition-all text-[9px] md:text-[10px] border border-[#FFD600]">
                         Book Now
                         <i class="fa-solid fa-chevron-right text-[9px]" aria-hidden="true"></i>
                     </span>

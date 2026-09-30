@@ -18,7 +18,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 items-center">
                 <!-- Text Content -->
                 <div class="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-center gap-4 text-left">
-                    <span class="inline-flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest bg-amber-50 dark:bg-amber-950/40 px-3 py-1 rounded-full w-max border border-amber-200 dark:border-amber-900/50">
+                    <span class="inline-flex items-center gap-2 text-xs font-bold text-gold uppercase tracking-widest bg-gold/10 px-3 py-1 rounded-full w-max border border-gold/30">
                         <i class="fa-solid fa-sparkles"></i> Artizen Celebration Packages
                     </span>
 
@@ -32,7 +32,7 @@
 
                     <div class="flex items-center gap-4 pt-2">
                         <div class="flex items-center gap-2 bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 px-3.5 py-1.5 rounded-sm text-xs font-bold">
-                            <i class="fa-solid fa-box text-amber-600"></i>
+                            <i class="fa-solid fa-box text-gold"></i>
                             <span>{{ count($categoryPackages) }} {{ count($categoryPackages) === 1 ? 'Package' : 'Packages Available' }}</span>
                         </div>
                         <div class="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 px-3.5 py-1.5 rounded-sm text-xs font-bold text-emerald-800 dark:text-emerald-400">
@@ -53,7 +53,7 @@
         <!-- Sticky Category Navigation Bar -->
         <div class="category-sticky-nav-wrapper mb-12">
             <div class="category-sticky-nav scrollbar-hide flex items-center gap-3 overflow-x-auto pb-2">
-                <a href="{{ route('events.index') }}" class="px-4 py-2 rounded-sm text-xs font-bold shrink-0 bg-white dark:bg-[#121212] text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-gray-400 transition-all flex items-center gap-2">
+                <a href="{{ route('events.index') }}" class="px-4 py-2 rounded-sm text-xs font-bold shrink-0 bg-white dark:bg-[#121212] text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-gold transition-all flex items-center gap-2">
                     <i class="fa-solid fa-layer-group text-xs"></i> All Categories
                 </a>
                 @foreach($categoriesList as $cat)
@@ -62,7 +62,7 @@
                             $cSlug = $cat['slug'] ?? \Illuminate\Support\Str::slug($cat['title'] ?? '');
                             $isCurrent = ($cSlug === ($currentCategory['slug'] ?? ''));
                         @endphp
-                        <a href="{{ route('category.show', $cSlug) }}" class="px-4 py-2 rounded-sm text-xs font-bold shrink-0 transition-all flex items-center gap-2 {{ $isCurrent ? 'bg-[#EA741D] text-white shadow-md' : 'bg-white dark:bg-[#121212] text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-[#EA741D]' }}">
+                        <a href="{{ route('category.show', $cSlug) }}" class="px-4 py-2 rounded-sm text-xs font-bold shrink-0 transition-all flex items-center gap-2 {{ $isCurrent ? 'bg-[#FFD600] text-[#171719] shadow-md font-extrabold' : 'bg-white dark:bg-[#121212] text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 hover:border-gold' }}">
                             <span>{{ $cat['title'] ?? '' }}</span>
                         </a>
                     @endif
@@ -90,7 +90,7 @@
                                     {{ $currentCategory['title'] ?? 'Setup' }}
                                 </span>
                                 @if(!empty($pkg['badge']))
-                                    <span class="absolute top-3 right-3 bg-amber-500 text-black text-[10px] font-extrabold uppercase px-2 py-1 rounded-sm tracking-wider shadow-sm z-10">
+                                    <span class="absolute top-3 right-3 bg-[#FFD600] text-[#171719] text-[10px] font-extrabold uppercase px-2 py-1 rounded-sm tracking-wider shadow-sm z-10">
                                         {{ $pkg['badge'] }}
                                     </span>
                                 @endif
@@ -124,7 +124,7 @@
                                 <!-- Inclusions List -->
                                 @if(!empty($pkg['inclusions']) && count($pkg['inclusions']) > 0)
                                     <div class="border-t border-gray-100 dark:border-white/5 pt-3">
-                                        <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest block mb-2">
+                                        <span class="text-[10px] font-bold text-gold uppercase tracking-widest block mb-2">
                                             What's Included
                                         </span>
                                         <ul class="flex flex-col gap-1.5 text-xs text-gray-700 dark:text-gray-300 font-medium">
@@ -143,7 +143,7 @@
                         <!-- Footer Actions -->
                         <div class="px-6 py-4 bg-gray-50 dark:bg-white/[0.02] border-t border-gray-100 dark:border-white/5 flex items-center justify-between mt-auto">
                             <span class="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase">Offline Payment</span>
-                            <a href="{{ route('booking.index', ['category' => $currentCategory['title'] ?? '', 'package' => $pkg['name'], 'price' => $pkg['price']]) }}" class="px-5 py-2.5 bg-[#EA741D] hover:bg-[#D6630F] text-white text-xs font-bold rounded-sm shadow-md transition-all flex items-center gap-2">
+                            <a href="{{ route('booking.index', ['category' => $currentCategory['title'] ?? '', 'package' => $pkg['name'], 'price' => $pkg['price']]) }}" class="px-5 py-2.5 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] text-xs font-bold rounded-sm shadow-md transition-all flex items-center gap-2">
                                 <i class="fa-solid fa-calendar-check"></i> Book Package
                             </a>
                         </div>
@@ -153,12 +153,12 @@
         @else
             <!-- Empty State -->
             <div class="bg-white dark:bg-[#121212] border border-gray-200 dark:border-white/10 p-12 rounded-sm text-center flex flex-col items-center justify-center gap-4">
-                <div class="w-16 h-16 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center text-2xl">
+                <div class="w-16 h-16 rounded-full bg-gold/10 text-gold border border-gold/20 flex items-center justify-center text-2xl">
                     <i class="fa-solid fa-box-open"></i>
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white">No Packages Available</h3>
                 <p class="text-xs text-gray-500 dark:text-gray-400 max-w-md">Packages for {{ $currentCategory['title'] ?? 'this category' }} are currently being updated by the Artizen team.</p>
-                <a href="{{ route('events.index') }}" class="px-5 py-2.5 bg-[#EA741D] hover:bg-[#D6630F] text-white text-xs font-bold rounded-sm shadow-md">
+                <a href="{{ route('events.index') }}" class="px-5 py-2.5 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] text-xs font-bold rounded-sm shadow-md">
                     Explore All Categories
                 </a>
             </div>

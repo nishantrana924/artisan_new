@@ -6,16 +6,16 @@
 
         <!-- Breadcrumb Navigation -->
         <nav class="flex items-center gap-2 text-xs text-gray-500 mb-6 font-medium">
-            <a href="{{ route('home') }}" class="hover:text-[#EA741D] transition-colors">Home</a>
+            <a href="{{ route('home') }}" class="hover:text-gold transition-colors">Home</a>
             <i class="fa-solid fa-chevron-right text-[10px]"></i>
-            <a href="{{ route('events.index') }}" class="hover:text-[#EA741D] transition-colors">Packages</a>
+            <a href="{{ route('events.index') }}" class="hover:text-gold transition-colors">Packages</a>
             <i class="fa-solid fa-chevron-right text-[10px]"></i>
             <span class="text-[#1E1E24] dark:text-white font-bold">Booking Request</span>
         </nav>
 
         <!-- Page Header Banner -->
         <div class="border-b border-gray-200 dark:border-white/10 pb-6 mb-10 text-left">
-            <span class="text-[10px] font-heading font-extrabold uppercase tracking-widest text-[#EA741D] mb-2 inline-flex items-center gap-1.5 bg-[#EA741D]/10 px-3 py-1 rounded-full border border-[#EA741D]/30">
+            <span class="text-[10px] font-heading font-extrabold uppercase tracking-widest text-gold mb-2 inline-flex items-center gap-1.5 bg-gold/10 px-3 py-1 rounded-full border border-gold/30">
                 <i class="fa-solid fa-calendar-check"></i> NO ONLINE PAYMENT REQUIRED
             </span>
             <h1 class="font-heading font-extrabold text-3xl md:text-5xl uppercase tracking-tight text-[#1E1E24] dark:text-white leading-tight">
@@ -56,29 +56,29 @@
                     <!-- Step 1: Customer Information -->
                     <div>
                         <h3 class="font-heading font-extrabold text-lg uppercase tracking-tight text-[#1E1E24] dark:text-white mb-4 flex items-center gap-2">
-                            <span class="w-7 h-7 rounded-full bg-[#EA741D] text-white text-xs font-black flex items-center justify-center shadow-sm">1</span>
+                            <span class="w-7 h-7 rounded-full bg-[#FFD600] text-[#171719] text-xs font-black flex items-center justify-center shadow-sm">1</span>
                             Customer Contact Information
                         </h3>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Full Name *</label>
-                                <input type="text" name="name" value="{{ old('name') }}" required placeholder="e.g. Rahul Sharma" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-[#EA741D] transition-colors">
+                                <input type="text" name="name" value="{{ old('name') }}" required placeholder="e.g. Rahul Sharma" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors">
                             </div>
 
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Mobile Number *</label>
-                                <input type="tel" name="mobile" value="{{ old('mobile') }}" required placeholder="e.g. 9826012345" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-[#EA741D] transition-colors">
+                                <input type="tel" name="mobile" value="{{ old('mobile') }}" required placeholder="e.g. 9826012345" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors">
                             </div>
 
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">WhatsApp Number *</label>
-                                <input type="tel" name="whatsapp" value="{{ old('whatsapp') }}" required placeholder="e.g. 9826012345" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-[#EA741D] transition-colors">
+                                <input type="tel" name="whatsapp" value="{{ old('whatsapp') }}" required placeholder="e.g. 9826012345" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors">
                             </div>
 
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Email Address</label>
-                                <input type="email" name="email" value="{{ old('email') }}" placeholder="e.g. rahul@example.com" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-[#EA741D] transition-colors">
+                                <input type="email" name="email" value="{{ old('email') }}" placeholder="e.g. rahul@example.com" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors">
                             </div>
                         </div>
                     </div>
@@ -88,14 +88,14 @@
                     <!-- Step 2: Event Details -->
                     <div>
                         <h3 class="font-heading font-extrabold text-lg uppercase tracking-tight text-[#1E1E24] dark:text-white mb-4 flex items-center gap-2">
-                            <span class="w-7 h-7 rounded-full bg-[#EA741D] text-white text-xs font-black flex items-center justify-center shadow-sm">2</span>
+                            <span class="w-7 h-7 rounded-full bg-[#FFD600] text-[#171719] text-xs font-black flex items-center justify-center shadow-sm">2</span>
                             Event & Package Selection
                         </h3>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Event Category *</label>
-                                <select name="category" id="booking-category-select" onchange="updatePackageOptions()" class="w-full px-4 py-3 bg-gray-50 dark:bg-[#1A1A1E] border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-[#EA741D] transition-colors">
+                                <select name="category" id="booking-category-select" onchange="updatePackageOptions()" class="w-full px-4 py-3 bg-gray-50 dark:bg-[#1A1A1E] border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors">
                                     @foreach($categoriesList as $cat)
                                         @if($cat['active'] ?? true)
                                             <option value="{{ $cat['title'] }}" {{ ($selectedCat === $cat['title']) ? 'selected' : '' }}>{{ $cat['title'] }}</option>
@@ -106,19 +106,19 @@
 
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Package & Tier *</label>
-                                <select name="package" id="booking-package-select" onchange="updateSummaryPricing()" class="w-full px-4 py-3 bg-gray-50 dark:bg-[#1A1A1E] border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-[#EA741D] transition-colors">
+                                <select name="package" id="booking-package-select" onchange="updateSummaryPricing()" class="w-full px-4 py-3 bg-gray-50 dark:bg-[#1A1A1E] border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors">
                                     <!-- Populated dynamically by JS -->
                                 </select>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Event Date *</label>
-                                <input type="date" name="event_date" value="{{ old('event_date', date('Y-m-d', strtotime('+2 days'))) }}" min="{{ date('Y-m-d') }}" required class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-[#EA741D] transition-colors">
+                                <input type="date" name="event_date" value="{{ old('event_date', date('Y-m-d', strtotime('+2 days'))) }}" min="{{ date('Y-m-d') }}" required class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors">
                             </div>
 
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Event Setup Time *</label>
-                                <select name="event_time" required class="w-full px-4 py-3 bg-gray-50 dark:bg-[#1A1A1E] border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-[#EA741D] transition-colors">
+                                <select name="event_time" required class="w-full px-4 py-3 bg-gray-50 dark:bg-[#1A1A1E] border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors">
                                     <option value="Morning (09:00 AM - 12:00 PM)">Morning (09:00 AM - 12:00 PM)</option>
                                     <option value="Afternoon (12:00 PM - 04:00 PM)">Afternoon (12:00 PM - 04:00 PM)</option>
                                     <option value="Evening (04:00 PM - 08:00 PM)" selected>Evening (04:00 PM - 08:00 PM)</option>
@@ -128,7 +128,7 @@
 
                             <div class="md:col-span-2">
                                 <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Expected Guest Count *</label>
-                                <input type="number" name="guest_count" value="{{ old('guest_count', 30) }}" min="1" max="1000" required placeholder="e.g. 30 Guests" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-[#EA741D] transition-colors">
+                                <input type="number" name="guest_count" value="{{ old('guest_count', 30) }}" min="1" max="1000" required placeholder="e.g. 30 Guests" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors">
                             </div>
                         </div>
                     </div>
@@ -138,24 +138,24 @@
                     <!-- Step 3: Venue Details -->
                     <div>
                         <h3 class="font-heading font-extrabold text-lg uppercase tracking-tight text-[#1E1E24] dark:text-white mb-4 flex items-center gap-2">
-                            <span class="w-7 h-7 rounded-full bg-[#EA741D] text-white text-xs font-black flex items-center justify-center shadow-sm">3</span>
+                            <span class="w-7 h-7 rounded-full bg-[#FFD600] text-[#171719] text-xs font-black flex items-center justify-center shadow-sm">3</span>
                             Venue Location (Indore)
                         </h3>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="md:col-span-2">
                                 <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Full Venue Address *</label>
-                                <textarea name="address" rows="2" required placeholder="e.g. House No. 42, Green Park Colony..." class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-[#EA741D] transition-colors">{{ old('address') }}</textarea>
+                                <textarea name="address" rows="2" required placeholder="e.g. House No. 42, Green Park Colony..." class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors">{{ old('address') }}</textarea>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Area / Colony *</label>
-                                <input type="text" name="area" value="{{ old('area') }}" required placeholder="e.g. Vijay Nagar / Palasia / Saket" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-[#EA741D] transition-colors">
+                                <input type="text" name="area" value="{{ old('area') }}" required placeholder="e.g. Vijay Nagar / Palasia / Saket" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors">
                             </div>
 
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Landmark</label>
-                                <input type="text" name="landmark" value="{{ old('landmark') }}" placeholder="e.g. Near C21 Mall" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-[#EA741D] transition-colors">
+                                <input type="text" name="landmark" value="{{ old('landmark') }}" placeholder="e.g. Near C21 Mall" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors">
                             </div>
 
                             <div>
@@ -165,7 +165,7 @@
 
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Pincode *</label>
-                                <input type="text" name="pincode" value="{{ old('pincode', '452010') }}" required placeholder="e.g. 452010" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-[#EA741D] transition-colors">
+                                <input type="text" name="pincode" value="{{ old('pincode', '452010') }}" required placeholder="e.g. 452010" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors">
                             </div>
                         </div>
                     </div>
@@ -175,12 +175,12 @@
                     <!-- Step 4: Special Notes -->
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Special Instructions / Customization Notes</label>
-                        <textarea name="notes" rows="2" placeholder="e.g. Preferred color theme: Red & Gold. Need extra mic." class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-[#EA741D] transition-colors">{{ old('notes') }}</textarea>
+                        <textarea name="notes" rows="2" placeholder="e.g. Preferred color theme: Red & Gold. Need extra mic." class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-[#1E1E24] dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-colors">{{ old('notes') }}</textarea>
                     </div>
 
                     <!-- Submit Primary CTA Button (Solid Gold) -->
-                    <button type="submit" class="w-full py-4 bg-[#EA741D] hover:bg-[#D6630F] text-white font-heading font-extrabold text-sm uppercase tracking-widest rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-paper-plane text-[#1E1E24]"></i> Submit Booking Request
+                    <button type="submit" class="w-full py-4 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] font-heading font-extrabold text-sm uppercase tracking-widest rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-paper-plane text-[#171719]"></i> Submit Booking Request
                     </button>
 
                     <p class="text-[11px] text-gray-500 text-center font-medium">
@@ -191,15 +191,15 @@
 
             <!-- Right Side Sticky Summary Card (5 Cols) -->
             <div class="lg:col-span-5 lg:sticky lg:top-28">
-                <div class="bg-white dark:bg-[#121214] border border-[#EA741D]/30 dark:border-white/10 p-6 rounded-3xl shadow-sm text-left flex flex-col gap-6">
+                <div class="bg-white dark:bg-[#121214] border border-gold/30 dark:border-white/10 p-6 rounded-3xl shadow-sm text-left flex flex-col gap-6">
                     <div>
-                        <span class="text-[9px] font-heading font-extrabold text-[#EA741D] uppercase tracking-widest block mb-1">
+                        <span class="text-[9px] font-heading font-extrabold text-gold uppercase tracking-widest block mb-1">
                             REALTIME BOOKING SUMMARY
                         </span>
                         <h3 id="summary-package-title" class="font-heading font-extrabold text-xl text-[#1E1E24] dark:text-white leading-tight">
                             Select Package
                         </h3>
-                        <span id="summary-category-badge" class="inline-block mt-2 text-[10px] font-bold uppercase tracking-wider bg-[#EA741D]/10 text-[#EA741D] px-2.5 py-1 rounded-md border border-[#EA741D]/30">
+                        <span id="summary-category-badge" class="inline-block mt-2 text-[10px] font-bold uppercase tracking-wider bg-gold/10 text-gold px-2.5 py-1 rounded-md border border-gold/30">
                             Event Setup
                         </span>
                     </div>
@@ -215,7 +215,7 @@
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-gray-500">Initial Status:</span>
-                            <span class="font-bold text-[#EA741D] uppercase">PENDING REVIEW</span>
+                            <span class="font-bold text-amber-600 dark:text-amber-400 uppercase">PENDING REVIEW</span>
                         </div>
                     </div>
 
@@ -235,12 +235,12 @@
                         </div>
                         <div class="pt-3 border-t border-gray-100 dark:border-white/5 flex items-baseline justify-between">
                             <span class="font-heading font-extrabold text-sm text-[#1E1E24] dark:text-white uppercase">Total Booking Amount:</span>
-                            <span id="summary-total-price" class="font-heading font-extrabold text-2xl text-[#EA741D]">₹4,999</span>
+                            <span id="summary-total-price" class="font-heading font-extrabold text-2xl text-gold">₹4,999</span>
                         </div>
                     </div>
 
-                    <div class="p-4 rounded-2xl bg-[#EA741D]/10 border border-[#EA741D]/30 text-xs text-[#1E1E24] dark:text-gray-200 font-medium leading-relaxed">
-                        <i class="fa-solid fa-circle-info text-[#EA741D] mr-1"></i>
+                    <div class="p-4 rounded-2xl bg-gold/10 border border-gold/30 text-xs text-[#1E1E24] dark:text-gray-200 font-medium leading-relaxed">
+                        <i class="fa-solid fa-circle-info text-gold mr-1"></i>
                         After submission, your booking status becomes <strong class="font-bold">PENDING</strong>. An Artizen manager will contact you on WhatsApp/Phone within 15 minutes.
                     </div>
                 </div>

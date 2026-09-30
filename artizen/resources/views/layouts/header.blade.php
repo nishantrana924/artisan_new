@@ -129,21 +129,49 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Swiper CSS -->
+    <!-- Swiper JS & CSS -->
     <link rel="stylesheet" href="https://unpkg.com/swiper@8/swiper-bundle.min.css" />
+    <script src="https://unpkg.com/swiper@8/swiper-bundle.min.js"></script>
+
+    <!-- Lenis Smooth Scroll CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/lenis@1.1.18/dist/lenis.css" />
 
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 
+    <!-- GSAP & Lenis Smooth Scroll JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+
     <!-- Custom Stylesheet with CSS Custom Variables -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}?v={{ time() }}">
     <script>
-        // Bind Tailwind custom utilities to our CSS Variables
+        // Bind Tailwind custom utilities to our Black + Gold + Warm White Design System
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
+                        'primary': '#FFD600',
+                        'primary-hover': '#E6C200',
+                        'primary-soft': '#FFF4B8',
+                        'brand-gold': '#FFD600',
+                        'brand-gold-hover': '#E6C200',
+                        'brand-gold-soft': '#FFF4B8',
+                        'brand-dark': '#171719',
+                        'brand-dark-deep': '#080808',
+                        'brand-dark-soft': '#292929',
+                        'brand-bg': '#FAF9F6',
+                        'brand-surface': '#FFFFFF',
+                        'brand-surface-soft': '#F1EEE7',
+                        'brand-border': '#E6E2D8',
+                        'gold': '#FFD600',
+                        'gold-hover': '#E6C200',
+                        'gold-soft': '#FFF4B8',
+                        'artizen-orange': '#FFD600',
+                        'artizen-orange-hover': '#E6C200',
+                        'artizen-orange-soft': '#FFF4B8',
+                        'artizen-black': '#171719',
                         'main-bg': 'var(--bg-main)',
                         'surface-bg': 'var(--bg-surface)',
                         'card-bg': 'var(--bg-card)',
@@ -153,11 +181,6 @@
                         'hover-border': 'var(--border-hover)',
                         'accent-bg': 'var(--accent)',
                         'accent-fg': 'var(--accent-text)',
-                        'gold': 'var(--artizen-orange)',
-                        'artizen-orange': 'var(--artizen-orange)',
-                        'artizen-black': 'var(--artizen-black)',
-                        'artizen-orange-hover': 'var(--artizen-orange-hover)',
-                        'artizen-orange-soft': 'var(--artizen-orange-soft)',
                     },
                     fontFamily: {
                         heading: 'var(--font-heading)',

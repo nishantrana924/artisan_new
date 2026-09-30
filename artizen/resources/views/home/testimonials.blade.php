@@ -28,7 +28,7 @@
                         </p>
                         <div class="flex flex-wrap gap-4 mt-6">
                             <a href="#events"
-                                class="inline-flex items-center gap-2 px-6 py-3 bg-[#EA741D] hover:bg-[#D6630F] text-white font-heading font-bold text-xs uppercase tracking-wider rounded-full transition-all shadow-md">
+                                class="inline-flex items-center gap-2 px-6 py-3 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] font-heading font-bold text-xs uppercase tracking-wider rounded-full transition-all shadow-md">
                                 Explore Packages
                                 <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
                             </a>

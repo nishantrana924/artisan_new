@@ -1,38 +1,504 @@
-<section class="hero-section relative flex items-center justify-center border-b border-white/10 overflow-hidden bg-[#0a0a0a]">
-    <!-- Full-Width Background Image Slider (Swiper) -->
-    <div class="absolute inset-0 w-full h-full z-0 overflow-hidden bg-black">
-        <div class="hero-swiper swiper w-full h-full">
-            <div class="swiper-wrapper h-full">
-                @foreach ($slides as $slide)
-                    <div class="swiper-slide w-full h-full relative">
-                        <img src="{{ $slide['image'] }}" alt="{{ $slide['title'] }}" class="w-full h-full object-cover animate-zoom-slow">
-                        <!-- Gradient Overlay for readability -->
-                        <div class="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent z-10 pointer-events-none"></div>
-                        <div class="hero-text-container absolute inset-y-0 left-0 w-full flex flex-col justify-center px-6 md:px-12 lg:px-20 z-20 text-left max-w-3xl pointer-events-none">
-                            <span class="inline-flex items-center gap-1.5 text-xs font-heading font-semibold text-[#EA741D] tracking-wider uppercase mb-4 pointer-events-auto">
-                                <span class="w-1.5 h-1.5 rounded-full bg-[#EA741D]"></span> {{ $slide['badge'] }}
+<style>
+    /* CSS slide spacing fallback: eliminates 0px gap flash (FOUC) on page refresh */
+    .occasion-swiper .swiper-wrapper {
+        display: flex;
+    }
+    .occasion-swiper .swiper-slide {
+        width: auto !important;
+        flex-shrink: 0;
+        margin-right: 14px;
+    }
+    .occasion-swiper .swiper-slide:last-child {
+        margin-right: 0;
+    }
+
+    .hero-banner-swiper .swiper-wrapper {
+        display: flex;
+    }
+    .hero-banner-swiper .swiper-slide {
+        flex-shrink: 0;
+        margin-right: 16px;
+    }
+    @media (min-width: 640px) {
+        .hero-banner-swiper .swiper-slide {
+            margin-right: 20px;
+        }
+    }
+    @media (min-width: 1024px) {
+        .hero-banner-swiper .swiper-slide {
+            margin-right: 24px;
+        }
+    }
+
+    /* Completely eliminate any hover card effects, glow, or box-shadow on Tier 4 Trust Bar */
+    .trust-pillar-item,
+    .trust-pillar-item:hover,
+    .trust-pillar-item:focus {
+        transform: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        border: none !important;
+        outline: none !important;
+        transition: none !important;
+    }
+</style>
+
+<!-- Artizen Multi-Tier Event Discovery Hero Hub (Inspired by IGP & FNP Occasion Discovery Architecture) -->
+<section class="w-full bg-[#FAF9F6] dark:bg-[#0F0F12] border-b border-[#E6E2D8] dark:border-[#232326] transition-colors overflow-hidden select-none">
+
+
+
+    <!-- ==========================================
+         TIER 2: "SETUPS FOR EVERY OCCASION"
+         (Clean Pastel Occasion Capsules with Integrated Objects & Horizontal Carousel)
+         ========================================== -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-3">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl sm:text-2xl md:text-3xl font-heading font-extrabold text-[#111827] dark:text-white tracking-tight">
+                Setups For Every Occasion
+            </h2>
+            <a href="{{ route('events.index') }}" class="hidden sm:inline-flex items-center gap-1.5 text-xs font-heading font-bold text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-[#FFD600] transition-colors group">
+                <span>View All Setups</span>
+                <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+            </a>
+        </div>
+
+        <!-- Swiper.js Occasion Rail (Smooth freeMode dragging without native ghost image drag) -->
+        <div class="swiper occasion-swiper overflow-hidden cursor-grab active:cursor-grabbing select-none">
+            <div class="swiper-wrapper py-1">
+
+                <!-- 1. Birthday (Peach/Apricot Pastel) -->
+                <div class="swiper-slide !w-auto">
+                    <a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" 
+                       draggable="false"
+                       class="relative shrink-0 w-[220px] sm:w-[255px] h-[135px] sm:h-[145px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs select-none block bg-[#F6CFB2]">
+                        <img src="{{ asset('images/occasions/birthday.webp') }}" 
+                             alt="Birthday Celebrations" 
+                             draggable="false"
+                             class="w-full h-full object-cover object-right block select-none pointer-events-none" 
+                             style="user-select: none; -webkit-user-drag: none;"
+                             loading="lazy">
+                        <div class="absolute top-3.5 left-4 z-10 pointer-events-none select-none">
+                            <span class="text-[14px] sm:text-[15px] font-heading font-extrabold text-[#2F1607] flex items-center gap-1">
+                                Birthday <i class="fa-solid fa-angle-right text-[11px] opacity-75"></i>
                             </span>
-                            <h1 class="hero-title font-heading font-bold text-white tracking-[-0.025em] mb-6 pointer-events-auto">
-                                {!! nl2br(e($slide['title'])) !!}
-                            </h1>
-                            <p class="hero-desc font-body text-sm sm:text-base md:text-lg text-gray-200 max-w-2xl leading-relaxed mb-8 pointer-events-auto">
-                                {!! strip_tags($slide['desc']) !!}
-                            </p>
-                            <div class="hero-btns flex flex-wrap gap-4 pointer-events-auto">
-                                <a href="{{ $slide['link1'] }}" class="bg-[#EA741D] hover:bg-[#D6630F] text-white px-6 py-3.5 text-sm font-heading font-semibold rounded-xl transition-all duration-200 shadow-lg">
-                                    {{ $slide['btn1Text'] }}
-                                </a>
-                                <a href="{{ $slide['link2'] }}" target="_blank" class="border border-white/20 hover:border-white/50 bg-white/5 hover:bg-white/10 text-white px-6 py-3.5 text-sm font-heading font-semibold rounded-xl transition-all duration-200">
-                                    {{ $slide['btn2Text'] }}
-                                </a>
-                            </div>
                         </div>
-                    </div>
-                @endforeach
+                    </a>
+                </div>
+
+                <!-- 2. Proposals / Romance (Blush Pink Pastel) -->
+                <div class="swiper-slide !w-auto">
+                    <a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" 
+                       draggable="false"
+                       class="relative shrink-0 w-[220px] sm:w-[255px] h-[135px] sm:h-[145px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs select-none block bg-[#F8C6CF]">
+                        <img src="{{ asset('images/occasions/proposals.webp') }}" 
+                             alt="Proposals & Romance" 
+                             draggable="false"
+                             class="w-full h-full object-cover object-right block select-none pointer-events-none" 
+                             style="user-select: none; -webkit-user-drag: none;"
+                             loading="lazy">
+                        <div class="absolute top-3.5 left-4 z-10 pointer-events-none select-none">
+                            <span class="text-[14px] sm:text-[15px] font-heading font-extrabold text-[#2F0B15] flex items-center gap-1">
+                                Proposals <i class="fa-solid fa-angle-right text-[11px] opacity-75"></i>
+                            </span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- 3. Corporate & Galas (Soft Powder Blue Pastel) -->
+                <div class="swiper-slide !w-auto">
+                    <a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" 
+                       draggable="false"
+                       class="relative shrink-0 w-[220px] sm:w-[255px] h-[135px] sm:h-[145px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs select-none block bg-[#A5C8E4]">
+                        <img src="{{ asset('images/occasions/corporate.webp') }}" 
+                             alt="Corporate Events & Galas" 
+                             draggable="false"
+                             class="w-full h-full object-cover object-right block select-none pointer-events-none" 
+                             style="user-select: none; -webkit-user-drag: none;"
+                             loading="lazy">
+                        <div class="absolute top-3.5 left-4 z-10 pointer-events-none select-none">
+                            <span class="text-[14px] sm:text-[15px] font-heading font-extrabold text-[#092233] flex items-center gap-1">
+                                Corporate <i class="fa-solid fa-angle-right text-[11px] opacity-75"></i>
+                            </span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- 4. Anniversary (Pastel Dusty Rose) -->
+                <div class="swiper-slide !w-auto">
+                    <a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" 
+                       draggable="false"
+                       class="relative shrink-0 w-[220px] sm:w-[255px] h-[135px] sm:h-[145px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs select-none block bg-[#F6B6C1]">
+                        <img src="{{ asset('images/occasions/anniversary.webp') }}" 
+                             alt="Anniversary Celebrations" 
+                             draggable="false"
+                             class="w-full h-full object-cover object-right block select-none pointer-events-none" 
+                             style="user-select: none; -webkit-user-drag: none;"
+                             loading="lazy">
+                        <div class="absolute top-3.5 left-4 z-10 pointer-events-none select-none">
+                            <span class="text-[14px] sm:text-[15px] font-heading font-extrabold text-[#2E0911] flex items-center gap-1">
+                                Anniversary <i class="fa-solid fa-angle-right text-[11px] opacity-75"></i>
+                            </span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- 5. House Party & DJ (Warm Sand Caramel) -->
+                <div class="swiper-slide !w-auto">
+                    <a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" 
+                       draggable="false"
+                       class="relative shrink-0 w-[220px] sm:w-[255px] h-[135px] sm:h-[145px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs select-none block bg-[#F4D2B3]">
+                        <img src="{{ asset('images/occasions/house-party.webp') }}" 
+                             alt="House Party & DJ" 
+                             draggable="false"
+                             class="w-full h-full object-cover object-right block select-none pointer-events-none" 
+                             style="user-select: none; -webkit-user-drag: none;"
+                             loading="lazy">
+                        <div class="absolute top-3.5 left-4 z-10 pointer-events-none select-none">
+                            <span class="text-[14px] sm:text-[15px] font-heading font-extrabold text-[#2C1608] flex items-center gap-1">
+                                House Party & DJ <i class="fa-solid fa-angle-right text-[11px] opacity-75"></i>
+                            </span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- 6. Baby Shower & Kids (Soft Mint Pastel) -->
+                <div class="swiper-slide !w-auto">
+                    <a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" 
+                       draggable="false"
+                       class="relative shrink-0 w-[220px] sm:w-[255px] h-[135px] sm:h-[145px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs select-none block bg-[#C4E7D7]">
+                        <img src="{{ asset('images/occasions/baby-shower.webp') }}" 
+                             alt="Baby Shower & Kids" 
+                             draggable="false"
+                             class="w-full h-full object-cover object-right block select-none pointer-events-none" 
+                             style="user-select: none; -webkit-user-drag: none;"
+                             loading="lazy">
+                        <div class="absolute top-3.5 left-4 z-10 pointer-events-none select-none">
+                            <span class="text-[14px] sm:text-[15px] font-heading font-extrabold text-[#0B2519] flex items-center gap-1">
+                                Baby Shower <i class="fa-solid fa-angle-right text-[11px] opacity-75"></i>
+                            </span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- 7. Weddings & Haldi (Soft Golden Marigold) -->
+                <div class="swiper-slide !w-auto">
+                    <a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" 
+                       draggable="false"
+                       class="relative shrink-0 w-[220px] sm:w-[255px] h-[135px] sm:h-[145px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs select-none block bg-[#FEE08B]">
+                        <img src="{{ asset('images/occasions/weddings.webp') }}" 
+                             alt="Weddings & Haldi Decor" 
+                             draggable="false"
+                             class="w-full h-full object-cover object-right block select-none pointer-events-none" 
+                             style="user-select: none; -webkit-user-drag: none;"
+                             loading="lazy">
+                        <div class="absolute top-3.5 left-4 z-10 pointer-events-none select-none">
+                            <span class="text-[14px] sm:text-[15px] font-heading font-extrabold text-[#2F2101] flex items-center gap-1">
+                                Weddings & Haldi <i class="fa-solid fa-angle-right text-[11px] opacity-75"></i>
+                            </span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- 8. Live Artists & Acoustic (Pastel Lavender) -->
+                <div class="swiper-slide !w-auto">
+                    <a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" 
+                       draggable="false"
+                       class="relative shrink-0 w-[220px] sm:w-[255px] h-[135px] sm:h-[145px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs select-none block bg-[#D8C9F3]">
+                        <img src="{{ asset('images/occasions/live-music.webp') }}" 
+                             alt="Live Artists & DJ" 
+                             draggable="false"
+                             class="w-full h-full object-cover object-right block select-none pointer-events-none" 
+                             style="user-select: none; -webkit-user-drag: none;"
+                             loading="lazy">
+                        <div class="absolute top-3.5 left-4 z-10 pointer-events-none select-none">
+                            <span class="text-[14px] sm:text-[15px] font-heading font-extrabold text-[#1A0B30] flex items-center gap-1">
+                                Live Artists <i class="fa-solid fa-angle-right text-[11px] opacity-75"></i>
+                            </span>
+                        </div>
+                    </a>
+                </div>
+
             </div>
-            <!-- Pagination -->
-            <div class="swiper-pagination"></div>
         </div>
     </div>
+
+    <!-- ==========================================
+         TIER 3: PANORAMIC PROMOTIONAL HERO BANNER CAROUSEL
+         (Compact Width, Centered Alignment, High-Contrast Typography & Side Peeks)
+         ========================================== -->
+    <div class="w-full overflow-hidden pt-3 pb-8 sm:pb-10 relative select-none">
+        
+        <!-- Relative Wrapper for Swiper -->
+        <div class="relative w-full max-w-full">
+
+            <!-- Swiper Container with Centered Compact Slides & Side Peeks -->
+            <div class="swiper hero-banner-swiper overflow-visible cursor-grab active:cursor-grabbing">
+                <div class="swiper-wrapper py-1">
+
+                    <!-- Slide 1: Blooming Love & Celebrations (Deep Navy Floral) -->
+                    <div class="swiper-slide !w-[86vw] sm:!w-[520px] md:!w-[600px] lg:!w-[680px] xl:!w-[720px]">
+                        <a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" 
+                           draggable="false"
+                           class="block relative w-full h-[165px] sm:h-[185px] md:h-[205px] lg:h-[215px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-md cursor-pointer select-none group"
+                           style="background-color: #0c1b33 !important;">
+                            <img src="{{ asset('images/banners/banner-navy-floral.webp') }}" 
+                                 alt="Blooming Love Celebrations" 
+                                 draggable="false"
+                                 class="absolute inset-0 w-full h-full object-cover object-right pointer-events-none select-none" 
+                                 style="user-select: none; -webkit-user-drag: none;"
+                                 loading="eager">
+                            
+                            <!-- Left Gradient Wash for High Contrast -->
+                            <div class="absolute inset-0 bg-gradient-to-r from-[#0c1b33]/95 via-[#0c1b33]/75 to-transparent pointer-events-none"></div>
+
+                            <!-- Left Typography & CTA Button -->
+                            <div class="relative z-10 p-4 sm:p-6 md:p-7 max-w-[65%] sm:max-w-sm text-left">
+                                <h2 class="text-base sm:text-lg md:text-xl lg:text-2xl font-heading font-extrabold tracking-tight leading-tight mb-1 sm:mb-1.5" style="color: #ffffff !important;">
+                                    Blooming Love,<br>Wrapped in Flowers
+                                </h2>
+                                <p class="font-body text-[11px] sm:text-xs mb-2.5 sm:mb-3 font-normal leading-relaxed line-clamp-2" style="color: rgba(255, 255, 255, 0.85) !important;">
+                                    Send freshly-sourced blooms to brighten their special day
+                                </p>
+                                <span class="inline-flex items-center gap-1 px-3 sm:px-4 py-1.5 rounded-lg font-heading font-bold text-[11px] sm:text-xs shadow-md transition-all"
+                                      style="background-color: #ffffff !important; color: #0c1b33 !important;">
+                                    <span style="color: #0c1b33 !important;">Order Now</span>
+                                    <i class="fa-solid fa-angle-right text-[9px] group-hover:translate-x-0.5 transition-transform" style="color: #0c1b33 !important;"></i>
+                                </span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Slide 2: Royal Haldi & Weddings (Deep Emerald Green) -->
+                    <div class="swiper-slide !w-[86vw] sm:!w-[520px] md:!w-[600px] lg:!w-[680px] xl:!w-[720px]">
+                        <a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" 
+                           draggable="false"
+                           class="block relative w-full h-[165px] sm:h-[185px] md:h-[205px] lg:h-[215px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-md cursor-pointer select-none group"
+                           style="background-color: #0a291e !important;">
+                            <img src="{{ asset('images/banners/banner-emerald-wedding.webp') }}" 
+                                 alt="Royal Haldi & Wedding Setups" 
+                                 draggable="false"
+                                 class="absolute inset-0 w-full h-full object-cover object-right pointer-events-none select-none" 
+                                 style="user-select: none; -webkit-user-drag: none;"
+                                 loading="lazy">
+                            
+                            <!-- Left Gradient Wash -->
+                            <div class="absolute inset-0 bg-gradient-to-r from-[#0a291e]/95 via-[#0a291e]/75 to-transparent pointer-events-none"></div>
+
+                            <!-- Left Typography & CTA Button -->
+                            <div class="relative z-10 p-4 sm:p-6 md:p-7 max-w-[65%] sm:max-w-sm text-left">
+                                <h2 class="text-base sm:text-lg md:text-xl lg:text-2xl font-heading font-extrabold tracking-tight leading-tight mb-1 sm:mb-1.5" style="color: #ffffff !important;">
+                                    Royal Haldi &<br>Wedding Urli Decor
+                                </h2>
+                                <p class="font-body text-[11px] sm:text-xs mb-2.5 sm:mb-3 font-normal leading-relaxed line-clamp-2" style="color: rgba(255, 255, 255, 0.85) !important;">
+                                    Authentic brass urlis with marigold florals & mandap setups
+                                </p>
+                                <span class="inline-flex items-center gap-1 px-3 sm:px-4 py-1.5 rounded-lg font-heading font-bold text-[11px] sm:text-xs shadow-md transition-all"
+                                      style="background-color: #ffffff !important; color: #0a291e !important;">
+                                    <span style="color: #0a291e !important;">Book Setup</span>
+                                    <i class="fa-solid fa-angle-right text-[9px] group-hover:translate-x-0.5 transition-transform" style="color: #0a291e !important;"></i>
+                                </span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Slide 3: High-Bass DJ & House Party (Warm Golden Amber) -->
+                    <div class="swiper-slide !w-[86vw] sm:!w-[520px] md:!w-[600px] lg:!w-[680px] xl:!w-[720px]">
+                        <a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" 
+                           draggable="false"
+                           class="block relative w-full h-[165px] sm:h-[185px] md:h-[205px] lg:h-[215px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-md cursor-pointer select-none group"
+                           style="background-color: #d4a373 !important;">
+                            <img src="{{ asset('images/banners/banner-gold-dj.webp') }}" 
+                                 alt="High-Bass DJ Rigs" 
+                                 draggable="false"
+                                 class="absolute inset-0 w-full h-full object-cover object-right pointer-events-none select-none" 
+                                 style="user-select: none; -webkit-user-drag: none;"
+                                 loading="lazy">
+                            
+                            <!-- Left Gradient Wash -->
+                            <div class="absolute inset-0 bg-gradient-to-r from-[#d4a373]/95 via-[#d4a373]/75 to-transparent pointer-events-none"></div>
+
+                            <!-- Left Typography & CTA Button -->
+                            <div class="relative z-10 p-4 sm:p-6 md:p-7 max-w-[65%] sm:max-w-sm text-left">
+                                <h2 class="text-base sm:text-lg md:text-xl lg:text-2xl font-heading font-extrabold tracking-tight leading-tight mb-1 sm:mb-1.5" style="color: #1c1208 !important;">
+                                    High-Bass DJ &<br>Concert Sound Rigs
+                                </h2>
+                                <p class="font-body text-[11px] sm:text-xs mb-2.5 sm:mb-3 font-medium leading-relaxed line-clamp-2" style="color: #3b220e !important;">
+                                    Dual active column speakers, moving lasers & low smoke
+                                </p>
+                                <span class="inline-flex items-center gap-1 px-3 sm:px-4 py-1.5 rounded-lg font-heading font-bold text-[11px] sm:text-xs shadow-md transition-all"
+                                      style="background-color: #171719 !important; color: #ffffff !important;">
+                                    <span style="color: #ffffff !important;">Explore Setups</span>
+                                    <i class="fa-solid fa-angle-right text-[9px] text-gray-300 group-hover:translate-x-0.5 transition-transform" style="color: #ffffff !important;"></i>
+                                </span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Slide 4: Artisanal Birthday Celebrations (Warm Champagne Beige) -->
+                    <div class="swiper-slide !w-[86vw] sm:!w-[520px] md:!w-[600px] lg:!w-[680px] xl:!w-[720px]">
+                        <a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" 
+                           draggable="false"
+                           class="block relative w-full h-[165px] sm:h-[185px] md:h-[205px] lg:h-[215px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-md cursor-pointer select-none group"
+                           style="background-color: #E8DDD1 !important;">
+                            <img src="{{ asset('images/banners/artizen-banner-birthday.webp') }}" 
+                                 alt="Birthday Celebrations Setup" 
+                                 draggable="false"
+                                 class="absolute inset-0 w-full h-full object-cover object-right pointer-events-none select-none" 
+                                 style="user-select: none; -webkit-user-drag: none;"
+                                 loading="lazy">
+                            
+                            <!-- Left Gradient Wash -->
+                            <div class="absolute inset-0 bg-gradient-to-r from-[#E8DDD1]/95 via-[#E8DDD1]/75 to-transparent pointer-events-none"></div>
+
+                            <!-- Left Typography & CTA Button -->
+                            <div class="relative z-10 p-4 sm:p-6 md:p-7 max-w-[65%] sm:max-w-sm text-left">
+                                <h2 class="text-base sm:text-lg md:text-xl lg:text-2xl font-heading font-extrabold tracking-tight leading-tight mb-1 sm:mb-1.5" style="color: #2F1607 !important;">
+                                    Artisanal Cakes &<br>Birthday Setups
+                                </h2>
+                                <p class="font-body text-[11px] sm:text-xs mb-2.5 sm:mb-3 font-medium leading-relaxed line-clamp-2" style="color: #5A3825 !important;">
+                                    Bespoke themed cakes, champagne balloons & dessert tables
+                                </p>
+                                <span class="inline-flex items-center gap-1 px-3 sm:px-4 py-1.5 rounded-lg font-heading font-bold text-[11px] sm:text-xs shadow-md transition-all"
+                                      style="background-color: #2F1607 !important; color: #ffffff !important;">
+                                    <span style="color: #ffffff !important;">Explore Setups</span>
+                                    <i class="fa-solid fa-angle-right text-[9px] text-gray-300 group-hover:translate-x-0.5 transition-transform" style="color: #ffffff !important;"></i>
+                                </span>
+                            </div>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Swiper Initialization Script -->
+    <script>
+        (function() {
+            function initHeroSwipers() {
+                if (typeof Swiper === 'undefined') return false;
+
+                // 1. Occasion Horizontal Rail
+                var occEl = document.querySelector('.occasion-swiper');
+                if (occEl && !occEl.swiper) {
+                    new Swiper('.occasion-swiper', {
+                        slidesPerView: 'auto',
+                        spaceBetween: 14,
+                        observer: true,
+                        observeParents: true,
+                        freeMode: {
+                            enabled: true,
+                            momentum: true,
+                            momentumRatio: 0.8,
+                            momentumVelocityRatio: 0.8,
+                        },
+                        grabCursor: true,
+                        simulateTouch: true,
+                        touchStartPreventDefault: true,
+                        preventClicks: true,
+                        preventClicksPropagation: true,
+                        resistance: true,
+                        resistanceRatio: 0.85,
+                        mousewheel: {
+                            forceToAxis: true,
+                        },
+                    });
+                }
+
+                // 2. Hero Panoramic Banner Swiper
+                var bannerEl = document.querySelector('.hero-banner-swiper');
+                if (bannerEl && !bannerEl.swiper) {
+                    new Swiper('.hero-banner-swiper', {
+                        slidesPerView: 'auto',
+                        centeredSlides: true,
+                        loop: true,
+                        spaceBetween: 16,
+                        speed: 600,
+                        observer: true,
+                        observeParents: true,
+                        autoplay: {
+                            delay: 4500,
+                            disableOnInteraction: false,
+                            pauseOnMouseEnter: true,
+                        },
+                        grabCursor: true,
+                        breakpoints: {
+                            640: {
+                                spaceBetween: 20,
+                            },
+                            1024: {
+                                spaceBetween: 24,
+                            }
+                        }
+                    });
+                }
+                return true;
+            }
+
+            // Run synchronously immediately so there is zero render delay or flicker
+            if (!initHeroSwipers()) {
+                document.addEventListener('DOMContentLoaded', initHeroSwipers);
+                window.addEventListener('load', initHeroSwipers);
+            }
+        })();
+    </script>
+
+    <!-- ==========================================
+         TIER 4: VALUE & TRUST GUARANTEE BAR
+         (4 Premium Trust Pillars: Zero Advance, On-Time, All Indore Areas, Dedicated Planner)
+         ========================================== -->
+    <div class="w-full bg-[#FFFFFF] dark:bg-[#121215] border-t border-[#E6E2D8] dark:border-[#222226] py-4 sm:py-5 transition-colors select-none">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+                
+                <!-- Pillar 1: Zero Upfront Advance -->
+                <div class="trust-pillar-item flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-400/10 border border-amber-200/80 dark:border-amber-400/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 shadow-2xs">
+                        <i class="fa-solid fa-shield-halved text-base"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs sm:text-[13px] font-heading font-extrabold text-gray-900 dark:text-white leading-tight">Zero Upfront Advance</h4>
+                        <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-normal">Pay offline after setup is ready</p>
+                    </div>
+                </div>
+
+                <!-- Pillar 2: 100% On-Time Guarantee -->
+                <div class="trust-pillar-item flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-400/10 border border-emerald-200/80 dark:border-emerald-400/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-2xs">
+                        <i class="fa-solid fa-clock-rotate-left text-base"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs sm:text-[13px] font-heading font-extrabold text-gray-900 dark:text-white leading-tight">100% On-Time Setup</h4>
+                        <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-normal">Ready 1 hr before guests arrive</p>
+                    </div>
+                </div>
+
+                <!-- Pillar 3: All Indore Areas Covered -->
+                <div class="trust-pillar-item flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-400/10 border border-rose-200/80 dark:border-rose-400/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 shadow-2xs">
+                        <i class="fa-solid fa-truck-fast text-base"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs sm:text-[13px] font-heading font-extrabold text-gray-900 dark:text-white leading-tight">All Indore Covered</h4>
+                        <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-normal">Vijay Nagar, Palasia, Bypass & more</p>
+                    </div>
+                </div>
+
+                <!-- Pillar 4: Dedicated Coordinator -->
+                <div class="trust-pillar-item flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-400/10 border border-indigo-200/80 dark:border-indigo-400/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 shadow-2xs">
+                        <i class="fa-solid fa-headset text-base"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs sm:text-[13px] font-heading font-extrabold text-gray-900 dark:text-white leading-tight">Dedicated Coordinator</h4>
+                        <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-normal">Direct planner on call & WhatsApp</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 </section>
-    

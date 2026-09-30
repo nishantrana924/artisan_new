@@ -264,7 +264,7 @@
                     <textarea id="checkout-notes" rows="1" placeholder="e.g. Theme preference, timing details" class="w-full bg-[#151515] border border-primary-border p-2.5 text-xs font-body font-semibold text-white rounded-lg outline-none focus:border-gold"></textarea>
                 </div>
 
-                <button type="submit" class="w-full bg-gold hover:bg-[#C59E30] text-black py-3.5 text-center text-xs font-heading font-extrabold uppercase tracking-widest cursor-pointer rounded-lg border-none mt-2 font-bold shadow-md">
+                <button type="submit" class="w-full bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] py-3.5 text-center text-xs font-heading font-extrabold uppercase tracking-widest cursor-pointer rounded-lg border-none mt-2 font-bold shadow-md">
                     Confirm Booking Request
                 </button>
             </form>

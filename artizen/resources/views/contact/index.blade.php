@@ -13,7 +13,7 @@
 
         <!-- Page Header Banner -->
         <div class="border-b border-gray-200 dark:border-white/10 pb-6 mb-10 text-left">
-            <span class="text-[10px] font-heading font-extrabold uppercase tracking-widest text-amber-600 dark:text-amber-400 mb-2 inline-flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/40 px-3 py-1 rounded-full border border-amber-200 dark:border-amber-900/50">
+            <span class="text-[10px] font-heading font-extrabold uppercase tracking-widest text-gold mb-2 inline-flex items-center gap-1.5 bg-gold/10 px-3 py-1 rounded-full border border-gold/30">
                 <i class="fa-solid fa-headset"></i> ARTIZEN EVENT SUPPORT INDORE
             </span>
             <h1 class="font-heading font-extrabold text-3xl md:text-5xl uppercase tracking-tight text-gray-900 dark:text-white leading-tight">
@@ -62,12 +62,12 @@
                     
                     <!-- Phone Call -->
                     <div class="flex items-start gap-4">
-                        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shrink-0">
+                        <div class="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 text-gold flex items-center justify-center text-lg shrink-0">
                             <i class="fa-solid fa-phone"></i>
                         </div>
                         <div>
                             <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Phone Support</span>
-                            <a href="tel:{{ $contactInfo['phone'] }}" class="text-sm font-extrabold text-gray-900 dark:text-white hover:text-amber-600 transition-colors">
+                            <a href="tel:{{ $contactInfo['phone'] }}" class="text-sm font-extrabold text-gray-900 dark:text-white hover:text-gold transition-colors">
                                 {{ $contactInfo['phone'] }}
                             </a>
                         </div>
@@ -75,12 +75,12 @@
 
                     <!-- Email -->
                     <div class="flex items-start gap-4">
-                        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shrink-0">
+                        <div class="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 text-gold flex items-center justify-center text-lg shrink-0">
                             <i class="fa-solid fa-envelope"></i>
                         </div>
                         <div>
                             <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">Email Us</span>
-                            <a href="mailto:{{ $contactInfo['email'] }}" class="text-sm font-extrabold text-gray-900 dark:text-white hover:text-amber-600 transition-colors">
+                            <a href="mailto:{{ $contactInfo['email'] }}" class="text-sm font-extrabold text-gray-900 dark:text-white hover:text-gold transition-colors">
                                 {{ $contactInfo['email'] }}
                             </a>
                         </div>
@@ -88,7 +88,7 @@
 
                     <!-- Address -->
                     <div class="flex items-start gap-4">
-                        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shrink-0">
+                        <div class="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 text-gold flex items-center justify-center text-lg shrink-0">
                             <i class="fa-solid fa-location-dot"></i>
                         </div>
                         <div>
@@ -101,7 +101,7 @@
 
                     <!-- Business Hours -->
                     <div class="flex items-start gap-4 border-t border-gray-100 dark:border-white/5 pt-4">
-                        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shrink-0">
+                        <div class="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 text-gold flex items-center justify-center text-lg shrink-0">
                             <i class="fa-solid fa-clock"></i>
                         </div>
                         <div>
@@ -131,24 +131,24 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Your Name *</label>
-                            <input type="text" name="name" value="{{ old('name') }}" required placeholder="e.g. Priyesh Patel" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-none focus:border-amber-500">
+                            <input type="text" name="name" value="{{ old('name') }}" required placeholder="e.g. Priyesh Patel" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold">
                         </div>
 
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Phone / WhatsApp *</label>
-                            <input type="tel" name="phone" value="{{ old('phone') }}" required placeholder="e.g. 9826012345" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-none focus:border-amber-500">
+                            <input type="tel" name="phone" value="{{ old('phone') }}" required placeholder="e.g. 9826012345" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Email Address</label>
-                            <input type="email" name="email" value="{{ old('email') }}" placeholder="e.g. priyesh@example.com" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-none focus:border-amber-500">
+                            <input type="email" name="email" value="{{ old('email') }}" placeholder="e.g. priyesh@example.com" class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold">
                         </div>
 
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Event Subject / Type *</label>
-                            <select name="subject" required class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-none focus:border-amber-500">
+                            <select name="subject" required class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold">
                                 <option value="Birthday Party Setup">Birthday Party Setup</option>
                                 <option value="House Party & DJ Rigs">House Party & DJ Rigs</option>
                                 <option value="Proposal & Anniversary Decor">Proposal & Anniversary Decor</option>
@@ -162,11 +162,11 @@
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">Message / Details *</label>
-                        <textarea name="message" rows="4" required placeholder="Tell us about your event date, expected guest count, and any special decoration or sound system requirements..." class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-none focus:border-amber-500">{{ old('message') }}</textarea>
+                        <textarea name="message" rows="4" required placeholder="Tell us about your event date, expected guest count, and any special decoration or sound system requirements..." class="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold">{{ old('message') }}</textarea>
                     </div>
 
-                    <button type="submit" class="w-full py-4 bg-[#EA741D] hover:bg-[#D6630F] text-white font-heading font-extrabold text-xs uppercase tracking-widest rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-paper-plane text-white"></i> Send Message
+                    <button type="submit" class="w-full py-4 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] font-heading font-extrabold text-xs uppercase tracking-widest rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-paper-plane text-[#171719]"></i> Send Message
                     </button>
                 </form>
             </div>

@@ -1,100 +1,120 @@
 :root {
-    /* Artizen Official Brand Identity (Logo Source of Truth: #EA741D) */
-    --artizen-orange: #EA741D;
-    --artizen-black: #111111;
+    /* Brand Colors (Black + Gold + Warm White System) */
+    --color-primary: #FFD600;
+    --color-primary-hover: #E6C200;
+    --color-primary-soft: #FFF4B8;
 
-    --artizen-orange-hover: #D6630F;
-    --artizen-orange-soft: rgba(234, 116, 29, 0.08);
-    --artizen-orange-soft-border: rgba(234, 116, 29, 0.22);
-    --artizen-orange-glow: rgba(234, 116, 29, 0.15);
-    --artizen-orange-glow-strong: rgba(234, 116, 29, 0.35);
+    /* Dark Brand */
+    --color-dark: #171719;
+    --color-dark-deep: #080808;
+    --color-dark-soft: #292929;
 
-    --text-primary: #111111;
-    --text-secondary: #666666;
+    /* Light Backgrounds */
+    --color-background: #FAF9F6;
+    --color-surface: #FFFFFF;
+    --color-surface-soft: #F1EEE7;
+    --color-border: #E6E2D8;
 
-    --bg-primary: #FFFFFF;
-    --bg-soft: #FAF8F5;
+    /* Text */
+    --color-text-primary: #171719;
+    --color-text-secondary: #666666;
+    --color-text-light: #FFFFFF;
+    --color-text-muted: #999999;
 
-    --border-light: #E8E5DF;
+    /* Feedback */
+    --color-success: #237A4B;
+    --color-error: #C0392B;
+    --color-warning: #A66A00;
 
-    --success: #25D366;
-    --danger: #DC2626;
+    /* Framework & Theme Aliases */
+    --artizen-orange: var(--color-primary);
+    --artizen-orange-hover: var(--color-primary-hover);
+    --artizen-orange-soft: var(--color-primary-soft);
+    --artizen-orange-soft-border: rgba(255, 214, 0, 0.4);
+    --artizen-orange-glow: rgba(255, 214, 0, 0.2);
+    --artizen-orange-glow-strong: rgba(255, 214, 0, 0.45);
+    --artizen-black: var(--color-dark);
+
+    --text-primary: var(--color-text-primary);
+    --text-secondary: var(--color-text-secondary);
+
+    --bg-primary: var(--color-surface);
+    --bg-soft: var(--color-surface-soft);
+    --border-light: var(--color-border);
+
+    --success: var(--color-success);
+    --danger: var(--color-error);
 
     /* Theme Layout Tokens */
-    --bg-main: #FFFFFF;
-    --bg-surface: #F8F9FA;
-    --bg-card: #FFFFFF;
-    --text-main: var(--text-primary);
-    --text-muted: var(--text-secondary);
+    --bg-main: var(--color-background);
+    --bg-surface: var(--color-surface);
+    --bg-card: var(--color-surface);
+    --text-main: var(--color-text-primary);
+    --text-muted: var(--color-text-secondary);
 
     /* Borders */
-    --border-color: var(--border-light);
-    --border-hover: var(--artizen-orange);
+    --border-color: var(--color-border);
+    --border-hover: var(--color-primary);
 
     /* Branding / Accent colors */
-    --accent: var(--artizen-orange);
-    --accent-hover: var(--artizen-orange-hover);
-    --accent-text: #FFFFFF;
-    --accent-avatar-bg: #FFF3EB;
+    --accent: var(--color-primary);
+    --accent-hover: var(--color-primary-hover);
+    --accent-text: #171719;
+    --accent-avatar-bg: #FFF9D2;
 
     /* Shadows & Glows */
     --accent-glow: var(--artizen-orange-glow);
     --accent-glow-strong: var(--artizen-orange-glow-strong);
-    --accent-gradient: linear-gradient(135deg, #EA741D 0%, #FF9A4D 50%, #D6630F 100%);
-    --accent-gradient-hover: linear-gradient(135deg, #D6630F 0%, #EA741D 100%);
-    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    --accent-gradient: linear-gradient(135deg, #FFD600 0%, #FFE566 50%, #E6C200 100%);
+    --accent-gradient-hover: linear-gradient(135deg, #E6C200 0%, #FFD600 100%);
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
 
     /* Aliases */
-    --gold: var(--artizen-orange);
+    --gold: var(--color-primary);
+    --gold-hover: var(--color-primary-hover);
+    --gold-soft: var(--color-primary-soft);
 
-    /* Typography - Artizen Refined System */
+    /* Typography */
     --font-heading: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Artizen Official Design System: Dark Mode */
+/* Design System: Dark Mode */
 [data-theme="dark"] {
-    --artizen-orange: #EA741D;
-    --artizen-black: #0C0C0E;
+    --color-background: #080808;
+    --color-surface: #171719;
+    --color-surface-soft: #232326;
+    --color-border: rgba(255, 255, 255, 0.1);
 
-    --artizen-orange-hover: #F0822D;
-    --artizen-orange-soft: rgba(234, 116, 29, 0.15);
-    --artizen-orange-soft-border: rgba(234, 116, 29, 0.35);
-    --artizen-orange-glow: rgba(234, 116, 29, 0.25);
-    --artizen-orange-glow-strong: rgba(234, 116, 29, 0.5);
+    --color-text-primary: #FFFFFF;
+    --color-text-secondary: #A0A0A0;
+    --color-text-muted: #737373;
 
-    --text-primary: #FFFFFF;
-    --text-secondary: #9CA3AF;
+    --artizen-orange: #FFD600;
+    --artizen-orange-hover: #FFE033;
+    --artizen-orange-soft: rgba(255, 214, 0, 0.15);
+    --artizen-orange-soft-border: rgba(255, 214, 0, 0.35);
+    --artizen-black: #080808;
 
-    --bg-primary: #0C0C0E;
-    --bg-soft: #141416;
-
-    --border-light: rgba(255, 255, 255, 0.1);
-
-    --bg-main: #0C0C0E;
-    --bg-surface: #121214;
-    --bg-card: #1A1A1E;
+    --bg-main: #080808;
+    --bg-surface: #171719;
+    --bg-card: #1C1C1F;
     --text-main: #FFFFFF;
-    --text-muted: #9CA3AF;
+    --text-muted: #A0A0A0;
 
-    /* Borders */
     --border-color: rgba(255, 255, 255, 0.1);
-    --border-hover: var(--artizen-orange);
+    --border-hover: #FFD600;
 
-    /* Branding / Accent colors */
-    --accent: var(--artizen-orange);
-    --accent-hover: var(--artizen-orange-hover);
-    --accent-text: #FFFFFF;
-    --accent-avatar-bg: #2E1B0E;
+    --accent: #FFD600;
+    --accent-hover: #FFE033;
+    --accent-text: #171719;
+    --accent-avatar-bg: #2B2600;
 
-    /* Shadows & Glows */
-    --accent-glow: var(--artizen-orange-glow);
-    --accent-glow-strong: var(--artizen-orange-glow-strong);
-    --accent-gradient: linear-gradient(135deg, #EA741D 0%, #F0822D 100%);
-    --accent-gradient-hover: linear-gradient(135deg, #F0822D 0%, #EA741D 100%);
-    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    --accent-gradient: linear-gradient(135deg, #FFD600 0%, #FFE566 100%);
+    --accent-gradient-hover: linear-gradient(135deg, #FFE566 0%, #FFD600 100%);
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 
-    --gold: var(--artizen-orange);
+    --gold: #FFD600;
 }
 
 /* Logo inversion based on theme */
@@ -352,10 +372,10 @@ section.border-t .lg\:col-span-3,
 
 .brutalist-button,
 .outline-button,
-button,
+button:not([class*="rounded-"]),
 input,
 select {
-    border-radius: 8px !important;
+    border-radius: 8px;
 }
 
 .text-stroke-white {
@@ -478,17 +498,23 @@ select:focus {
 
 /* Header styling */
 header {
-    background: linear-gradient(180deg, rgba(10, 10, 10, 0.6), rgba(10, 10, 10, 0.35));
+    background: var(--color-surface);
 }
 
 .nav-link {
-    color: var(--text-main);
+    color: var(--color-text-secondary);
     text-decoration: none;
+    transition: color 0.2s ease;
 }
 
 .nav-link:hover,
 .nav-link:focus {
-    color: var(--accent);
+    color: #171719 !important;
+}
+
+[data-theme="dark"] .nav-link:hover,
+[data-theme="dark"] .nav-link:focus {
+    color: #FFFFFF !important;
 }
 
 /* HERO: left and right columns */
@@ -756,20 +782,20 @@ h1 {
    (keeps page `--bg-main` white but renders UI chrome dark)
    -------------------------------------------------- */
 
-/* Header and nav: dark bar */
-header {
-    background: linear-gradient(180deg, #0a0a0a 0%, rgba(10, 10, 10, 0.9) 100%);
-    color: #ffffff;
+/* Header and nav */
+header.header-premium .nav-link,
+header.header-premium a {
+    color: inherit;
 }
 
-header .nav-link,
-header a {
-    color: #ffffff;
+header.header-premium .nav-link:hover,
+header.header-premium a:not([class*="bg-"]):hover {
+    color: #171719 !important;
 }
 
-header .nav-link:hover,
-header a:hover {
-    color: var(--accent);
+[data-theme="dark"] header.header-premium .nav-link:hover,
+[data-theme="dark"] header.header-premium a:not([class*="bg-"]):hover {
+    color: #FFFFFF !important;
 }
 
 /* Cards, drawers, panels: dark surfaces */
@@ -967,13 +993,9 @@ select {
     color: #ffffff;
 }
 
-/* Footer dark links */
+/* Footer styling managed by theme utility classes */
 footer {
     background: transparent;
-}
-
-footer a {
-    color: rgba(255, 255, 255, 0.9);
 }
 
 
@@ -1150,39 +1172,51 @@ footer a {
 header.header-premium {
     background-color: #FFFFFF !important;
     background-image: none !important;
-    border: 1px solid #EAEAEA !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: 1px solid #EAEAEA !important;
+    border-radius: 0 !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.25s ease !important;
     color: #000000 !important;
+    width: 100% !important;
 }
 
-/* Scroll shrink effect */
+.header-wrapper {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+}
+
 .header-wrapper.scrolled {
-    padding-top: 0.375rem !important;
-    padding-bottom: 0.375rem !important;
+    padding: 0 !important;
 }
 
 header.header-premium.scrolled {
-    border-radius: 16px !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06) !important;
-    background-color: rgba(255, 255, 255, 0.92) !important;
+    border-radius: 0 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+    background-color: rgba(255, 255, 255, 0.96) !important;
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
 }
 
-/* Announcement Bar inside Header */
-header.header-premium .announcement-bar {
-    background-color: #FFFFFF !important;
-    border-bottom: 1px solid #EAEAEA !important;
-    color: #000000 !important;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+/* Top Bar inside Header (Smooth hide on scroll down) */
+#header-top-bar {
+    max-height: 50px;
+    opacity: 1;
+    transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, padding 0.3s ease, border-color 0.3s ease !important;
 }
 
-header.header-premium.scrolled .announcement-bar {
-    height: 0 !important;
-    border-bottom-width: 0 !important;
+header.header-premium.scrolled #header-top-bar {
+    max-height: 0 !important;
     opacity: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    border-bottom-width: 0 !important;
+    border-bottom-color: transparent !important;
     pointer-events: none !important;
+    overflow: hidden !important;
 }
 
 /* Navbar Row */
@@ -1198,21 +1232,27 @@ header.header-premium.scrolled .navbar-main-row {
 /* Header Text & Links */
 header.header-premium a,
 header.header-premium button {
-    color: #000000 !important;
+    transition: color 0.2s ease, opacity 0.2s ease;
 }
 
-header.header-premium a:hover,
-header.header-premium button:hover {
-    color: var(--artizen-orange) !important;
+header.header-premium a:not([class*="bg-"]):hover,
+header.header-premium a:not([class*="bg-"]):hover span:not([class*="bg-"]):not([class*="rounded-full"]),
+header.header-premium a:not([class*="bg-"]):hover i {
+    color: #171719 !important;
 }
 
-/* Center Navigation Links */
+[data-theme="dark"] header.header-premium a:not([class*="bg-"]):hover,
+[data-theme="dark"] header.header-premium a:not([class*="bg-"]):hover span:not([class*="bg-"]):not([class*="rounded-full"]),
+[data-theme="dark"] header.header-premium a:not([class*="bg-"]):hover i {
+    color: #FFFFFF !important;
+}
+
+/* Center Navigation Links (Clean & Subtle, No Underline Animations) */
 header.header-premium nav a {
     position: relative;
     text-decoration: none;
-    color: #000000 !important;
-    transition: color 0.3s ease !important;
-    padding: 0.5rem 0 !important;
+    transition: color 0.2s ease, opacity 0.2s ease !important;
+    padding: 0.35rem 0 !important;
     outline: none !important;
     box-shadow: none !important;
     border: none !important;
@@ -1227,23 +1267,11 @@ header.header-premium nav a:active {
 }
 
 header.header-premium nav a::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background-color: var(--artizen-orange);
-    transition: width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-header.header-premium nav a:hover::after,
-header.header-premium nav a.active-nav::after {
-    width: 100% !important;
+    display: none !important;
 }
 
 header.header-premium nav a.active-nav {
-    color: var(--artizen-orange) !important;
+    font-weight: 700 !important;
 }
 
 /* Search input styling & focus expansions */
@@ -1321,7 +1349,12 @@ header.header-premium #search-input:focus {
 
 #mobile-nav a:hover,
 #mobile-nav button:hover {
-    color: var(--artizen-orange) !important;
+    color: #171719 !important;
+}
+
+[data-theme="dark"] #mobile-nav a:hover,
+[data-theme="dark"] #mobile-nav button:hover {
+    color: #FFFFFF !important;
 }
 
 #mobile-nav #search-input-mobile {
@@ -2705,16 +2738,19 @@ header.header-premium #search-input:focus {
 
 [data-theme="dark"] header.header-premium a,
 [data-theme="dark"] header.header-premium button {
+    color: inherit;
+}
+
+[data-theme="dark"] header.header-premium a:not([class*="bg-"]):hover {
     color: #FFFFFF !important;
 }
 
-[data-theme="dark"] header.header-premium a:hover,
-[data-theme="dark"] header.header-premium button:hover {
-    color: var(--accent) !important;
+[data-theme="dark"] header.header-premium a:not([class*="bg-"]):hover i {
+    color: #FFFFFF !important;
 }
 
 [data-theme="dark"] header.header-premium nav a {
-    color: #FFFFFF !important;
+    color: inherit;
     outline: none !important;
     box-shadow: none !important;
     border: none !important;
@@ -2728,8 +2764,13 @@ header.header-premium #search-input:focus {
     border: none !important;
 }
 
+[data-theme="dark"] header.header-premium nav a::after {
+    display: none !important;
+}
+
 [data-theme="dark"] header.header-premium nav a.active-nav {
-    color: var(--accent) !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
 }
 
 [data-theme="dark"] header.header-premium #search-input {
@@ -5529,7 +5570,7 @@ body.hospitality-page nav a.active-nav,
 [data-theme="light"] body.hospitality-page nav a.active-nav,
 body.hospitality-page nav a:hover,
 [data-theme="light"] body.hospitality-page nav a:hover {
-    color: var(--artizen-orange) !important;
+    color: #171719 !important;
 }
 
 .package-detail-page,
@@ -5635,7 +5676,7 @@ html.dark body.hospitality-page nav a {
 html.dark body.hospitality-page nav a.active-nav,
 [data-theme="dark"] body.hospitality-page nav a:hover,
 html.dark body.hospitality-page nav a:hover {
-    color: var(--artizen-orange) !important;
+    color: #FFFFFF !important;
 }
 
 /* Dark mode overrides for details page elements */
@@ -5789,12 +5830,14 @@ html.dark .package-detail-page .thumbnail-btn {
 [data-theme="dark"] .package-detail-page .thumbnail-btn.border-\[\#D4A373\],
 html.dark .package-detail-page .thumbnail-btn.border-\[\#D4A373\],
 [data-theme="dark"] .package-detail-page .thumbnail-btn.border-\[\#EA741D\],
-html.dark .package-detail-page .thumbnail-btn.border-\[\#EA741D\] {
+html.dark .package-detail-page .thumbnail-btn.border-\[\#EA741D\],
+[data-theme="dark"] .package-detail-page .thumbnail-btn.border-\[\#FFD600\],
+html.dark .package-detail-page .thumbnail-btn.border-\[\#FFD600\] {
     border-color: var(--artizen-orange) !important;
 }
 
-[data-theme="dark"] .package-detail-page button[id^="addon-btn-"]:not(.bg-\[\#D4A373\]):not(.bg-\[\#EA741D\]),
-html.dark .package-detail-page button[id^="addon-btn-"]:not(.bg-\[\#D4A373\]):not(.bg-\[\#EA741D\]) {
+[data-theme="dark"] .package-detail-page button[id^="addon-btn-"]:not(.bg-\[\#D4A373\]):not(.bg-\[\#EA741D\]):not(.bg-\[\#FFD600\]),
+html.dark .package-detail-page button[id^="addon-btn-"]:not(.bg-\[\#D4A373\]):not(.bg-\[\#EA741D\]):not(.bg-\[\#FFD600\]) {
     background-color: rgba(255, 255, 255, 0.05) !important;
     border-color: rgba(255, 255, 255, 0.15) !important;
     color: var(--artizen-orange) !important;
@@ -5890,17 +5933,6 @@ html.dark .package-detail-page button[onclick="openFullGalleryModal()"] {
     color: #ffffff !important;
 }
 
-/* Maintain white text colors for dark footer components in light mode */
-[data-theme="light"] footer h1.text-white,
-[data-theme="light"] footer h2.text-white,
-[data-theme="light"] footer h3.text-white,
-[data-theme="light"] footer h4.text-white,
-[data-theme="light"] footer span.text-white,
-[data-theme="light"] footer p.text-white,
-[data-theme="light"] footer div.text-white,
-[data-theme="light"] footer a.text-white {
-    color: #ffffff !important;
-}
 
 /* Maintain white text colors for dark hero components in light mode */
 [data-theme="light"] .hero-text-container h1.text-white,

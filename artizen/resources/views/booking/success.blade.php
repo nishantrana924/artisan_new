@@ -13,7 +13,7 @@
 
             <!-- Header Title -->
             <div>
-                <span class="text-[10px] font-heading font-extrabold uppercase tracking-widest text-amber-600 dark:text-amber-400 mb-2 inline-flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/40 px-3 py-1 rounded-full border border-amber-200 dark:border-amber-900/50">
+                <span class="text-[10px] font-heading font-extrabold uppercase tracking-widest text-gold mb-2 inline-flex items-center gap-1.5 bg-gold/10 px-3 py-1 rounded-full border border-gold/30">
                     BOOKING REQUEST SUBMITTED
                 </span>
                 <h1 class="font-heading font-extrabold text-3xl md:text-4xl uppercase tracking-tight text-gray-900 dark:text-white leading-tight">
@@ -29,11 +29,11 @@
                 <div class="flex items-center justify-between border-b border-gray-200 dark:border-white/10 pb-3">
                     <div>
                         <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Booking Reference ID</span>
-                        <span class="font-heading font-black text-2xl text-amber-600 dark:text-amber-400">{{ $booking['id'] ?? 'BK-8844' }}</span>
+                        <span class="font-heading font-black text-2xl text-gold">{{ $booking['id'] ?? 'BK-8844' }}</span>
                     </div>
                     <div class="text-right">
                         <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Current Status</span>
-                        <span class="px-3 py-1 bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs font-black uppercase tracking-wider rounded-full border border-amber-300 dark:border-amber-800">
+                        <span class="px-3 py-1 bg-gold/15 text-gold text-xs font-black uppercase tracking-wider rounded-full border border-gold/30">
                             {{ $booking['status'] ?? 'PENDING' }}
                         </span>
                     </div>
@@ -91,7 +91,7 @@
                     <i class="fa-brands fa-whatsapp text-base"></i> Instant WhatsApp Confirmation
                 </a>
 
-                <a href="{{ route('booking.track', ['id' => $booking['id'] ?? '']) }}" class="w-full sm:w-auto px-5 py-3.5 bg-[#EA741D] hover:bg-[#D6630F] text-white text-xs font-extrabold uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+                <a href="{{ route('booking.track', ['id' => $booking['id'] ?? '']) }}" class="w-full sm:w-auto px-5 py-3.5 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] text-xs font-extrabold uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
                     <i class="fa-solid fa-magnifying-glass text-xs"></i> Track Live Status
                 </a>
 
