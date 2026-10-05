@@ -11,6 +11,7 @@ use App\Models\Faq;
 use App\Models\GalleryItem;
 use App\Models\Package;
 use App\Models\PackageTier;
+use App\Models\Reel;
 use App\Models\Setting;
 use App\Models\Testimonial;
 use Illuminate\Support\Facades\File;
@@ -38,6 +39,7 @@ class JsonStorageService
                     'enquiries.json' => self::readEnquiriesFromDb($default),
                     'cms.json' => self::readCmsFromDb($default),
                     'settings.json' => self::readSettingsFromDb($default),
+                    'reels.json' => self::readReelsFromDb($default),
                     default => self::readJsonFile($filename, $default)
                 };
             } catch (\Throwable $e) {
@@ -71,6 +73,7 @@ class JsonStorageService
                     'enquiries.json' => self::writeEnquiriesToDb($data),
                     'cms.json' => self::writeCmsToDb($data),
                     'settings.json' => self::writeSettingsToDb($data),
+                    'reels.json' => self::writeReelsToDb($data),
                     default => null
                 };
             } catch (\Throwable $e) {
@@ -171,34 +174,54 @@ class JsonStorageService
 
     protected static function readFaqsFromDb(array $default): array
     {
-        $faqs = Faq::orderBy('id')->get();
+        $faqs = Faq::ordered()->get();
         if ($faqs->isEmpty()) return self::readJsonFile('faqs.json', $default);
 
         return $faqs->map(function($f) {
             return [
-                'id' => $f->id,
-                'q' => $f->question,
-                'a' => $f->answer,
-                'category' => $f->category,
-                'active' => (bool)$f->is_active
+                'id'               => $f->id,
+                'q'                => $f->question,
+                'question'         => $f->question,
+                'a'                => $f->answer,
+                'answer'           => $f->answer,
+                'category'         => $f->category,
+                'active'           => (bool)$f->is_active,
+                'is_active'        => (bool)$f->is_active,
+                'show_on_home'     => (bool)$f->show_on_homepage,
+                'show_on_homepage' => (bool)$f->show_on_homepage,
+                'sort_order'       => (int)$f->sort_order,
+                'display_order'    => (int)$f->sort_order,
             ];
         })->toArray();
     }
 
     protected static function readTestimonialsFromDb(array $default): array
     {
-        $items = Testimonial::get();
+        $items = Testimonial::ordered()->get();
         if ($items->isEmpty()) return self::readJsonFile('testimonials.json', $default);
 
         return $items->map(function($t) {
             return [
-                'id' => $t->id,
-                'author' => $t->author,
-                'location' => $t->location,
-                'event_type' => $t->event_type,
-                'review' => $t->review,
-                'rating' => $t->rating,
-                'avatar' => $t->avatar
+                'id'                    => $t->id,
+                'author'                => $t->author,
+                'name'                  => $t->author,
+                'email'                 => $t->email,
+                'location'              => $t->location,
+                'event_type'            => $t->event_type,
+                'package_slug'          => $t->package_slug,
+                'title'                 => $t->title,
+                'review'                => $t->review,
+                'content'               => $t->review,
+                'rating'                => (int)$t->rating,
+                'avatar'                => $t->avatar,
+                'is_verified'           => (bool)$t->is_verified,
+                'active'                => (bool)$t->is_active,
+                'is_active'             => (bool)$t->is_active,
+                'show_on_home'          => (bool)$t->show_on_home,
+                'show_on_reviews_page'  => (bool)$t->show_on_reviews_page,
+                'show_on_event_details' => (bool)$t->show_on_event_details,
+                'sort_order'            => (int)$t->sort_order,
+                'created_at'            => $t->created_at ? $t->created_at->format('d M Y') : date('d M Y'),
             ];
         })->toArray();
     }
@@ -279,6 +302,30 @@ class JsonStorageService
         }
 
         return !empty($result) ? $result : self::readJsonFile('settings.json', $default);
+    }
+
+    protected static function readReelsFromDb(array $default): array
+    {
+        $items = Reel::orderBy('display_order', 'asc')->orderBy('id', 'asc')->get();
+        if ($items->isEmpty()) return self::readJsonFile('reels.json', $default);
+
+        return $items->map(function($r) {
+            return [
+                'id' => $r->id,
+                'category' => $r->category,
+                'badge' => $r->badge,
+                'badgeIcon' => $r->badge_icon ?? 'fa-fire',
+                'views' => $r->views ?? '1.0K',
+                'title' => $r->title,
+                'location' => $r->location ?? 'Indore',
+                'duration' => $r->duration ?? '45s',
+                'desc' => $r->description ?? '',
+                'image' => $r->image,
+                'video' => $r->video,
+                'is_active' => (bool)$r->is_active,
+                'display_order' => (int)$r->display_order,
+            ];
+        })->toArray();
     }
 
     /* =========================================================================
@@ -393,15 +440,39 @@ class JsonStorageService
 
     protected static function writeFaqsToDb(array $data): void
     {
-        foreach ($data as $f) {
-            Faq::updateOrCreate(
-                ['question' => trim($f['q'] ?? 'Question')],
-                [
-                    'answer' => trim($f['a'] ?? 'Answer'),
-                    'category' => $f['category'] ?? 'General',
-                    'is_active' => (bool)($f['active'] ?? true),
-                ]
-            );
+        $existingIds = [];
+        foreach ($data as $idx => $f) {
+            $cat = !empty($f['category']) ? strtolower(trim($f['category'])) : 'general';
+            $showOnHome = isset($f['show_on_homepage']) ? (bool)$f['show_on_homepage'] : (bool)($f['show_on_home'] ?? false);
+            $isActive = isset($f['is_active']) ? (bool)$f['is_active'] : (bool)($f['active'] ?? true);
+            $sortOrder = (int)($f['sort_order'] ?? $f['display_order'] ?? ($idx + 1));
+
+            $payload = [
+                'question'         => trim($f['q'] ?? $f['question'] ?? 'Question'),
+                'answer'           => trim($f['a'] ?? $f['answer'] ?? 'Answer'),
+                'category'         => $cat,
+                'is_active'        => $isActive,
+                'show_on_homepage' => $showOnHome,
+                'sort_order'       => $sortOrder,
+            ];
+
+            if (!empty($f['id'])) {
+                $faq = Faq::find($f['id']);
+                if ($faq) {
+                    $faq->update($payload);
+                    $existingIds[] = $faq->id;
+                } else {
+                    $payload['id'] = $f['id'];
+                    $newFaq = Faq::create($payload);
+                    $existingIds[] = $newFaq->id;
+                }
+            } else {
+                $newFaq = Faq::create($payload);
+                $existingIds[] = $newFaq->id;
+            }
+        }
+        if (!empty($existingIds)) {
+            Faq::whereNotIn('id', $existingIds)->delete();
         }
     }
 
@@ -412,13 +483,21 @@ class JsonStorageService
             Testimonial::updateOrCreate(
                 ['id' => $t['id']],
                 [
-                    'author' => trim($t['author'] ?? 'Customer'),
-                    'location' => $t['location'] ?? 'Indore',
-                    'event_type' => $t['event_type'] ?? 'Celebration',
-                    'review' => trim($t['review'] ?? ''),
-                    'rating' => (int)($t['rating'] ?? 5),
-                    'avatar' => $t['avatar'] ?? null,
-                    'is_active' => true,
+                    'author'                => trim($t['author'] ?? ($t['name'] ?? 'Customer')),
+                    'email'                 => $t['email'] ?? null,
+                    'location'              => $t['location'] ?? 'Indore, MP',
+                    'event_type'            => $t['event_type'] ?? 'Celebration',
+                    'package_slug'          => $t['package_slug'] ?? null,
+                    'title'                 => $t['title'] ?? null,
+                    'review'                => trim($t['review'] ?? ($t['content'] ?? '')),
+                    'rating'                => (int)($t['rating'] ?? 5),
+                    'avatar'                => $t['avatar'] ?? null,
+                    'is_verified'           => isset($t['is_verified']) ? (bool)$t['is_verified'] : true,
+                    'is_active'             => isset($t['is_active']) ? (bool)$t['is_active'] : (isset($t['active']) ? (bool)$t['active'] : true),
+                    'show_on_home'          => isset($t['show_on_home']) ? (bool)$t['show_on_home'] : true,
+                    'show_on_reviews_page'  => isset($t['show_on_reviews_page']) ? (bool)$t['show_on_reviews_page'] : true,
+                    'show_on_event_details' => isset($t['show_on_event_details']) ? (bool)$t['show_on_event_details'] : true,
+                    'sort_order'            => (int)($t['sort_order'] ?? 0),
                 ]
             );
         }
@@ -496,6 +575,30 @@ class JsonStorageService
                 [
                     'value' => is_array($val) ? json_encode($val) : (string)$val,
                     'group' => 'general',
+                ]
+            );
+        }
+    }
+
+    protected static function writeReelsToDb(array $data): void
+    {
+        foreach ($data as $r) {
+            if (empty($r['id'])) continue;
+            Reel::updateOrCreate(
+                ['id' => $r['id']],
+                [
+                    'title' => trim($r['title'] ?? 'Reel'),
+                    'category' => $r['category'] ?? 'birthday',
+                    'badge' => $r['badge'] ?? null,
+                    'badge_icon' => $r['badgeIcon'] ?? 'fa-fire',
+                    'views' => $r['views'] ?? '1.0K',
+                    'location' => $r['location'] ?? 'Indore',
+                    'duration' => $r['duration'] ?? '45s',
+                    'description' => $r['desc'] ?? null,
+                    'image' => $r['image'] ?? '',
+                    'video' => $r['video'] ?? '',
+                    'is_active' => (bool)($r['is_active'] ?? true),
+                    'display_order' => (int)($r['display_order'] ?? 0),
                 ]
             );
         }

@@ -1,0 +1,71 @@
+{
+    "1": {
+        "id": 1,
+        "title": "House Party",
+        "desc": "Custom packages for House Party",
+        "image": "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?q=80&w=800",
+        "tag": "decor",
+        "active": true,
+        "gallery": [],
+        "tiers": [
+            {
+                "name": "Standard Setup",
+                "slug": "neon-rooftop-party-standard",
+                "price": 7500,
+                "original_price": 9000,
+                "desc": "Complete setup including on-site decor, lighting, and coordination.",
+                "image": null,
+                "inclusions": [
+                    "On-site Setup & Decor",
+                    "LED Ambient Lighting",
+                    "Standard Logistics Fee Included"
+                ],
+                "badge": "POPULAR"
+            }
+        ]
+    },
+    "24": {
+        "id": 24,
+        "title": "Proposals",
+        "desc": "Grand marquee 'MARRY ME' giant LED letters, red carpet runner, fresh rose petals, and hurricane glass candles.",
+        "image": "/images/celebrations/marry-me-proposal.webp",
+        "tag": "proposal",
+        "active": true,
+        "gallery": [],
+        "tiers": [
+            {
+                "name": "Standard Setup",
+                "slug": "standard-setup-1",
+                "price": 8999,
+                "original_price": 10349,
+                "desc": "",
+                "image": "/images/celebrations/marry-me-proposal.webp",
+                "inclusions": [
+                    "Giant 4ft Marquee 'MARRY ME' Letters",
+                    "Fresh Red Rose Petal Pathway Trail",
+                    "30+ Glass Candle Cylinders & Votives",
+                    "Indore Private Coordination Support"
+                ],
+                "badge": "POPULAR"
+            },
+            {
+                "name": "Premium VIP Setup",
+                "slug": "premium-vip-setup-2",
+                "price": 12149,
+                "original_price": 10349,
+                "desc": "",
+                "image": "/images/celebrations/marry-me-proposal.webp",
+                "inclusions": [
+                    "Giant 4ft Marquee 'MARRY ME' Letters",
+                    "Fresh Red Rose Petal Pathway Trail",
+                    "30+ Glass Candle Cylinders & Votives",
+                    "Indore Private Coordination Support",
+                    "Upgraded Premium Decor Elements & Floral Accents",
+                    "Heavy Low-Fog & Sparkler Entry Effects",
+                    "Dedicated Senior Event Coordinator On-Site"
+                ],
+                "badge": "POPULAR"
+            }
+        ]
+    }
+}

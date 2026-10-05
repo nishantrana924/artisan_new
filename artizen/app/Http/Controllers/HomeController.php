@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use App\Services\JsonStorageService;
+use App\Models\Faq;
 
 class HomeController extends Controller
 {
@@ -70,7 +71,9 @@ class HomeController extends Controller
         $cms = JsonStorageService::read('cms.json', $defaultCms);
         $categories = JsonStorageService::read('categories.json');
         $packages = JsonStorageService::read('packages.json');
+        $faqs = Faq::active()->forHomepage()->ordered()->get();
+        $testimonials = \App\Models\Testimonial::active()->forHome()->ordered()->get();
 
-        return view('home.index', compact('cms', 'categories', 'packages'));
+        return view('home.index', compact('cms', 'categories', 'packages', 'faqs', 'testimonials'));
     }
 }

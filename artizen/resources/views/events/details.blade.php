@@ -370,332 +370,237 @@
                 </div>
             </div>
 
-            <!-- 6. CUSTOMER REVIEWS SECTION -->
+            <!-- 6. CUSTOMER REVIEWS (Package-Particular Reviews & Interactive Review Form) -->
+            @php
+                $reviewsInfo = $packageReviewsData ?? \App\Http\Controllers\ReviewController::getReviewsForPackage(
+                    $event['slug'] ?? ($slug ?? ''),
+                    $event['title'] ?? '',
+                    $event['category'] ?? ''
+                );
+                $packageReviews = $reviewsInfo['reviews'] ?? [];
+                $totalReviewsCount = $reviewsInfo['total_count'] ?? count($packageReviews);
+                $avgRating = $reviewsInfo['avg_rating'] ?? '4.9';
+                $recommendPercent = $reviewsInfo['recommend_percent'] ?? 98;
+                $displayedReviews = $packageReviews;
+                $sliderReviews = count($displayedReviews) > 0 && count($displayedReviews) < 6 
+                    ? array_merge($displayedReviews, $displayedReviews) 
+                    : $displayedReviews;
+            @endphp
+
             <div class="border border-[#E8E5DF] bg-white p-6 sm:p-7 rounded-xl text-left shadow-sm mb-10" id="reviews-section">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="font-heading font-bold text-base uppercase tracking-wider text-[#171717]">
-                        Customer Reviews
-                    </h3>
-                    <button onclick="document.getElementById('all-reviews-modal').classList.remove('hidden')"
-                        class="text-xs font-heading font-bold text-[#666666] hover:text-[#171717] border border-[#E8E5DF] hover:border-gray-400 px-3.5 py-1.5 rounded-lg transition-all inline-flex items-center gap-1.5 cursor-pointer">
-                        View All Reviews <i class="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i>
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-                    <!-- Left: Overall Rating Box -->
-                    <div class="lg:col-span-3 bg-[#FAF9F5] border border-[#E8E5DF] rounded-xl p-5 sm:p-6 flex flex-col items-center justify-center text-center">
-                        <span class="font-heading font-extrabold text-5xl text-[#171717] leading-none mb-2">4.8</span>
-                        <div class="flex items-center gap-1 text-gold text-sm mb-2">
-                            <i class="fa-solid fa-star" aria-hidden="true"></i>
-                            <i class="fa-solid fa-star" aria-hidden="true"></i>
-                            <i class="fa-solid fa-star" aria-hidden="true"></i>
-                            <i class="fa-solid fa-star" aria-hidden="true"></i>
-                            <i class="fa-solid fa-star" aria-hidden="true"></i>
-                        </div>
-                        <p class="text-xs text-[#777777] font-medium mb-3">Based on 248 reviews</p>
-                        <div class="flex flex-wrap gap-1.5 justify-center">
-                            <span class="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold">97% Recommend</span>
-                            <span class="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-semibold">Verified Buyers</span>
-                        </div>
-                    </div>
-
-                    <!-- Right: 3 Clean Review Cards -->
-                    <div class="lg:col-span-9 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <!-- Review 1 -->
-                        <div class="border border-[#E8E5DF] rounded-xl p-4 sm:p-5 bg-white flex flex-col justify-between shadow-xs">
-                            <div>
-                                <div class="flex items-start justify-between mb-3">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs shrink-0">
-                                            P
-                                        </div>
-                                        <div>
-                                            <p class="font-heading font-bold text-xs text-[#171717]">Priya Sharma</p>
-                                            <p class="text-[10px] text-[#777777]">Saket, Indore · 12 Jun 2024</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center text-gold text-[10px]">
-                                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                                    </div>
-                                </div>
-                                <span class="inline-block text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold mb-2">✓ Verified Buyer</span>
-                                <h4 class="font-heading font-bold text-xs text-[#171717] mb-1">Absolutely magical setup!</h4>
-                                <p class="text-xs text-[#555555] leading-relaxed line-clamp-4">
-                                    The team arrived on time, decorated everything exactly as shown in the photos. Balloon arch was stunning and the LED setup created such a vibe! My husband was completely surprised.
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Review 2 -->
-                        <div class="border border-[#E8E5DF] rounded-xl p-4 sm:p-5 bg-white flex flex-col justify-between shadow-xs">
-                            <div>
-                                <div class="flex items-start justify-between mb-3">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs shrink-0">
-                                            R
-                                        </div>
-                                        <div>
-                                            <p class="font-heading font-bold text-xs text-[#171717]">Rohit Verma</p>
-                                            <p class="text-[10px] text-[#777777]">Vijay Nagar, Indore · 6 Jun 2024</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center text-gold text-[10px]">
-                                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                                    </div>
-                                </div>
-                                <span class="inline-block text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold mb-2">✓ Verified Buyer</span>
-                                <h4 class="font-heading font-bold text-xs text-[#171717] mb-1">Great experience, minor delay</h4>
-                                <p class="text-xs text-[#555555] leading-relaxed line-clamp-4">
-                                    Setup was beautiful overall. Team was professional and courteous. Only issue was they arrived 20 mins late but made up for it with extra effort. Decoration quality was top-notch.
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Review 3 -->
-                        <div class="border border-[#E8E5DF] rounded-xl p-4 sm:p-5 bg-white flex flex-col justify-between shadow-xs">
-                            <div>
-                                <div class="flex items-start justify-between mb-3">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">
-                                            A
-                                        </div>
-                                        <div>
-                                            <p class="font-heading font-bold text-xs text-[#171717]">Ananya Kapoor</p>
-                                            <p class="text-[10px] text-[#777777]">Nipania, Indore · 1 Jun 2024</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center text-gold text-[10px]">
-                                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                                    </div>
-                                </div>
-                                <span class="inline-block text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold mb-2">✓ Verified Buyer</span>
-                                <h4 class="font-heading font-bold text-xs text-[#171717] mb-1">Best birthday surprise ever!</h4>
-                                <p class="text-xs text-[#555555] leading-relaxed line-clamp-4">
-                                    Booked the platinum package for my mom's 50th. The floral arch, fairy lights, and photo corner were beyond expectations. Guests couldn't stop complimenting. Customer support was responsive throughout.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 7. SIMILAR PACKAGES YOU MAY LIKE -->
-            <div class="mb-10 text-left">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="font-heading font-bold text-lg uppercase tracking-wider text-[#171717]">
-                        Similar Packages You May Like
-                    </h3>
-                    <div class="flex items-center gap-2">
-                        <button id="similar-prev" aria-label="Previous similar packages"
-                            class="w-8 h-8 rounded-lg border border-[#E8E5DF] hover:border-gray-400 bg-white text-[#171717] flex items-center justify-center shadow-xs transition-all cursor-pointer">
-                            <i class="fa-solid fa-chevron-left text-xs" aria-hidden="true"></i>
-                        </button>
-                        <button id="similar-next" aria-label="Next similar packages"
-                            class="w-8 h-8 rounded-lg border border-[#E8E5DF] hover:border-gray-400 bg-white text-[#171717] flex items-center justify-center shadow-xs transition-all cursor-pointer">
-                            <i class="fa-solid fa-chevron-right text-xs" aria-hidden="true"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div id="similar-packages-grid"
-                    class="category-row-scroll scrollbar-hide cols-4">
-                    <!-- Populated dynamically via JS with exact home page experience-cards -->
-                </div>
-            </div>
-
-            <!-- 8. EXPLORE OTHER EVENTS SWIPER SECTION -->
-            <div class="mt-14 pt-8 border-t border-[#E8E5DF] dark:border-white/10 text-left">
-                <div class="flex items-center justify-between mb-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-[#EFECE6]">
                     <div>
-                        <h3 class="font-heading font-extrabold text-lg uppercase tracking-wide text-main-text">Explore Other Events</h3>
-                        <p class="text-xs text-[#666666] dark:text-[#A1A1AA] mt-0.5 font-body">Discover more celebrations we specialise in across Indore</p>
+                        <h3 class="font-heading font-extrabold text-base sm:text-lg uppercase tracking-wider text-[#171717]">
+                            Customer Reviews
+                        </h3>
+                        <p class="text-xs text-[#777777] mt-0.5">
+                            Verified experiences for <span class="font-bold text-gray-900">{{ $event['title'] ?? 'this package' }}</span> in Indore
+                        </p>
                     </div>
-
-                    <!-- Swiper Navigation Controls & View All Button -->
-                    <div class="flex items-center gap-2">
-                        <button type="button" class="explore-prev-btn w-8 h-8 rounded-lg border border-[#E8E5DF] dark:border-white/10 bg-white dark:bg-[#141416] hover:bg-gray-100 dark:hover:bg-white/10 text-main-text flex items-center justify-center transition-all cursor-pointer shadow-xs">
-                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                    <div class="flex items-center gap-2.5 shrink-0">
+                        <button type="button" onclick="openWriteReviewModal()"
+                            class="px-4 py-2 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] text-xs font-heading font-extrabold uppercase tracking-wider rounded-xl transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                            <i class="fa-solid fa-pen-to-square text-xs" aria-hidden="true"></i> Write a Review
                         </button>
-                        <button type="button" class="explore-next-btn w-8 h-8 rounded-lg border border-[#E8E5DF] dark:border-white/10 bg-white dark:bg-[#141416] hover:bg-gray-100 dark:hover:bg-white/10 text-main-text flex items-center justify-center transition-all cursor-pointer shadow-xs">
-                            <i class="fa-solid fa-chevron-right text-xs"></i>
-                        </button>
-                        <a href="{{ route('events.index') }}"
-                            class="text-xs font-heading font-bold text-main-text border border-[#E8E5DF] dark:border-white/10 hover:border-gray-400 px-3.5 py-1.5 rounded-lg transition-all uppercase tracking-wider shrink-0 cursor-pointer ml-1">
-                            View All
+                        <a href="{{ route('reviews.index', ['package' => $event['slug'] ?? ($slug ?? ''), 'title' => $event['title'] ?? '']) }}"
+                            class="text-xs font-heading font-bold text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white border border-[#E8DFC8] dark:border-white/20 hover:border-gray-400 px-4 py-2 rounded-xl transition-all inline-flex items-center cursor-pointer shadow-2xs">
+                            View All (<span class="header-review-count">{{ $totalReviewsCount }}</span>)
                         </a>
                     </div>
                 </div>
 
-                <!-- Swiper Carousel Container -->
-                <div class="swiper explore-other-events-swiper overflow-hidden relative rounded-xl p-1">
-                    <div class="swiper-wrapper">
-                        @php
-                            $exploreList = [];
-                            if (!empty($packagesDb)) {
-                                foreach ($packagesDb as $pKey => $pCat) {
-                                    if ((string)$pKey === (string)$eventId) continue;
-                                    if (!($pCat['active'] ?? true)) continue;
-                                    $firstTier = $pCat['tiers'][0] ?? null;
-                                    if (!$firstTier) continue;
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                    <!-- Left: Overall Dynamic Rating Box -->
+                    <div class="lg:col-span-3 bg-[#FAF9F5] border border-[#E8E5DF] rounded-xl p-5 sm:p-6 flex flex-col items-center justify-center text-center">
+                        <span id="display-avg-rating" class="font-heading font-extrabold text-5xl text-[#171717] leading-none mb-2">{{ $avgRating }}</span>
+                        <div class="flex items-center gap-1 text-amber-400 text-sm mb-2">
+                            @for($s = 1; $s <= 5; $s++)
+                                <i class="fa-solid fa-star {{ $s <= round((float)$avgRating) ? 'text-amber-400' : 'text-gray-300' }}"></i>
+                            @endfor
+                        </div>
+                        <p class="text-xs text-[#777777] font-medium mb-3">Based on <span id="display-review-count" class="font-bold text-gray-900">{{ $totalReviewsCount }}</span> reviews</p>
+                        <div class="flex flex-wrap gap-1.5 justify-center mb-5">
+                            <span class="text-[11px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40 px-3 py-1 rounded-full font-bold">
+                                {{ $recommendPercent }}% Recommend
+                            </span>
+                        </div>
+                        <button type="button" onclick="openWriteReviewModal()"
+                            class="w-full py-3 px-4 bg-[#FFD600] hover:bg-[#E6C200] active:scale-[0.98] text-[#171719] text-xs font-heading font-extrabold uppercase tracking-wider rounded-xl shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer group">
+                            <i class="fa-solid fa-pen-to-square text-xs transition-transform group-hover:scale-110"></i>
+                            <span>Write a Review</span>
+                        </button>
+                    </div>
 
-                                    $primaryImg = $firstTier['image'] ?? ($pCat['image'] ?? asset('assets/images/hero/1.jpg'));
-                                    $catGallery = $pCat['gallery'] ?? [];
-                                    $allCatTiers = $pCat['tiers'] ?? [];
-                                    $nextTier = $allCatTiers[1] ?? [];
-                                    $secondaryImg = !empty($catGallery[0]) && $catGallery[0] !== $primaryImg 
-                                        ? $catGallery[0] 
-                                        : (!empty($nextTier['image']) && $nextTier['image'] !== $primaryImg 
-                                            ? $nextTier['image'] 
-                                            : ($catGallery[1] ?? ($pCat['image'] ?? $primaryImg)));
-
-                                    $cardImages = array_values(array_filter(array_unique([
-                                        $primaryImg,
-                                        $secondaryImg,
-                                        $catGallery[0] ?? '',
-                                        $catGallery[1] ?? '',
-                                        $nextTier['image'] ?? ''
-                                    ])));
-
-                                    $exploreList[] = [
-                                        'id' => $pKey,
-                                        'catTitle' => $pCat['title'] ?? 'Event Setup',
-                                        'name' => $firstTier['name'] ?? $pCat['title'],
-                                        'price' => $firstTier['price'] ?? 4999,
-                                        'desc' => $firstTier['desc'] ?? ($pCat['desc'] ?? 'Complete celebration setup with verified team and coordination.'),
-                                        'image' => $primaryImg,
-                                        'secondary_image' => $secondaryImg,
-                                        'all_images' => $cardImages,
-                                        'badge' => $firstTier['badge'] ?? 'Essential Setup',
-                                    ];
-                                }
-                            }
-
-                            // Fallback if packagesDb had fewer than 4 items
-                            if (count($exploreList) < 4) {
-                                $exploreList = [
-                                    [
-                                        'id' => 3,
-                                        'catTitle' => 'Proposal & Anniversary',
-                                        'name' => 'Proposal & Anniversary Setup',
-                                        'price' => 3999,
-                                        'desc' => 'Candlelit setup, romantic petal trail, ring box spotlight and warm ambient fairy lighting.',
-                                        'image' => 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=600&auto=format&fit=crop',
-                                        'secondary_image' => 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=600&auto=format&fit=crop',
-                                        'all_images' => [
-                                            'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=600&auto=format&fit=crop',
-                                            'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=600&auto=format&fit=crop'
-                                        ],
-                                        'badge' => 'Best Seller',
-                                    ],
-                                    [
-                                        'id' => 4,
-                                        'catTitle' => 'Kids Birthday & Cozy',
-                                        'name' => 'Kids Birthday & Cozy Setup',
-                                        'price' => 2999,
-                                        'desc' => 'Themed kids backdrop, soft play zone, organic pastel balloon arch and kids activity tables.',
-                                        'image' => 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=600&auto=format&fit=crop',
-                                        'secondary_image' => 'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?q=80&w=600&auto=format&fit=crop',
-                                        'all_images' => [
-                                            'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=600&auto=format&fit=crop',
-                                            'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?q=80&w=600&auto=format&fit=crop'
-                                        ],
-                                        'badge' => 'Popular Choice',
-                                    ],
-                                    [
-                                        'id' => 5,
-                                        'catTitle' => 'DJ & Live Acoustic',
-                                        'name' => 'DJ & Live Acoustic Nights',
-                                        'price' => 4999,
-                                        'desc' => 'Pro DJ setup, high-watt sound columns, strobes, laser lights and intelligent fog machine.',
-                                        'image' => 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=600&auto=format&fit=crop',
-                                        'secondary_image' => 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=600&auto=format&fit=crop',
-                                        'all_images' => [
-                                            'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=600&auto=format&fit=crop',
-                                            'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=600&auto=format&fit=crop'
-                                        ],
-                                        'badge' => 'Essential Setup',
-                                    ],
-                                    [
-                                        'id' => 11,
-                                        'catTitle' => 'Wedding & Sangeet',
-                                        'name' => 'Wedding & Sangeet Setup',
-                                        'price' => 14999,
-                                        'desc' => 'Grand floral mandap, royal velvet entrance runner, brass urli setup and stage illumination.',
-                                        'image' => 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=600&auto=format&fit=crop',
-                                        'secondary_image' => 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=600&auto=format&fit=crop',
-                                        'all_images' => [
-                                            'https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=600&auto=format&fit=crop',
-                                            'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=600&auto=format&fit=crop'
-                                        ],
-                                        'badge' => 'Luxury Tier',
-                                    ],
-                                    [
-                                        'id' => 2,
-                                        'catTitle' => 'House Party Rigs',
-                                        'name' => 'House Party Sound & Lights',
-                                        'price' => 5999,
-                                        'desc' => 'Compact club audio rig, RGB beam lights, smoke machine and party coordinator.',
-                                        'image' => 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=600&auto=format&fit=crop',
-                                        'secondary_image' => 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=600&auto=format&fit=crop',
-                                        'all_images' => [
-                                            'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=600&auto=format&fit=crop',
-                                            'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=600&auto=format&fit=crop'
-                                        ],
-                                        'badge' => 'Weekend Special',
-                                    ]
-                                ];
-                            }
-                        @endphp
-
-                        @foreach($exploreList as $item)
-                            @php
-                                $isGold = stripos($item['badge'], 'seller') !== false || stripos($item['badge'], 'luxury') !== false;
-                                $itemImages = !empty($item['all_images']) ? $item['all_images'] : array_filter([$item['image'], $item['secondary_image'] ?? '']);
-                            @endphp
-                            <div class="swiper-slide h-auto flex">
-                                <div class="experience-card card-tier-basic cursor-pointer w-full flex flex-col justify-between" onclick="window.location.href='{{ route('events.show', $item['id']) }}?tier=0'">
-                                    <div class="flex flex-col flex-grow">
-                                        <div class="experience-card-img-container" data-card-images='@json($itemImages)'>
-                                            <img src="{{ $item['image'] }}" alt="{{ $item['name'] }}" class="experience-card-img primary-img" loading="lazy">
-                                            @if(!empty($item['secondary_image']) && $item['secondary_image'] !== $item['image'])
-                                                <img src="{{ $item['secondary_image'] }}" alt="{{ $item['name'] }}" class="experience-card-img secondary-img" loading="lazy">
-                                            @endif
-                                            <div class="experience-card-badge {{ $isGold ? 'gold' : '' }}">{{ $item['badge'] }}</div>
-                                            @if(count($itemImages) > 1)
-                                                <div class="card-img-indicators">
-                                                    @foreach($itemImages as $i => $img)
-                                                        <span class="card-img-dot {{ $i === 0 ? 'active' : '' }}"></span>
-                                                    @endforeach
+                    <!-- Right: Swiper Package-Specific Review Cards with Autoplay Loop -->
+                    <div class="lg:col-span-9 relative flex flex-col justify-center min-w-0 overflow-hidden">
+                        <div class="swiper package-reviews-swiper w-full select-none py-1">
+                            <div class="swiper-wrapper items-stretch" id="reviews-cards-grid">
+                                @forelse($sliderReviews as $idx => $rev)
+                                    @php
+                                        $origIdx = count($displayedReviews) > 0 ? ($idx % count($displayedReviews)) : 0;
+                                    @endphp
+                                    <div class="swiper-slide h-auto">
+                                        <div onclick="openSingleReviewModal({{ $origIdx }})"
+                                             class="h-full border border-[#E8E5DF] dark:border-white/10 rounded-2xl p-4 sm:p-5 bg-white dark:bg-[#151518] hover:border-gray-400 dark:hover:border-white/30 transition-all flex flex-col justify-between shadow-2xs text-left cursor-pointer group hover:shadow-md"
+                                             role="button"
+                                             tabindex="0"
+                                             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openSingleReviewModal({{ $origIdx }});}">
+                                            <div>
+                                                <div class="flex items-start justify-between mb-3">
+                                                    <div class="flex items-center gap-2.5 min-w-0">
+                                                        <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-white/10 flex items-center justify-center font-bold text-xs shrink-0">
+                                                            {{ $rev['initial'] ?? strtoupper(substr($rev['name'] ?? 'U', 0, 1)) }}
+                                                        </div>
+                                                        <div class="min-w-0">
+                                                            <p class="font-heading font-bold text-xs text-[#171717] dark:text-white truncate">{{ $rev['name'] }}</p>
+                                                            <p class="text-[10px] text-[#777777] dark:text-gray-400 truncate">{{ $rev['location'] }} · {{ $rev['date'] }}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex items-center text-amber-400 text-[10px] shrink-0">
+                                                        @for($s = 1; $s <= 5; $s++)
+                                                            <i class="fa-solid fa-star {{ $s <= ($rev['rating'] ?? 5) ? 'text-amber-400' : 'text-gray-300' }}"></i>
+                                                        @endfor
+                                                    </div>
                                                 </div>
-                                            @endif
-                                        </div>
-                                        <div class="experience-card-header">
-                                            <h3 class="experience-card-title">{{ $item['name'] }}</h3>
-                                            <div class="experience-card-rating flex items-center gap-1">
-                                                <i class="fa-solid fa-star text-gold text-xs" aria-hidden="true"></i>
-                                                <span>4.9</span>
+                                                <p class="text-xs text-[#555555] dark:text-gray-300 leading-relaxed line-clamp-4">
+                                                    @if(strlen($rev['text'] ?? '') > 115)
+                                                        {{ \Illuminate\Support\Str::limit($rev['text'], 110, '') }}... <span class="font-bold text-gray-900 dark:text-[#FFD600] group-hover:underline">read more</span>
+                                                    @else
+                                                        {{ $rev['text'] }}
+                                                    @endif
+                                                </p>
                                             </div>
                                         </div>
-                                        <p class="experience-card-desc">{{ $item['desc'] }}</p>
                                     </div>
-
-                                    <div class="experience-card-footer mt-auto">
-                                        <div class="experience-card-price-stack">
-                                            <div class="experience-card-price">From <span>₹{{ number_format($item['price']) }}</span></div>
+                                @empty
+                                    <div class="swiper-slide w-full">
+                                        <div class="w-full py-8 text-center text-gray-500 text-xs bg-[#FAF9F5] rounded-xl border border-dashed border-[#E8E5DF]">
+                                            No reviews submitted yet for this package. Be the first to share your experience!
                                         </div>
-                                        <span class="experience-card-btn">
-                                            Book Now
-                                            <i class="fa-solid fa-chevron-right text-[10px] experience-card-arrow" aria-hidden="true"></i>
+                                    </div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 7. SIMILAR CELEBRATIONS YOU MAY LIKE (Exact Home Page Event Card UI Design & Real Catalog Data) -->
+            <div id="similar-celebrations" class="mt-14 pt-8 border-t border-[#E8E5DF] dark:border-white/10 text-left">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="font-heading font-extrabold text-lg sm:text-xl uppercase tracking-wide text-gray-950 dark:text-white">
+                            Similar Celebrations You May Like
+                        </h3>
+                        <p class="text-xs text-[#666666] dark:text-[#A1A1AA] mt-1 font-body">
+                            Handcrafted setups with end-to-end decor, sound, and on-site Indore coordination
+                        </p>
+                    </div>
+
+                    <a href="{{ route('events.index') }}"
+                        class="text-xs font-heading font-bold text-gray-900 dark:text-white border border-[#E8DFC8] dark:border-white/10 hover:border-gray-400 px-4 py-2 rounded-xl transition-all uppercase tracking-wider shrink-0 cursor-pointer shadow-xs">
+                        View All Packages
+                    </a>
+                </div>
+
+                @php
+                    $displayItems = !empty($similarCelebrations) ? $similarCelebrations : [];
+                    if (empty($displayItems)) {
+                        $allCatPkgs = \App\Services\CelebrationCatalogService::getAllPackages();
+                        $displayItems = array_slice($allCatPkgs, 0, 4);
+                    }
+                @endphp
+
+                <!-- 4-Column Responsive Grid matching Home Page Event Card UI Design Exactly -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-4">
+                    @foreach($displayItems as $simItem)
+                        @php
+                            $itemPrice = (int)$simItem['price'];
+                            $origPrice = (int)($simItem['original_price'] ?? round($itemPrice * 1.15));
+                            $eventDetailsUrl = route('events.show', ['slug' => $simItem['slug'] ?? \Illuminate\Support\Str::slug($simItem['title'])]);
+                        @endphp
+
+                        <a href="{{ $eventDetailsUrl }}" 
+                           class="block w-full bg-white rounded-2xl border border-[#E8DFC8] overflow-hidden shadow-none text-left flex flex-col justify-between h-full select-none cursor-pointer">
+                            
+                            <!-- Image Box (Aspect 4/3.8 Crisp & Clean, No Hover Zoom) -->
+                            <div class="relative w-full aspect-[4/3.8] overflow-hidden bg-[#FAF7F2] shrink-0">
+                                <img src="{{ $simItem['image'] }}" 
+                                     alt="{{ $simItem['title'] }}" 
+                                     class="w-full h-full object-cover select-none pointer-events-none" 
+                                     draggable="false"
+                                     loading="lazy">
+                                
+                                <!-- Rating Badge Top-Right -->
+                                <span class="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-xs px-2 py-0.5 rounded text-[11px] font-bold text-gray-900 flex items-center gap-1 shadow-2xs z-20">
+                                    <i class="fa-solid fa-star text-amber-400 text-[10px]"></i>
+                                    <span>{{ $simItem['rating'] ?? '4.9' }}</span>
+                                </span>
+                            </div>
+
+                            <!-- Body -->
+                            <div class="p-3 sm:p-3.5 flex flex-col justify-between flex-1">
+                                <div class="mb-2.5">
+                                    <span class="text-[9.5px] sm:text-[10px] font-heading font-extrabold uppercase tracking-wider text-[#B89700] block mb-0.5 truncate">
+                                        {{ $simItem['subcategory'] ?? ($simItem['category_name'] ?? 'Celebration Setup') }}
+                                    </span>
+                                    <h4 class="font-heading font-bold text-[13.5px] sm:text-[14.5px] text-gray-900 leading-snug line-clamp-1">
+                                        {{ $simItem['title'] }}
+                                    </h4>
+                                </div>
+
+                                <!-- Pricing Line (Discount Offer & Actual Price) -->
+                                <div class="pt-2.5 border-t border-[#F2ECE0] flex items-baseline justify-between mt-auto">
+                                    <div class="flex items-baseline gap-1.5 flex-wrap">
+                                        <span class="font-heading font-extrabold text-[15px] sm:text-base text-gray-950 tracking-tight">
+                                            ₹{{ number_format($itemPrice) }}
+                                        </span>
+                                        <span class="text-[11px] text-gray-400 line-through font-normal">
+                                            ₹{{ number_format($origPrice) }}
+                                        </span>
+                                        <span class="text-[10.5px] font-bold text-emerald-600">
+                                            15% OFF
                                         </span>
                                     </div>
                                 </div>
                             </div>
-                        @endforeach
 
-                    </div>
+                        </a>
+                    @endforeach
                 </div>
             </div>
+
+            <style>
+                /* Strictly disable all card shadows, hover animations, image zoom, and border hover transforms */
+                #similar-celebrations a,
+                #similar-celebrations a:hover,
+                #similar-celebrations a:focus,
+                #similar-celebrations a:active {
+                    box-shadow: none !important;
+                    -webkit-box-shadow: none !important;
+                    transform: none !important;
+                    -webkit-transform: none !important;
+                    transition: none !important;
+                    -webkit-transition: none !important;
+                    border-color: #E8DFC8 !important;
+                }
+                #similar-celebrations img,
+                #similar-celebrations a:hover img,
+                #similar-celebrations img:hover {
+                    transform: none !important;
+                    -webkit-transform: none !important;
+                    scale: none !important;
+                    transition: none !important;
+                    -webkit-transition: none !important;
+                    animation: none !important;
+                }
+                body.overflow-hidden,
+                html.overflow-hidden {
+                    overflow: hidden !important;
+                    height: 100% !important;
+                    touch-action: none;
+                    -webkit-overflow-scrolling: auto;
+                }
+            </style>
 
         </div>
     </div>
@@ -727,46 +632,151 @@
         </div>
     </div>
 
-    <!-- Reviews Modal for "View All Reviews" -->
-    <div id="all-reviews-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="bg-white border border-[#E8E5DF] w-full max-w-2xl rounded-xl p-6 shadow-2xl flex flex-col max-h-[90vh]">
-            <div class="flex items-center justify-between border-b border-[#E8E5DF] pb-3 mb-4">
-                <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-[#171717]">All Customer Reviews (248)</h3>
-                <button onclick="document.getElementById('all-reviews-modal').classList.add('hidden')" class="text-gray-500 hover:text-black cursor-pointer bg-transparent border-0 focus:outline-none" aria-label="Close reviews modal">
-                    <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
+    <!-- Single Review Details Modal (Read Full Review without Page Scroll) -->
+    <div id="single-review-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-[#151518] border border-[#E8E5DF] dark:border-white/10 w-full max-w-lg rounded-2xl p-6 sm:p-7 shadow-2xl flex flex-col relative text-left text-gray-900 dark:text-white max-h-[90vh]">
+            <!-- Top Row: Avatar, Reviewer Info & Close Button -->
+            <div class="flex items-start justify-between pb-4 border-b border-[#EFECE6] dark:border-white/10 mb-4">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div id="single-modal-avatar" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-white/10 flex items-center justify-center font-bold text-sm shrink-0">
+                        U
+                    </div>
+                    <div class="min-w-0">
+                        <h4 id="single-modal-author" class="font-heading font-extrabold text-sm sm:text-base text-gray-950 dark:text-white truncate">
+                            Verified Customer
+                        </h4>
+                        <p id="single-modal-meta" class="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                            Indore, MP
+                        </p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeSingleReviewModal()" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer focus:outline-none shrink-0" aria-label="Close review modal">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
-            <div class="overflow-y-auto max-h-[65vh] flex flex-col gap-4 p-1 text-left">
-                <!-- Review List -->
-                <div class="border-b border-[#E8E5DF] pb-3">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-heading font-bold text-xs text-[#171717]">Priya Sharma (Saket, Indore)</span>
-                        <div class="text-gold text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                    </div>
-                    <p class="text-xs text-[#555555]">The team arrived on time, decorated everything exactly as shown in the photos. Balloon arch was stunning and the LED setup created such a vibe!</p>
-                </div>
-                <div class="border-b border-[#E8E5DF] pb-3">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-heading font-bold text-xs text-[#171717]">Rohit Verma (Vijay Nagar, Indore)</span>
-                        <div class="text-gold text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                    </div>
-                    <p class="text-xs text-[#555555]">Setup was beautiful overall. Team was professional and courteous. Decoration quality was top-notch.</p>
-                </div>
-                <div class="border-b border-[#E8E5DF] pb-3">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-heading font-bold text-xs text-[#171717]">Ananya Kapoor (Nipania, Indore)</span>
-                        <div class="text-gold text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                    </div>
-                    <p class="text-xs text-[#555555]">Booked the platinum package for my mom's 50th. The floral arch, fairy lights, and photo corner were beyond expectations. 10/10!</p>
-                </div>
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-heading font-bold text-xs text-[#171717]">Siddharth Jain (Bypass Road, Indore)</span>
-                        <div class="text-gold text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                    </div>
-                    <p class="text-xs text-[#555555]">Everything from WhatsApp inquiry to final event setup was smooth. The team understood our vision perfectly.</p>
+
+            <!-- Rating -->
+            <div class="flex items-center gap-2 mb-4">
+                <div id="single-modal-stars" class="flex items-center text-amber-400 text-sm gap-1">
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
                 </div>
             </div>
+
+            <!-- Full Review Description Body -->
+            <div class="overflow-y-auto max-h-[50vh] pr-1 mb-5">
+                <p id="single-modal-text" class="text-xs sm:text-sm text-[#444444] dark:text-gray-300 leading-relaxed font-normal whitespace-pre-line">
+                    <!-- Loaded dynamically via JS -->
+                </p>
+            </div>
+
+            <!-- Bottom Package Tag & Close CTA -->
+            <div class="pt-3 border-t border-[#EFECE6] dark:border-white/10 flex items-center justify-between gap-3 text-xs">
+                <div class="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                    Package: <span class="font-bold text-gray-900 dark:text-white">{{ $event['title'] ?? 'Celebration Setup' }}</span>
+                </div>
+                <button type="button" onclick="closeSingleReviewModal()"
+                    class="px-4 py-2 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-800 dark:text-gray-200 font-heading font-bold text-xs rounded-xl transition-colors cursor-pointer shrink-0">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Write a Review Modal -->
+    @php
+        $reviewAuthUser = Auth::user();
+        $isReviewUserLoggedIn = $reviewAuthUser || session('user_logged_in');
+        $reviewAuthName = $reviewAuthUser ? $reviewAuthUser->name : session('user_name');
+        $reviewAuthEmail = $reviewAuthUser ? $reviewAuthUser->email : session('user_email');
+    @endphp
+
+    <div id="write-review-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-[#151518] border border-[#E8E5DF] dark:border-white/10 w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col relative text-left text-gray-900 dark:text-white">
+            <!-- Close Button -->
+            <button type="button" onclick="closeWriteReviewModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer focus:outline-none" aria-label="Close modal">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+
+            @if($isReviewUserLoggedIn)
+                <!-- Logged In: Clean Review Form -->
+                <div class="pb-3 mb-3 border-b border-gray-100 dark:border-white/10 pr-8">
+                    <h3 class="font-heading font-extrabold text-base text-[#171717] dark:text-white">Write a Review</h3>
+                    <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">Posting as <span class="font-semibold text-gray-900 dark:text-white">{{ $reviewAuthName }}</span></p>
+                </div>
+
+                <form id="write-review-form" onsubmit="submitCustomerReview(event)" class="flex flex-col gap-4">
+                    @csrf
+                    <input type="hidden" name="package_slug" value="{{ $event['slug'] ?? ($slug ?? '') }}">
+                    <input type="hidden" name="event_title" value="{{ $event['title'] ?? 'Celebration Setup' }}">
+
+                    <!-- Interactive Star Rating -->
+                    <div>
+                        <label class="block text-xs font-heading font-bold text-gray-900 dark:text-white mb-1.5">Rating *</label>
+                        <div class="flex items-center gap-2.5">
+                            <div id="star-rating-selector" class="flex items-center gap-1.5 text-2xl text-gray-300">
+                                <i class="fa-solid fa-star text-amber-400 cursor-pointer transition-colors" data-val="1" onclick="selectStarRating(1)"></i>
+                                <i class="fa-solid fa-star text-amber-400 cursor-pointer transition-colors" data-val="2" onclick="selectStarRating(2)"></i>
+                                <i class="fa-solid fa-star text-amber-400 cursor-pointer transition-colors" data-val="3" onclick="selectStarRating(3)"></i>
+                                <i class="fa-solid fa-star text-amber-400 cursor-pointer transition-colors" data-val="4" onclick="selectStarRating(4)"></i>
+                                <i class="fa-solid fa-star text-amber-400 cursor-pointer transition-colors" data-val="5" onclick="selectStarRating(5)"></i>
+                            </div>
+                            <span id="star-rating-text" class="text-xs font-bold text-emerald-600">5 Stars (Exceptional!)</span>
+                        </div>
+                        <input type="hidden" id="selected-rating-input" name="rating" value="5">
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <label class="block text-xs font-heading font-bold text-gray-900 dark:text-white mb-1">Your Review *</label>
+                        <textarea name="review" id="review-input-text" required rows="4" placeholder="How was your celebration experience? (punctuality, decor quality, team coordination)..."
+                            class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-gray-300 dark:border-white/15 bg-white dark:bg-[#1D1D22] text-[#171719] dark:text-white placeholder-gray-400 focus:border-black dark:focus:border-[#FFD600] focus:ring-0 outline-none transition-colors"></textarea>
+                    </div>
+
+                    <div id="review-form-alert" class="hidden p-3 rounded-xl text-xs font-medium"></div>
+
+                    <!-- Buttons -->
+                    <div class="pt-2 border-t border-gray-100 dark:border-white/10 flex items-center justify-end gap-2.5">
+                        <button type="button" onclick="closeWriteReviewModal()"
+                            class="px-4 py-2.5 rounded-xl border border-gray-300 dark:border-white/20 text-xs font-heading font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="submit" id="submit-review-btn"
+                            class="px-5 py-2.5 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] text-xs font-heading font-extrabold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer">
+                            <span>Submit Review</span>
+                        </button>
+                    </div>
+                </form>
+            @else
+                <!-- Logged Out: Clean, Minimal, Premium Login Modal (No unwanted text, perfectly formatted buttons) -->
+                <div class="pt-3 pb-2 text-center flex flex-col items-center justify-center">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-500/10 text-amber-500 flex items-center justify-center mb-3 shadow-xs border border-amber-200/60 dark:border-amber-500/20">
+                        <i class="fa-solid fa-user-lock text-lg"></i>
+                    </div>
+
+                    <h3 class="font-heading font-extrabold text-base sm:text-lg text-gray-950 dark:text-white mb-1.5">
+                        Sign in to leave a review
+                    </h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 max-w-xs mb-6 leading-relaxed">
+                        Log in to your account to share your verified celebration experience.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row items-center gap-3 w-full">
+                        <a href="{{ route('login', ['redirect' => url()->current()]) }}"
+                            class="flex-1 w-full py-3 px-4 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] text-xs font-heading font-extrabold uppercase tracking-wider rounded-xl transition-all shadow-sm text-center flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer">
+                            <i class="fa-solid fa-arrow-right-to-bracket text-xs"></i>
+                            <span>Log In</span>
+                        </a>
+                        <a href="{{ route('register') }}"
+                            class="flex-1 w-full py-3 px-4 border border-gray-300 dark:border-white/20 hover:bg-gray-50 dark:hover:bg-white/5 text-gray-800 dark:text-gray-200 text-xs font-heading font-bold uppercase tracking-wider rounded-xl transition-all text-center flex items-center justify-center whitespace-nowrap cursor-pointer">
+                            <span>Create Account</span>
+                        </a>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -775,6 +785,31 @@
         window.eventDatabase = @json($packagesDb ?? []);
         window.currentMatchedId = "{{ $eventId ?? 1 }}";
         window.currentMatchedTierIdx = {{ $selectedTierIdx ?? 0 }};
+        window.packageReviewsList = @json($packageReviews ?? []);
+
+        function lockBodyScroll() {
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+            document.body.classList.add('overflow-hidden');
+            document.documentElement.classList.add('overflow-hidden');
+        }
+
+        function unlockBodyScroll() {
+            const writeModal = document.getElementById('write-review-modal');
+            const singleModal = document.getElementById('single-review-modal');
+            const galleryModal = document.getElementById('full-gallery-modal');
+
+            const isAnyOpen = (writeModal && !writeModal.classList.contains('hidden')) ||
+                              (singleModal && !singleModal.classList.contains('hidden')) ||
+                              (galleryModal && !galleryModal.classList.contains('hidden'));
+
+            if (!isAnyOpen) {
+                document.body.style.overflow = '';
+                document.documentElement.style.overflow = '';
+                document.body.classList.remove('overflow-hidden');
+                document.documentElement.classList.remove('overflow-hidden');
+            }
+        }
 
         function openFullGalleryModal() {
             const modal = document.getElementById('full-gallery-modal');
@@ -808,14 +843,320 @@
             });
 
             modal.classList.remove('hidden');
+            lockBodyScroll();
         }
 
         function closeFullGalleryModal() {
             const modal = document.getElementById('full-gallery-modal');
             if (modal) modal.classList.add('hidden');
+            unlockBodyScroll();
         }
 
+        // Swiper Initialization for Package Reviews with Loop & Autoplay
+        function initPackageReviewsSwiper() {
+            const swiperEl = document.querySelector('.package-reviews-swiper');
+            if (!swiperEl || typeof Swiper === 'undefined') return;
+
+            if (window.packageReviewsSwiper && typeof window.packageReviewsSwiper.destroy === 'function') {
+                try {
+                    window.packageReviewsSwiper.destroy(true, true);
+                } catch(e) {}
+            }
+
+            const slides = swiperEl.querySelectorAll('.swiper-wrapper > .swiper-slide');
+            if (slides.length <= 0) return;
+
+            window.packageReviewsSwiper = new Swiper('.package-reviews-swiper', {
+                slidesPerView: 1.15,
+                spaceBetween: 16,
+                grabCursor: true,
+                loop: slides.length > 1,
+                loopAdditionalSlides: 2,
+                autoplay: {
+                    delay: 3200,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true,
+                },
+                speed: 750,
+                breakpoints: {
+                    640: {
+                        slidesPerView: 2,
+                        spaceBetween: 16,
+                    },
+                    1024: {
+                        slidesPerView: 2.6,
+                        spaceBetween: 20,
+                    },
+                    1280: {
+                        slidesPerView: 3,
+                        spaceBetween: 20,
+                    }
+                }
+            });
+        }
+
+        // Open Individual Review Details Modal (Background Scroll Locked)
+        function openSingleReviewModal(idx) {
+            if (window.packageReviewsSwiper && window.packageReviewsSwiper.autoplay) {
+                window.packageReviewsSwiper.autoplay.stop();
+            }
+
+            const list = window.packageReviewsList || [];
+            const rev = list[idx];
+            if (!rev) return;
+
+            const modal = document.getElementById('single-review-modal');
+            if (!modal) return;
+
+            const authorEl = document.getElementById('single-modal-author');
+            if (authorEl) authorEl.textContent = rev.name || rev.author || 'Verified Customer';
+
+            const metaEl = document.getElementById('single-modal-meta');
+            if (metaEl) metaEl.textContent = `${rev.location || 'Indore, MP'} · ${rev.date || rev.created_at || 'Recently Verified'}`;
+
+            const textEl = document.getElementById('single-modal-text');
+            if (textEl) textEl.textContent = rev.text || rev.review || '';
+
+            const avatarEl = document.getElementById('single-modal-avatar');
+            if (avatarEl) {
+                avatarEl.className = 'w-10 h-10 rounded-full bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-white/10 flex items-center justify-center font-bold text-sm shrink-0';
+                avatarEl.textContent = rev.initial || (rev.name || rev.author || 'U').charAt(0).toUpperCase();
+            }
+
+            const starsEl = document.getElementById('single-modal-stars');
+            if (starsEl) {
+                const rating = parseInt(rev.rating) || 5;
+                let starsHtml = '';
+                for (let i = 1; i <= 5; i++) {
+                    starsHtml += `<i class="fa-solid fa-star ${i <= rating ? 'text-amber-400' : 'text-gray-300 dark:text-gray-600'}"></i>`;
+                }
+                starsEl.innerHTML = starsHtml;
+            }
+
+            modal.classList.remove('hidden');
+            lockBodyScroll();
+        }
+
+        function closeSingleReviewModal() {
+            const modal = document.getElementById('single-review-modal');
+            if (modal) modal.classList.add('hidden');
+            unlockBodyScroll();
+
+            if (window.packageReviewsSwiper && window.packageReviewsSwiper.autoplay) {
+                window.packageReviewsSwiper.autoplay.start();
+            }
+        }
+
+        // Review Modal Controls & Interactive Rating
+        function openWriteReviewModal() {
+            const modal = document.getElementById('write-review-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                lockBodyScroll();
+            }
+        }
+
+        function closeWriteReviewModal() {
+            const modal = document.getElementById('write-review-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                unlockBodyScroll();
+            }
+            const alertBox = document.getElementById('review-form-alert');
+            if (alertBox) {
+                alertBox.className = 'hidden';
+                alertBox.innerHTML = '';
+            }
+        }
+
+        // Prevent background rubber-banding on touch devices for all modal overlays
+        ['write-review-modal', 'single-review-modal', 'full-gallery-modal'].forEach(function(modalId) {
+            const m = document.getElementById(modalId);
+            if (m) {
+                m.addEventListener('touchmove', function(e) {
+                    if (e.target === m) {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+            }
+        });
+
+        function selectStarRating(val) {
+            const ratingInput = document.getElementById('selected-rating-input');
+            const ratingText = document.getElementById('star-rating-text');
+            const stars = document.querySelectorAll('#star-rating-selector i');
+            if (ratingInput) ratingInput.value = val;
+
+            const ratingDescriptions = {
+                1: '1 Star (Needs Improvement)',
+                2: '2 Stars (Fair Experience)',
+                3: '3 Stars (Good Experience)',
+                4: '4 Stars (Very Good!)',
+                5: '5 Stars (Exceptional!)'
+            };
+
+            if (ratingText) {
+                ratingText.textContent = ratingDescriptions[val] || `${val} Stars`;
+                ratingText.className = val >= 4 ? 'text-xs font-bold text-emerald-600' : 'text-xs font-bold text-amber-600';
+            }
+
+            stars.forEach(s => {
+                const starVal = parseInt(s.getAttribute('data-val') || 0);
+                if (starVal <= val) {
+                    s.className = 'fa-solid fa-star text-amber-400 cursor-pointer transition-colors';
+                } else {
+                    s.className = 'fa-solid fa-star text-gray-300 cursor-pointer transition-colors';
+                }
+            });
+        }
+
+        function submitCustomerReview(e) {
+            e.preventDefault();
+            const form = document.getElementById('write-review-form');
+            const btn = document.getElementById('submit-review-btn');
+            const alertBox = document.getElementById('review-form-alert');
+            if (!form || !btn) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Submitting...';
+
+            const formData = new FormData(form);
+
+            fetch('{{ route("reviews.store") }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
+                },
+                body: formData
+            })
+            .then(async res => {
+                const data = await res.json().catch(() => ({}));
+                btn.disabled = false;
+                btn.innerHTML = '<span>Submit Review</span>';
+
+                if (!res.ok && (res.status === 401 || data.require_login)) {
+                    alertBox.className = 'p-3 rounded-xl text-xs font-medium bg-amber-50 text-amber-900 border border-amber-200 block';
+                    alertBox.innerHTML = '<i class="fa-solid fa-lock text-amber-600 mr-1.5"></i> ' + (data.message || 'Please log in to submit a review.') + ' <a href="{{ route("login") }}?redirect=' + encodeURIComponent(window.location.href) + '" class="font-bold underline ml-1">Log in here</a>';
+                    return;
+                }
+
+                if (data.success) {
+                    alertBox.className = 'p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 block';
+                    alertBox.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-600 mr-1.5"></i> ' + data.message;
+
+                    const rev = data.review;
+                    const starIcons = Array.from({length: 5}, (_, i) => 
+                        `<i class="fa-solid fa-star ${i < rev.rating ? 'text-amber-400' : 'text-gray-300'}"></i>`
+                    ).join('');
+
+                    window.packageReviewsList = window.packageReviewsList || [];
+                    window.packageReviewsList.unshift({
+                        name: rev.author,
+                        location: rev.location || 'Indore, MP',
+                        date: rev.created_at || 'Just now',
+                        rating: rev.rating,
+                        text: rev.review,
+                        initial: (rev.author || 'U').charAt(0).toUpperCase(),
+                        avatar_bg: 'bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-white/10'
+                    });
+
+                    const newCardHtml = `
+                        <div class="swiper-slide h-auto">
+                            <div onclick="openSingleReviewModal(0)"
+                                 class="h-full border border-[#E8E5DF] dark:border-white/10 rounded-2xl p-4 sm:p-5 bg-white dark:bg-[#151518] hover:border-gray-400 dark:hover:border-white/30 transition-all flex flex-col justify-between shadow-2xs text-left cursor-pointer group hover:shadow-md"
+                                 role="button"
+                                 tabindex="0">
+                                <div>
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-white/10 flex items-center justify-center font-bold text-xs shrink-0">
+                                                ${(rev.author || 'U').charAt(0).toUpperCase()}
+                                            </div>
+                                            <div class="min-w-0">
+                                                <p class="font-heading font-bold text-xs text-[#171717] dark:text-white truncate">${rev.author}</p>
+                                                <p class="text-[10px] text-[#777777] dark:text-gray-400 truncate">${rev.location} · ${rev.created_at || 'Just now'}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-amber-400 text-[10px] shrink-0">
+                                            ${starIcons}
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-[#555555] dark:text-gray-300 leading-relaxed line-clamp-4">
+                                        ${(rev.review && rev.review.length > 115) 
+                                            ? rev.review.substring(0, 110) + '... <span class="font-bold text-gray-900 dark:text-[#FFD600] group-hover:underline">read more</span>' 
+                                            : (rev.review || '')}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    const grid = document.getElementById('reviews-cards-grid');
+                    if (grid) {
+                        if (grid.children.length === 1 && grid.querySelector('.border-dashed')) {
+                            grid.innerHTML = '';
+                        }
+                        grid.insertAdjacentHTML('afterbegin', newCardHtml);
+                        initPackageReviewsSwiper();
+                    }
+
+                    document.querySelectorAll('.header-review-count').forEach(el => {
+                        const cur = parseInt(el.textContent) || 0;
+                        el.textContent = cur + 1;
+                    });
+                    const dispCount = document.getElementById('display-review-count');
+                    if (dispCount) {
+                        dispCount.textContent = (parseInt(dispCount.textContent) || 0) + 1;
+                    }
+
+                    setTimeout(() => {
+                        form.reset();
+                        selectStarRating(5);
+                        closeWriteReviewModal();
+                    }, 1400);
+
+                } else {
+                    alertBox.className = 'p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200 block';
+                    alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-600 mr-1.5"></i> ' + (data.message || 'Please check your inputs and try again.');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Submit Review</span>';
+                alertBox.className = 'p-3 rounded-xl text-xs font-medium bg-red-50 text-red-800 border border-red-200 block';
+                alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-600 mr-1.5"></i> Submission failed. Please try again.';
+            });
+        }
+
+        // Modal backdrop and escape key event listeners
+        document.addEventListener('click', function(e) {
+            const singleModal = document.getElementById('single-review-modal');
+            if (singleModal && e.target === singleModal) {
+                closeSingleReviewModal();
+            }
+            const writeModal = document.getElementById('write-review-modal');
+            if (writeModal && e.target === writeModal) {
+                closeWriteReviewModal();
+            }
+            const galleryModal = document.getElementById('full-gallery-modal');
+            if (galleryModal && e.target === galleryModal) {
+                closeFullGalleryModal();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeSingleReviewModal();
+                closeWriteReviewModal();
+                closeFullGalleryModal();
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
+            initPackageReviewsSwiper();
+
             if (typeof Swiper !== 'undefined') {
                 new Swiper('.explore-other-events-swiper', {
                     slidesPerView: 1.15,

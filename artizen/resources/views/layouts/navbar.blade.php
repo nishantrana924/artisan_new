@@ -1,29 +1,27 @@
 @php
     $categoriesList = \App\Services\JsonStorageService::read('categories.json');
-    $packagesRaw = \App\Services\JsonStorageService::read('packages.json');
+    $celebrationPackages = \App\Services\CelebrationCatalogService::getAllPackages();
     $searchItems = [];
-    foreach ($packagesRaw as $catId => $cat) {
-        if (!($cat['active'] ?? true)) continue;
-        $catTitle = $cat['title'] ?? 'Setup';
-        foreach ($cat['tiers'] ?? [] as $tIdx => $tier) {
-            $searchItems[] = [
-                'id' => (int)$catId,
-                'tier' => (int)$tIdx,
-                'title' => $tier['name'] ?? ($catTitle . ' - Tier ' . ($tIdx + 1)),
-                'category' => $catTitle,
-                'price' => isset($tier['price']) ? '₹' . number_format($tier['price']) : '',
-                'image' => !empty($tier['image']) ? $tier['image'] : (!empty($cat['image']) ? $cat['image'] : asset('assets/images/ic/artizen (2).png')),
-                'url' => route('events.show', ['slug' => $catId, 'tier' => $tIdx]),
-            ];
-        }
+    foreach ($celebrationPackages as $pkg) {
+        $searchItems[] = [
+            'id' => $pkg['id'],
+            'title' => $pkg['title'],
+            'subcategory' => $pkg['subcategory'],
+            'category' => $pkg['category_name'],
+            'category_id' => $pkg['category_id'],
+            'price' => '₹' . number_format($pkg['price']),
+            'image' => $pkg['image'],
+            'url' => route('events.show', ['slug' => $pkg['slug'] ?? \Illuminate\Support\Str::slug($pkg['title'])]),
+            'tags' => strtolower(implode(' ', array_merge([$pkg['title'], $pkg['subcategory'], $pkg['category_name'], $pkg['desc']], $pkg['tags'] ?? []))),
+        ];
     }
 @endphp
 
 <!-- Full-Width Sticky Header (Compact & Clean Design System matching reference) -->
-<header class="sticky top-0 z-50 w-full bg-white dark:bg-[#171719] border-b border-[#E6E2D8] dark:border-[#292929] shadow-xs dark:shadow-md transition-all duration-300 header-premium select-none text-[#171719] dark:text-white">
+<header class="sticky top-0 z-50 w-full bg-white dark:bg-[#171719] border-b border-[#E6E2D8] dark:border-[#292929] shadow-xs dark:shadow-md header-premium select-none text-[#171719] dark:text-white">
 
     <!-- Tier 1: Top Utility & Trust Strip (Compact, Elegant, Single Row) -->
-    <div id="header-top-bar" class="w-full bg-[#FAF9F6] dark:bg-[#0C0C0E] border-b border-[#E6E2D8] dark:border-[#232326] py-1 transition-all duration-300 overflow-hidden">
+    <div id="header-top-bar" class="w-full bg-[#FAF9F6] dark:bg-[#0C0C0E] border-b border-[#E6E2D8] dark:border-[#232326] py-1 overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between text-[11px] font-heading font-medium text-gray-700 dark:text-gray-300">
             
             <!-- Left: Location & Social Proof with Infinite Loop Rotator -->
@@ -108,7 +106,7 @@
                                value="{{ request('q', '') }}"
                                autocomplete="off"
                                placeholder="Search setups, decor, DJ, weddings, birthdays..." 
-                               class="w-full pl-10 pr-10 py-2 bg-[#FAF9F6] dark:bg-[#202024] border border-[#E6E2D8] dark:border-[#2E2E33] rounded-full text-xs font-medium text-[#171719] dark:text-white placeholder-gray-400 focus:outline-none focus:border-[#171719] dark:focus:border-white/40 focus:bg-white dark:focus:bg-[#242428] focus:ring-2 focus:ring-black/5 dark:focus:ring-white/10 transition-all shadow-2xs">
+                               class="w-full pl-10 pr-10 py-2 bg-[#FAF9F6] dark:bg-[#202024] border border-[#E6E2D8] dark:border-[#2E2E33] rounded-full text-xs font-medium text-[#171719] dark:text-white placeholder-gray-400 focus:outline-none focus:border-[#171719] dark:focus:border-white/40 focus:bg-white dark:focus:bg-[#242428] shadow-none ring-0 focus:ring-0">
                         
                         <!-- Clear 'X' Button -->
                         <button type="button" 
@@ -131,22 +129,15 @@
             <!-- Right Controls: Theme Toggle + Wishlist + Booking Cart + Login (Icon-only) + Book Setup CTA + Mobile Menu -->
             <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
 
-                <!-- 1. Theme Switcher Button -->
-                <button onclick="toggleTheme()" 
-                        class="w-9 h-9 sm:w-9.5 sm:h-9.5 rounded-full border border-[#E6E2D8] dark:border-[#2E2E33] hover:border-gray-400 dark:hover:border-gray-500 bg-[#FAF9F6] dark:bg-[#202024] hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-2xs group relative"
-                        title="Switch Theme (Dark / Light)"
+                <!-- Theme Switcher Button (Single Icon: Moon in Light, Sun in Dark) -->
+                <button type="button"
+                        id="theme-toggle-btn"
+                        onclick="toggleTheme()" 
+                        class="w-9 h-9 sm:w-9.5 sm:h-9.5 rounded-full border border-[#E6E2D8] dark:border-white/10 hover:border-gray-400 dark:hover:border-white/30 bg-[#FAF9F6] dark:bg-[#1E1E24] hover:bg-black/5 dark:hover:bg-white/10 transition-all flex items-center justify-center cursor-pointer shadow-2xs group active:scale-95"
+                        title="Switch Dark / Light Theme"
                         aria-label="Toggle Dark/Light Mode">
-                    <i id="theme-toggle-sun" class="fa-solid fa-sun text-xs text-amber-400 hidden group-hover:rotate-90 group-hover:scale-110 transition-all duration-200" aria-hidden="true"></i>
-                    <i id="theme-toggle-moon" class="fa-solid fa-moon text-xs text-gray-700 dark:text-indigo-400 group-hover:-rotate-12 group-hover:scale-110 transition-all duration-200" aria-hidden="true"></i>
+                    <i id="theme-toggle-icon" class="fa-solid fa-moon text-xs text-gray-700 transition-all duration-300 group-hover:scale-110"></i>
                 </button>
-
-                <!-- 2. Wishlist / Favorites Icon -->
-                <a href="{{ route('events.index') }}" 
-                   class="w-9 h-9 sm:w-9.5 sm:h-9.5 rounded-full border border-[#E6E2D8] dark:border-[#2E2E33] hover:border-gray-400 dark:hover:border-gray-500 bg-[#FAF9F6] dark:bg-[#202024] hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200 hover:text-rose-600 dark:hover:text-rose-400 transition-all flex items-center justify-center cursor-pointer shadow-2xs group"
-                   title="Wishlist & Saved Packages"
-                   aria-label="Favorites">
-                    <i class="fa-solid fa-heart text-xs text-gray-700 dark:text-gray-300 group-hover:text-rose-500 group-hover:scale-110 transition-all duration-200"></i>
-                </a>
 
                 <!-- 3. Booking Cart / Inquiries Icon -->
                 <a href="{{ route('booking.index') }}" 
@@ -185,479 +176,94 @@
     <div id="category-nav-ribbon" class="w-full bg-white dark:bg-[#171719] border-t border-[#E6E2D8] dark:border-[#242428] py-1.5 hidden lg:block select-none transition-colors relative z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6">
             <nav class="flex items-center justify-between xl:justify-center gap-3 lg:gap-4 xl:gap-6 font-heading text-[12px] font-semibold text-gray-800 dark:text-gray-200 whitespace-nowrap flex-nowrap">
-                
-                <!-- 1. Birthdays -->
-                <div class="mega-nav-item group py-0.5 shrink-0">
-                    <a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="flex items-center gap-1.5 py-1 hover:text-black dark:hover:text-white transition-colors {{ request('category') === 'cat-birthdays' ? 'text-black dark:text-white font-bold' : '' }}">
-                        <i class="fa-solid fa-cake-candles text-xs text-gray-500 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors"></i>
-                        <span>Birthdays</span>
-                        <i class="fa-solid fa-chevron-down text-[7px] text-gray-400 group-hover:text-black dark:group-hover:text-white group-hover:rotate-180 transition-transform duration-200 ml-0.5"></i>
-                    </a>
-                    <!-- Mega Dropdown (Centered 90vw + GSAP Curtain Motion) -->
-                    <div class="mega-dropdown-panel absolute left-1/2 -translate-x-1/2 top-full pt-3 z-50 pointer-events-none invisible before:content-[''] before:absolute before:-top-4 before:inset-x-0 before:h-6">
-                        <div class="mega-dropdown-card w-[90vw] max-w-7xl bg-white dark:bg-[#18181B] border border-[#E6E2D8] dark:border-[#2E2E33] shadow-2xl rounded-2xl overflow-hidden text-left flex">
-                            <div class="grid grid-cols-3 gap-6 flex-1 divide-x divide-gray-100 dark:divide-gray-800/80 p-6 xl:p-8">
-                                <div class="space-y-3">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Setup Themes</h6>
+                @foreach($navCategories as $cat)
+                    @php
+                        $validSubs = $cat->activeSubcategories->filter(fn($s) => !empty(trim($s->name)));
+                        $groupedSubs = $validSubs->groupBy(function($item) {
+                            return trim($item->group_name) !== '' ? trim($item->group_name) : 'Setup Themes';
+                        });
+                        $colCount = min(max($groupedSubs->count(), 1), 3);
+                    @endphp
+                    <!-- {{ $cat->title }} -->
+                    <div class="mega-nav-item group py-0.5 shrink-0">
+                        <a href="{{ route('events.index', ['category' => $cat->nav_slug]) }}" class="flex items-center gap-1.5 py-1 hover:text-black dark:hover:text-white transition-colors {{ request('category') === $cat->nav_slug ? 'text-black dark:text-white font-bold' : '' }}">
+                            <i class="{{ $cat->icon ?: 'fa-solid fa-cake-candles' }} text-xs text-gray-500 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors"></i>
+                            <span>{{ $cat->title }}</span>
+                            @if($validSubs->count() > 0)
+                                <i class="fa-solid fa-chevron-down text-[7px] text-gray-400 group-hover:text-black dark:group-hover:text-white group-hover:rotate-180 transition-transform duration-200 ml-0.5"></i>
+                            @endif
+                        </a>
+                        @if($validSubs->count() > 0)
+                            <!-- Mega Dropdown (Spacious & Balanced + GSAP Curtain Motion) -->
+                            <div class="mega-dropdown-panel absolute left-1/2 -translate-x-1/2 top-full pt-3 z-50 pointer-events-none invisible before:content-[''] before:absolute before:-top-4 before:inset-x-0 before:h-6">
+                                <div class="mega-dropdown-card w-[1060px] xl:w-[1140px] 2xl:w-[1200px] max-w-[96vw] min-h-[420px] bg-white dark:bg-[#18181B] border border-[#E6E2D8] dark:border-[#2E2E33] shadow-2xl rounded-2xl overflow-hidden text-left flex">
+                                    <div class="grid {{ $colCount === 1 ? 'grid-cols-1' : ($colCount === 2 ? 'grid-cols-2' : 'grid-cols-3') }} gap-8 xl:gap-10 flex-1 divide-x divide-gray-100 dark:divide-gray-800/80 p-7 xl:p-9">
+                                        @foreach($groupedSubs->take(3) as $groupTitle => $subs)
+                                            <div class="space-y-4 {{ !$loop->first ? 'pl-8 xl:pl-10' : '' }} flex flex-col justify-between">
+                                                <div>
+                                                    <div class="pb-2.5 mb-3.5 border-b border-gray-100 dark:border-gray-800/80">
+                                                        <h6 class="text-[12px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">{{ $groupTitle }}</h6>
+                                                    </div>
+                                                    <ul class="space-y-2.5 text-[13px] text-gray-600 dark:text-gray-300 font-normal">
+                                                        @foreach($subs->take(6) as $sub)
+                                                            <li>
+                                                                <a href="{{ route('events.index', ['category' => $cat->nav_slug, 'sub' => $sub->slug]) }}" class="flex items-center justify-between gap-3 px-2.5 py-1.5 -mx-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 hover:text-black dark:hover:text-white transition-all group/item">
+                                                                    <span class="group-hover/item:font-semibold group-hover/item:text-black dark:group-hover/item:text-white group-hover/item:translate-x-0.5 transition-all text-gray-700 dark:text-gray-200 leading-snug">{{ $sub->name }}</span>
+                                                                    @if($sub->badge)
+                                                                        @php
+                                                                            $b = strtolower($sub->badge);
+                                                                            $badgeClass = match($b) {
+                                                                                'trending' => 'bg-red-50 text-red-600 border border-red-200/60 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800/40',
+                                                                                'special'  => 'bg-purple-50 text-purple-600 border border-purple-200/60 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/40',
+                                                                                'top'      => 'bg-indigo-50 text-indigo-600 border border-indigo-200/60 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/40',
+                                                                                'new'      => 'bg-emerald-50 text-emerald-600 border border-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40',
+                                                                                default    => 'bg-amber-50 text-amber-800 border border-amber-200/60 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/40',
+                                                                            };
+                                                                        @endphp
+                                                                        <span class="text-[9.5px] font-bold {{ $badgeClass }} px-2 py-0.5 rounded-full shrink-0 shadow-2xs">{{ $sub->badge }}</span>
+                                                                    @endif
+                                                                </a>
+                                                            </li>
+                                                        @endforeach
+                                                        @if($subs->count() > 6)
+                                                            <li class="pt-1">
+                                                                <a href="{{ route('events.index', ['category' => $cat->nav_slug]) }}" class="inline-flex items-center gap-1.5 text-[11.5px] font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:underline">
+                                                                    <span>+ {{ $subs->count() - 6 }} more in {{ $groupTitle }}</span>
+                                                                    <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                                                                </a>
+                                                            </li>
+                                                        @endif
+                                                    </ul>
+                                                </div>
+                                                @if($loop->last)
+                                                    <div class="pt-4 mt-3 border-t border-gray-100 dark:border-gray-800/80">
+                                                        <a href="{{ route('events.index', ['category' => $cat->nav_slug]) }}" class="inline-flex items-center gap-2 text-[13px] font-bold text-gray-900 dark:text-[#FFD600] hover:text-[#E5B200] dark:hover:text-amber-300 transition-colors group/all">
+                                                            <span>View All {{ $cat->title }}</span>
+                                                            <i class="fa-solid fa-arrow-right text-xs group-hover/all:translate-x-1.5 transition-transform"></i>
+                                                        </a>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endforeach
                                     </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="flex items-center justify-between gap-2 py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all group/item"><span class="group-hover/item:font-medium">Balloon Arch Backdrops</span><span class="text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5 rounded-full shrink-0">Popular</span></a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="flex items-center justify-between gap-2 py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all group/item"><span class="group-hover/item:font-medium">Neon Sign Ring Arch</span><span class="text-[9px] font-bold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 px-1.5 py-0.5 rounded-full shrink-0">Trending</span></a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Pastel Floral Theme</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Club & Stage Lighting</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Cake Table Styling</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Custom Photobooths</a></li>
-                                    </ul>
-                                </div>
-                                <div class="space-y-3 pl-6">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">By Milestones</h6>
+                                    <div class="w-72 xl:w-84 2xl:w-92 self-stretch relative shrink-0 block border-l border-[#E6E2D8] dark:border-[#2E2E33] bg-gray-100 dark:bg-[#202024] overflow-hidden">
+                                        @if($cat->dropdown_image)
+                                            <img src="{{ asset($cat->dropdown_image) }}" alt="{{ $cat->title }}" class="w-full h-full object-cover block" loading="lazy">
+                                        @else
+                                            <div class="w-full h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-6 text-center">
+                                                <i class="fa-regular fa-image text-3xl mb-2 opacity-50"></i>
+                                                <span class="text-xs font-semibold">{{ $cat->title }}</span>
+                                            </div>
+                                        @endif
+                                        @if($cat->dropdown_badge)
+                                            <span class="absolute top-4 left-4 bg-[#FFD600] text-[#171719] text-[9.5px] font-heading font-extrabold uppercase px-3 py-1 rounded-full shadow-md tracking-wider z-10">{{ $cat->dropdown_badge }}</span>
+                                        @endif
                                     </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="flex items-center justify-between gap-2 py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all group/item"><span class="group-hover/item:font-medium">1st Birthday Specials</span><span class="text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5 rounded-full shrink-0">Top</span></a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Sweet 16 & 18th Years</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">21st & 25th Club Party</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">30th to 50th Jubilee</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Birthday For Her</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Birthday For Him</a></li>
-                                    </ul>
-                                </div>
-                                <div class="space-y-3 pl-6">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Experiences</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Live DJ Sound Columns</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">DSLR Photography</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Heavy Low Fog Effects</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Party Anchor & Emcee</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">LED Disco Lights</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="block pt-1 font-bold text-[#FFD600] hover:underline">View All Birthdays →</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="w-72 xl:w-80 self-stretch relative shrink-0 block border-l border-[#E6E2D8] dark:border-[#2E2E33] bg-gray-100 dark:bg-[#202024] overflow-hidden">
-                                <img src="{{ asset('images/dropdowns/birthdays.webp') }}" alt="Birthdays Celebration Setup" class="w-full h-full object-cover block" loading="lazy">
-                                <span class="absolute top-4 left-4 bg-[#FFD600] text-[#171719] text-[9.5px] font-heading font-extrabold uppercase px-2.5 py-0.5 rounded-full shadow-md tracking-wider">Popular Choice</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. House Party & DJ -->
-                <div class="mega-nav-item group py-0.5 shrink-0">
-                    <a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="flex items-center gap-1.5 py-1 hover:text-black dark:hover:text-white transition-colors {{ request('category') === 'cat-house-party' ? 'text-black dark:text-white font-bold' : '' }}">
-                        <i class="fa-solid fa-volume-high text-xs text-gray-500 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors"></i>
-                        <span>House Party & DJ</span>
-                        <i class="fa-solid fa-chevron-down text-[7px] text-gray-400 group-hover:text-black dark:group-hover:text-white group-hover:rotate-180 transition-transform duration-200 ml-0.5"></i>
-                    </a>
-                    <!-- Mega Dropdown (Centered 90vw + GSAP Curtain Motion) -->
-                    <div class="mega-dropdown-panel absolute left-1/2 -translate-x-1/2 top-full pt-3 z-50 pointer-events-none invisible before:content-[''] before:absolute before:-top-4 before:inset-x-0 before:h-6">
-                        <div class="mega-dropdown-card w-[90vw] max-w-7xl bg-white dark:bg-[#18181B] border border-[#E6E2D8] dark:border-[#2E2E33] shadow-2xl rounded-2xl overflow-hidden text-left flex">
-                            <div class="grid grid-cols-3 gap-6 flex-1 divide-x divide-gray-100 dark:divide-gray-800/80 p-6 xl:p-8">
-                                <div class="space-y-3">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Sound & DJ Rigs</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="flex items-center justify-between gap-2 py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all group/item"><span class="group-hover/item:font-medium">High-Bass Column Speakers</span><span class="text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5 rounded-full shrink-0">Popular</span></a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="flex items-center justify-between gap-2 py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all group/item"><span class="group-hover/item:font-medium">Live Mixing DJ Console</span><span class="text-[9px] font-bold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 px-1.5 py-0.5 rounded-full shrink-0">New</span></a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Active Dual Speakers</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Wireless Karaoke Mics</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Bluetooth Plug & Play</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Power Amplifiers</a></li>
-                                    </ul>
-                                </div>
-                                <div class="space-y-3 pl-6">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Lighting & FX</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Sound-Active Strobes</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Heavy Smoke Machines</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Laser & Disco Pars</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">RGB Ambient Washes</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Club Lighting Stands</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Moving Beam Spots</a></li>
-                                    </ul>
-                                </div>
-                                <div class="space-y-3 pl-6">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Venues</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Rooftop & Terrace Bash</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Living Room & Flat</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Farmhouse & Poolside</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Basement Club Setup</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Lawn & Garden Rig</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="block pt-1 font-bold text-[#FFD600] hover:underline">View All House Party →</a></li>
-                                    </ul>
                                 </div>
                             </div>
-                            <a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="w-72 xl:w-80 self-stretch relative shrink-0 block border-l border-[#E6E2D8] dark:border-[#2E2E33] bg-gray-100 dark:bg-[#202024] overflow-hidden">
-                                <img src="{{ asset('images/dropdowns/house-party.webp') }}" alt="House Party DJ Sound Rig" class="w-full h-full object-cover block" loading="lazy">
-                                <span class="absolute top-4 left-4 bg-[#FFD600] text-[#171719] text-[9.5px] font-heading font-extrabold uppercase px-2.5 py-0.5 rounded-full shadow-md tracking-wider">Party Rigs</span>
-                            </a>
-                        </div>
+                        @endif
                     </div>
-                </div>
-
-                <!-- 3. Proposals -->
-                <div class="mega-nav-item group py-0.5 shrink-0">
-                    <a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="flex items-center gap-1.5 py-1 hover:text-black dark:hover:text-white transition-colors {{ request('category') === 'cat-proposal-anniversary' ? 'text-black dark:text-white font-bold' : '' }}">
-                        <i class="fa-regular fa-heart text-xs text-gray-500 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors"></i>
-                        <span>Proposals</span>
-                        <i class="fa-solid fa-chevron-down text-[7px] text-gray-400 group-hover:text-black dark:group-hover:text-white group-hover:rotate-180 transition-transform duration-200 ml-0.5"></i>
-                    </a>
-                    <!-- Mega Dropdown (Centered 90vw + GSAP Curtain Motion) -->
-                    <div class="mega-dropdown-panel absolute left-1/2 -translate-x-1/2 top-full pt-3 z-50 pointer-events-none invisible before:content-[''] before:absolute before:-top-4 before:inset-x-0 before:h-6">
-                        <div class="mega-dropdown-card w-[90vw] max-w-7xl bg-white dark:bg-[#18181B] border border-[#E6E2D8] dark:border-[#2E2E33] shadow-2xl rounded-2xl overflow-hidden text-left flex">
-                            <div class="grid grid-cols-3 gap-6 flex-1 divide-x divide-gray-100 dark:divide-gray-800/80 p-6 xl:p-8">
-                                <div class="space-y-3">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Romantic Setups</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="flex items-center justify-between gap-2 py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all group/item"><span class="group-hover/item:font-medium">'Marry Me' Neon Arch</span><span class="text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5 rounded-full shrink-0">Top</span></a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Candlelight Pathway Trail</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Rose Petal Heart Carpet</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Fairy Light Cabana</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Floral Ring Cylinders</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Romantic Sunset Terrace</a></li>
-                                    </ul>
-                                </div>
-                                <div class="space-y-3 pl-6">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Proposal Venues</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Private Rooftop Terrace</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Hotel Balcony Decor</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Garden & Lawn Cabana</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Farmhouse Romantic Trail</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Living Room Surprise</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Secret Outdoor Sunset Spot</a></li>
-                                    </ul>
-                                </div>
-                                <div class="space-y-3 pl-6">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Surprise Add-ons</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="flex items-center justify-between gap-2 py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all group/item"><span class="group-hover/item:font-medium">Live Violinist Entry</span><span class="text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5 rounded-full shrink-0">New</span></a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Cold Pyro Fireworks</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Surprise DSLR Shoot</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Champagne & Cake Table</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Giant Lighted Letters</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block pt-1 font-bold text-[#FFD600] hover:underline">View All Proposals →</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="w-72 xl:w-80 self-stretch relative shrink-0 block border-l border-[#E6E2D8] dark:border-[#2E2E33] bg-gray-100 dark:bg-[#202024] overflow-hidden">
-                                <img src="{{ asset('images/dropdowns/proposals.webp') }}" alt="Romantic Proposal Setup" class="w-full h-full object-cover block" loading="lazy">
-                                <span class="absolute top-4 left-4 bg-[#FFD600] text-[#171719] text-[9.5px] font-heading font-extrabold uppercase px-2.5 py-0.5 rounded-full shadow-md tracking-wider">Romantic Special</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 4. Anniversaries -->
-                <div class="mega-nav-item group py-0.5 shrink-0">
-                    <a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="flex items-center gap-1.5 py-1 hover:text-black dark:hover:text-white transition-colors">
-                        <i class="fa-regular fa-gem text-xs text-gray-500 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors"></i>
-                        <span>Anniversaries</span>
-                        <i class="fa-solid fa-chevron-down text-[7px] text-gray-400 group-hover:text-black dark:group-hover:text-white group-hover:rotate-180 transition-transform duration-200 ml-0.5"></i>
-                    </a>
-                    <!-- Mega Dropdown (Centered 90vw + GSAP Curtain Motion) -->
-                    <div class="mega-dropdown-panel absolute left-1/2 -translate-x-1/2 top-full pt-3 z-50 pointer-events-none invisible before:content-[''] before:absolute before:-top-4 before:inset-x-0 before:h-6">
-                        <div class="mega-dropdown-card w-[90vw] max-w-7xl bg-white dark:bg-[#18181B] border border-[#E6E2D8] dark:border-[#2E2E33] shadow-2xl rounded-2xl overflow-hidden text-left flex">
-                            <div class="grid grid-cols-3 gap-6 flex-1 divide-x divide-gray-100 dark:divide-gray-800/80 p-6 xl:p-8">
-                                <div class="space-y-3">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Milestones</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="flex items-center justify-between gap-2 py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all group/item"><span class="group-hover/item:font-medium">1st Paper Anniversary</span><span class="text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5 rounded-full shrink-0">Top</span></a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">5th & 10th Milestones</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="flex items-center justify-between gap-2 py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all group/item"><span class="group-hover/item:font-medium">25th Silver Jubilee</span><span class="text-[9px] font-bold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 px-1.5 py-0.5 rounded-full shrink-0">Special</span></a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">50th Golden Jubilee</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Parents Anniversary</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Grand Floral Backdrop</a></li>
-                                    </ul>
-                                </div>
-                                <div class="space-y-3 pl-6">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Romantic Decor</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Warm Fairy Lights</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Candlelight Dinner Table</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Floral Ring Backdrop</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Memory Photo Wall</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Neon Love Signs</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Red Carpet Walkway</a></li>
-                                    </ul>
-                                </div>
-                                <div class="space-y-3 pl-6">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Music & Sound</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Live Acoustic Guitarist</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Bollywood Unplugged</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Dual Column Speakers</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Couple Photography</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Montage Projector</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="block pt-1 font-bold text-[#FFD600] hover:underline">View All Anniversaries →</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="w-72 xl:w-80 self-stretch relative shrink-0 block border-l border-[#E6E2D8] dark:border-[#2E2E33] bg-gray-100 dark:bg-[#202024] overflow-hidden">
-                                <img src="{{ asset('images/dropdowns/anniversaries.webp') }}" alt="Anniversary Celebration Decor" class="w-full h-full object-cover block" loading="lazy">
-                                <span class="absolute top-4 left-4 bg-[#FFD600] text-[#171719] text-[9.5px] font-heading font-extrabold uppercase px-2.5 py-0.5 rounded-full shadow-md tracking-wider">Celebrate Love</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 5. Weddings & Sangeet -->
-                <div class="mega-nav-item group py-0.5 shrink-0">
-                    <a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="flex items-center gap-1.5 py-1 hover:text-black dark:hover:text-white transition-colors {{ request('category') === 'cat-weddings-sangeet' ? 'text-black dark:text-white font-bold' : '' }}">
-                        <i class="fa-solid fa-ring text-xs text-gray-500 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors"></i>
-                        <span>Weddings & Sangeet</span>
-                        <i class="fa-solid fa-chevron-down text-[7px] text-gray-400 group-hover:text-black dark:group-hover:text-white group-hover:rotate-180 transition-transform duration-200 ml-0.5"></i>
-                    </a>
-                    <!-- Mega Dropdown (Centered 90vw + GSAP Curtain Motion) -->
-                    <div class="mega-dropdown-panel absolute left-1/2 -translate-x-1/2 top-full pt-3 z-50 pointer-events-none invisible before:content-[''] before:absolute before:-top-4 before:inset-x-0 before:h-6">
-                        <div class="mega-dropdown-card w-[90vw] max-w-7xl bg-white dark:bg-[#18181B] border border-[#E6E2D8] dark:border-[#2E2E33] shadow-2xl rounded-2xl overflow-hidden text-left flex">
-                            <div class="grid grid-cols-3 gap-6 flex-1 divide-x divide-gray-100 dark:divide-gray-800/80 p-6 xl:p-8">
-                                <div class="space-y-3">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Pre-Wedding Events</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="flex items-center justify-between gap-2 py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all group/item"><span class="group-hover/item:font-medium">Haldi Brass Urli Setup</span><span class="text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5 rounded-full shrink-0">Top</span></a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Mehendi Colorful Drapes</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Sangeet DJ & Dance Stage</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Cocktail Club Lighting</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Ring Ceremony Stage</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Grand Entrance Arch</a></li>
-                                    </ul>
-                                </div>
-                                <div class="space-y-3 pl-6">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Stage & Decor</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Marigold & Genda Decor</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Pastel Mandap Setups</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Bolsters & Diwan Seating</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">LED Par Light Ambient Washes</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Brass Props & Hanging Bells</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Royal Photobooths</a></li>
-                                    </ul>
-                                </div>
-                                <div class="space-y-3 pl-6">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Music & FX</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="flex items-center justify-between gap-2 py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all group/item"><span class="group-hover/item:font-medium">High-Power DJ Rigs</span><span class="text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5 rounded-full shrink-0">Top</span></a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Punjabi Dhol Players</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">LED Truss Stage Lighting</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Cold Pyro & Low-Fog Entry</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Audio Mixing Console Board</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="block pt-1 font-bold text-[#FFD600] hover:underline">View All Weddings →</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="w-72 xl:w-80 self-stretch relative shrink-0 block border-l border-[#E6E2D8] dark:border-[#2E2E33] bg-gray-100 dark:bg-[#202024] overflow-hidden">
-                                <img src="{{ asset('images/dropdowns/weddings-sangeet.webp') }}" alt="Weddings & Haldi Decor" class="w-full h-full object-cover block" loading="lazy">
-                                <span class="absolute top-4 left-4 bg-[#FFD600] text-[#171719] text-[9.5px] font-heading font-extrabold uppercase px-2.5 py-0.5 rounded-full shadow-md tracking-wider">Royal Setup</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 6. Baby Shower & Kids -->
-                <div class="mega-nav-item group py-0.5 shrink-0">
-                    <a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="flex items-center gap-1.5 py-1 hover:text-black dark:hover:text-white transition-colors {{ request('category') === 'cat-kids-cozy' ? 'text-black dark:text-white font-bold' : '' }}">
-                        <i class="fa-solid fa-child text-xs text-gray-500 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors"></i>
-                        <span>Baby Shower & Kids</span>
-                        <i class="fa-solid fa-chevron-down text-[7px] text-gray-400 group-hover:text-black dark:group-hover:text-white group-hover:rotate-180 transition-transform duration-200 ml-0.5"></i>
-                    </a>
-                    <!-- Mega Dropdown (Centered 90vw + GSAP Curtain Motion) -->
-                    <div class="mega-dropdown-panel absolute left-1/2 -translate-x-1/2 top-full pt-3 z-50 pointer-events-none invisible before:content-[''] before:absolute before:-top-4 before:inset-x-0 before:h-6">
-                        <div class="mega-dropdown-card w-[90vw] max-w-7xl bg-white dark:bg-[#18181B] border border-[#E6E2D8] dark:border-[#2E2E33] shadow-2xl rounded-2xl overflow-hidden text-left flex">
-                            <div class="grid grid-cols-3 gap-6 flex-1 divide-x divide-gray-100 dark:divide-gray-800/80 p-6 xl:p-8">
-                                <div class="space-y-3">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Baby Shower</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="flex items-center justify-between gap-2 py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all group/item"><span class="group-hover/item:font-medium">Pastel Balloon Arch</span><span class="text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5 rounded-full shrink-0">Top</span></a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Gender Reveal Smoke & Props</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">'Oh Baby' Golden Neon Signs</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Mom-to-Be Throne Chair</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Teddy Bear Backdrop Setup</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Baby Shower Custom Cutouts</a></li>
-                                    </ul>
-                                </div>
-                                <div class="space-y-3 pl-6">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Kids Themes</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="flex items-center justify-between gap-2 py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all group/item"><span class="group-hover/item:font-medium">Jungle Safari Wonderland</span><span class="text-[9px] font-bold bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 px-1.5 py-0.5 rounded-full shrink-0">Popular</span></a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Space & Astronaut Adventure</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Princess Castle & Fairy Tale</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Dinosaur & Jurassic Theme</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Superhero Avengers Stage</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Cartoon & Cocomelon Styling</a></li>
-                                    </ul>
-                                </div>
-                                <div class="space-y-3 pl-6">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Experiences</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Cozy Teepee Tent Village</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Kids Party PA Sound & Mic</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Magic Show & Game Host</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Balloon Sculptor & Painter</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Bubble Machine & Popcorn</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="block pt-1 font-bold text-[#FFD600] hover:underline">View All Kids Setups →</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="w-72 xl:w-80 self-stretch relative shrink-0 block border-l border-[#E6E2D8] dark:border-[#2E2E33] bg-gray-100 dark:bg-[#202024] overflow-hidden">
-                                <img src="{{ asset('images/dropdowns/baby-shower-kids.webp') }}" alt="Baby Shower & Kids Celebration" class="w-full h-full object-cover block" loading="lazy">
-                                <span class="absolute top-4 left-4 bg-[#FFD600] text-[#171719] text-[9.5px] font-heading font-extrabold uppercase px-2.5 py-0.5 rounded-full shadow-md tracking-wider">Sweet Moments</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 7. Corporate Events -->
-                <div class="mega-nav-item group py-0.5 shrink-0">
-                    <a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="flex items-center gap-1.5 py-1 hover:text-black dark:hover:text-white transition-colors {{ request('category') === 'cat-baby-corporate' ? 'text-black dark:text-white font-bold' : '' }}">
-                        <i class="fa-solid fa-briefcase text-xs text-gray-500 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors"></i>
-                        <span>Corporate Events</span>
-                        <i class="fa-solid fa-chevron-down text-[7px] text-gray-400 group-hover:text-black dark:group-hover:text-white group-hover:rotate-180 transition-transform duration-200 ml-0.5"></i>
-                    </a>
-                    <!-- Mega Dropdown (Centered 90vw + GSAP Curtain Motion) -->
-                    <div class="mega-dropdown-panel absolute left-1/2 -translate-x-1/2 top-full pt-3 z-50 pointer-events-none invisible before:content-[''] before:absolute before:-top-4 before:inset-x-0 before:h-6">
-                        <div class="mega-dropdown-card w-[90vw] max-w-7xl bg-white dark:bg-[#18181B] border border-[#E6E2D8] dark:border-[#2E2E33] shadow-2xl rounded-2xl overflow-hidden text-left flex">
-                            <div class="grid grid-cols-3 gap-6 flex-1 divide-x divide-gray-100 dark:divide-gray-800/80 p-6 xl:p-8">
-                                <div class="space-y-3">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Seminars & AV</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="flex items-center justify-between gap-2 py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all group/item"><span class="group-hover/item:font-medium">Dual PA Sound Columns</span><span class="text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5 rounded-full shrink-0">Top</span></a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Podium & Wireless Lapel Mics</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Stage Presentation Backdrop</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">LED Projector & Screen</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Audio Mixer & Technician</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Registration Counter Desk</a></li>
-                                    </ul>
-                                </div>
-                                <div class="space-y-3 pl-6">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Galas & Nights</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Annual Day & Awards Stage</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">VIP Red Carpet & Selfie Booth</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Corporate DJ & Dance Party</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Ambient Stage Light Washes</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Stage Truss & Follow Spotlight</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Product Launch Reveal Setup</a></li>
-                                    </ul>
-                                </div>
-                                <div class="space-y-3 pl-6">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Office Events</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Festive Office Decor & Lights</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Team Farewell & Welcome Party</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Standup Comedy Open Mic</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Networking Cocktail Sound</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Custom Brand Backdrops</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="block pt-1 font-bold text-[#FFD600] hover:underline">View All Corporate →</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" class="w-72 xl:w-80 self-stretch relative shrink-0 block border-l border-[#E6E2D8] dark:border-[#2E2E33] bg-gray-100 dark:bg-[#202024] overflow-hidden">
-                                <img src="{{ asset('images/dropdowns/corporate-events.webp') }}" alt="Corporate Summit & Conference Stage" class="w-full h-full object-cover block" loading="lazy">
-                                <span class="absolute top-4 left-4 bg-[#FFD600] text-[#171719] text-[9.5px] font-heading font-extrabold uppercase px-2.5 py-0.5 rounded-full shadow-md tracking-wider">Pro Audio & Stages</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 8. Live DJ & Acoustic -->
-                <div class="mega-nav-item group py-0.5 shrink-0">
-                    <a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="flex items-center gap-1.5 py-1 hover:text-black dark:hover:text-white transition-colors {{ request('category') === 'cat-dj-acoustic' ? 'text-black dark:text-white font-bold' : '' }}">
-                        <i class="fa-solid fa-music text-xs text-gray-500 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors"></i>
-                        <span>Live DJ & Acoustic</span>
-                        <i class="fa-solid fa-chevron-down text-[7px] text-gray-400 group-hover:text-black dark:group-hover:text-white group-hover:rotate-180 transition-transform duration-200 ml-0.5"></i>
-                    </a>
-                    <!-- Mega Dropdown (Centered 90vw + GSAP Curtain Motion) -->
-                    <div class="mega-dropdown-panel absolute left-1/2 -translate-x-1/2 top-full pt-3 z-50 pointer-events-none invisible before:content-[''] before:absolute before:-top-4 before:inset-x-0 before:h-6">
-                        <div class="mega-dropdown-card w-[90vw] max-w-7xl bg-white dark:bg-[#18181B] border border-[#E6E2D8] dark:border-[#2E2E33] shadow-2xl rounded-2xl overflow-hidden text-left flex">
-                            <div class="grid grid-cols-3 gap-6 flex-1 divide-x divide-gray-100 dark:divide-gray-800/80 p-6 xl:p-8">
-                                <div class="space-y-3">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">DJ Consoles</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="flex items-center justify-between gap-2 py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all group/item"><span class="group-hover/item:font-medium">Live Mixing Club DJ</span><span class="text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5 rounded-full shrink-0">Top</span></a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Pioneer DJ Console Setup</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Dual Bass Subwoofers</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Illuminated DJ Facade Booth</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Bollywood, Punjabi & EDM Set</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Private House Party DJ</a></li>
-                                    </ul>
-                                </div>
-                                <div class="space-y-3 pl-6">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Acoustic Artists</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="flex items-center justify-between gap-2 py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all group/item"><span class="group-hover/item:font-medium">Singer & Acoustic Guitarist</span><span class="text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.5 rounded-full shrink-0">Top</span></a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Sufi & Bollywood Unplugged</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Live Violinist / Sax Entry</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">2-Piece Acoustic Duo Band</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Cocktail Dinner Music</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Vocal Mics & Stage Monitor</a></li>
-                                    </ul>
-                                </div>
-                                <div class="space-y-3 pl-6">
-                                    <div class="pb-2 border-b border-gray-100 dark:border-gray-800">
-                                        <h6 class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Concert FX & Lights</h6>
-                                    </div>
-                                    <ul class="space-y-2 text-[12.5px] text-gray-600 dark:text-gray-300 font-normal">
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Heavy Fog & Dry Ice Effects</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Sound-Sync Strobe & Pars</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Stage Truss & Beam Sharpys</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Cold Pyro Firework Fountains</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block py-0.5 hover:text-black dark:hover:text-white hover:translate-x-0.5 transition-all">Atmospheric Laser Show</a></li>
-                                        <li><a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="block pt-1 font-bold text-[#FFD600] hover:underline">View All Music →</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" class="w-72 xl:w-80 self-stretch relative shrink-0 block border-l border-[#E6E2D8] dark:border-[#2E2E33] bg-gray-100 dark:bg-[#202024] overflow-hidden">
-                                <img src="{{ asset('images/dropdowns/live-dj-acoustic.webp') }}" alt="Live Acoustic & DJ Artists" class="w-full h-full object-cover block" loading="lazy">
-                                <span class="absolute top-4 left-4 bg-[#FFD600] text-[#171719] text-[9.5px] font-heading font-extrabold uppercase px-2.5 py-0.5 rounded-full shadow-md tracking-wider">Live Artists</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
+                @endforeach
             </nav>
         </div>
     </div>
@@ -665,7 +271,7 @@
 
 <!-- Mobile Drawer Slide-in Navigation Menu -->
 <div id="mobile-nav"
-    class="fixed inset-y-0 right-0 z-[100] w-full max-w-[320px] bg-white dark:bg-[#171719] text-[#171719] dark:text-white p-6 flex flex-col justify-between transform translate-x-full transition-transform duration-300 lg:hidden border-l border-[#E6E2D8] dark:border-[#292929] shadow-2xl">
+    class="fixed inset-y-0 right-0 z-[100] w-full max-w-[320px] bg-white dark:bg-[#171719] text-[#171719] dark:text-white p-6 flex flex-col justify-between transform translate-x-full transition-all duration-300 lg:hidden border-l border-[#E6E2D8] dark:border-[#292929] invisible pointer-events-none hidden">
     <div>
         <!-- Drawer Header -->
         <div class="flex items-center justify-between pb-4 border-b border-[#E6E2D8] dark:border-[#292929]">
@@ -702,7 +308,7 @@
                            value="{{ request('q', '') }}"
                            autocomplete="off"
                            placeholder="Search setups, decor, DJ, weddings..." 
-                           class="w-full pl-9 pr-9 py-2.5 bg-[#FAF9F6] dark:bg-[#242428] border border-[#E6E2D8] dark:border-[#333338] rounded-xl text-xs font-medium text-[#171719] dark:text-white placeholder-gray-400 outline-none focus:border-[#171719] dark:focus:border-white/40 transition-all">
+                           class="w-full pl-9 pr-9 py-2.5 bg-[#FAF9F6] dark:bg-[#242428] border border-[#E6E2D8] dark:border-[#333338] rounded-xl text-xs font-medium text-[#171719] dark:text-white placeholder-gray-400 outline-none focus:border-[#171719] dark:focus:border-white/40 shadow-none ring-0 focus:ring-0">
                     
                     <button type="button" 
                             id="mobile-search-clear" 
@@ -725,62 +331,16 @@
         <div class="mt-5">
             <span class="text-[10px] font-heading font-extrabold uppercase tracking-widest text-gray-400 dark:text-gray-500 block mb-2 px-1">Browse Categories</span>
             <nav class="flex flex-col gap-1 font-heading font-semibold text-xs tracking-tight text-left">
-                <a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" onclick="toggleMobileNav()"
-                    class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between">
-                    <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-cake-candles text-xs text-gray-400"></i>
-                        <span>Birthdays</span>
-                    </span>
-                    <i class="fa-solid fa-chevron-right text-[9px] text-gray-400"></i>
-                </a>
-                <a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" onclick="toggleMobileNav()"
-                    class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between">
-                    <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-volume-high text-xs text-gray-400"></i>
-                        <span>House Party & DJ</span>
-                    </span>
-                    <i class="fa-solid fa-chevron-right text-[9px] text-gray-400"></i>
-                </a>
-                <a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" onclick="toggleMobileNav()"
-                    class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between">
-                    <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-heart text-xs text-gray-400"></i>
-                        <span>Proposals</span>
-                    </span>
-                    <i class="fa-solid fa-chevron-right text-[9px] text-gray-400"></i>
-                </a>
-                <a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" onclick="toggleMobileNav()"
-                    class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between">
-                    <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-ring text-xs text-gray-400"></i>
-                        <span>Wedding & Sangeet</span>
-                    </span>
-                    <i class="fa-solid fa-chevron-right text-[9px] text-gray-400"></i>
-                </a>
-                <a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" onclick="toggleMobileNav()"
-                    class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between">
-                    <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-baby text-xs text-gray-400"></i>
-                        <span>Baby Shower & Kids</span>
-                    </span>
-                    <i class="fa-solid fa-chevron-right text-[9px] text-gray-400"></i>
-                </a>
-                <a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" onclick="toggleMobileNav()"
-                    class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between">
-                    <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-briefcase text-xs text-gray-400"></i>
-                        <span>Corporate Events</span>
-                    </span>
-                    <i class="fa-solid fa-chevron-right text-[9px] text-gray-400"></i>
-                </a>
-                <a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" onclick="toggleMobileNav()"
-                    class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between">
-                    <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-music text-xs text-gray-400"></i>
-                        <span>Live DJ & Acoustic</span>
-                    </span>
-                    <i class="fa-solid fa-chevron-right text-[9px] text-gray-400"></i>
-                </a>
+                @foreach($navCategories as $cat)
+                    <a href="{{ route('events.index', ['category' => $cat->nav_slug]) }}" onclick="toggleMobileNav()"
+                        class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <i class="{{ $cat->icon ?: 'fa-solid fa-cake-candles' }} text-xs text-gray-400"></i>
+                            <span>{{ $cat->title }}</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-right text-[9px] text-gray-400"></i>
+                    </a>
+                @endforeach
             </nav>
         </div>
 
@@ -796,11 +356,14 @@
                     class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white">Gallery</a>
                 <a href="{{ route('about-us') }}" onclick="toggleMobileNav()"
                     class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white">About Artizen</a>
-                <a href="{{ route('events.index') }}" onclick="toggleMobileNav()"
-                    class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center gap-1.5">
-                    <i class="fa-regular fa-heart text-[11px] text-gray-500 dark:text-gray-400"></i>
-                    <span>Wishlist / Saved</span>
-                </a>
+                <button type="button" onclick="toggleTheme()"
+                    class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between w-full text-left font-heading font-semibold text-xs tracking-tight">
+                    <span class="flex items-center gap-2">
+                        <i id="mobile-theme-icon" class="fa-solid fa-moon text-xs text-gray-400"></i>
+                        <span id="mobile-theme-text">Switch Theme</span>
+                    </span>
+                    <span class="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Theme</span>
+                </button>
                 <a href="{{ route('booking.index') }}" onclick="toggleMobileNav()"
                     class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center gap-1.5">
                     <i class="fa-solid fa-bag-shopping text-[11px] text-gray-500 dark:text-gray-400"></i>
@@ -869,44 +432,47 @@
 
             const matches = searchCatalog.filter(item => 
                 item.title.toLowerCase().includes(q) || 
-                item.category.toLowerCase().includes(q)
+                item.category.toLowerCase().includes(q) ||
+                (item.subcategory && item.subcategory.toLowerCase().includes(q)) ||
+                (item.tags && item.tags.toLowerCase().includes(q))
             ).slice(0, 8);
 
             if (matches.length === 0) {
                 content.innerHTML = `
-                    <div class="py-5 px-4 text-center text-xs text-gray-500 dark:text-gray-400">
-                        <i class="fa-solid fa-magnifying-glass text-gray-300 dark:text-gray-600 text-lg mb-2 block"></i>
-                        <p class="font-semibold text-gray-800 dark:text-gray-200 text-xs">No matching setups found</p>
-                        <p class="text-[11px] mt-0.5 text-gray-400">Try searching "Birthday", "House Party", "DJ", "Wedding"</p>
+                    <div class="py-6 px-4 text-center text-xs text-gray-500 dark:text-gray-400">
+                        <i class="fa-solid fa-magnifying-glass text-gray-300 dark:text-gray-600 text-xl mb-2 block"></i>
+                        <p class="font-semibold text-gray-800 dark:text-gray-200 text-xs">No matching celebrations found</p>
+                        <p class="text-[11px] mt-0.5 text-gray-400">Try searching "Birthday", "Proposal", "Anniversary", "DJ", "Wedding"</p>
                     </div>
                 `;
             } else {
                 let html = `
                     <div class="flex items-center justify-between px-2.5 pt-1 pb-2 border-b border-gray-100 dark:border-white/5 mb-2">
                         <span class="text-[10px] font-heading font-extrabold uppercase tracking-wider text-gray-400 dark:text-gray-400 flex items-center gap-1.5">
-                            <i class="fa-solid fa-sparkles text-[9px] text-[#FFD600]"></i> Suggested Setups (${matches.length})
+                            <i class="fa-solid fa-sparkles text-[9px] text-[#B89700]"></i> Suggested Setups (${matches.length})
                         </span>
-                        <span class="text-[10px] font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded-full">Indore</span>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 `;
                 matches.forEach(item => {
                     html += `
-                        <a href="${item.url}" class="flex items-center gap-2.5 p-2 rounded-xl bg-gray-50/80 hover:bg-gray-100 dark:bg-white/5 dark:hover:bg-white/10 border border-black/5 dark:border-white/5 hover:border-[#FFD600]/30 transition-all group/item cursor-pointer text-left min-w-0">
-                            <img src="${item.image}" alt="${item.title}" class="w-10 h-10 rounded-lg object-cover bg-gray-200 dark:bg-gray-800 shrink-0 border border-black/5 dark:border-white/10 shadow-2xs">
+                        <a href="${item.url}" class="flex items-center gap-3 p-2 rounded-xl bg-white hover:bg-[#FAF7F2] dark:bg-[#1C1C1F] dark:hover:bg-[#252529] border border-[#E8DFC8] dark:border-white/5 transition-all text-left min-w-0 select-none cursor-pointer">
+                            <div class="w-12 h-12 rounded-lg overflow-hidden bg-[#FAF7F2] shrink-0 border border-[#E8DFC8]/60">
+                                <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover">
+                            </div>
                             <div class="min-w-0 flex-1">
-                                <h6 class="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate group-hover/item:text-black dark:group-hover/item:text-[#FFD600] transition-colors">${item.title}</h6>
-                                <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate mt-0.5">${item.category}</p>
+                                <span class="text-[9px] font-heading font-extrabold uppercase tracking-wider text-[#B89700] block truncate leading-tight">${item.subcategory || item.category}</span>
+                                <h6 class="text-xs font-bold text-gray-950 dark:text-gray-100 truncate leading-snug">${item.title}</h6>
                             </div>
                         </a>
                     `;
                 });
                 html += `
                     </div>
-                    <div class="pt-2 mt-2 border-t border-gray-100 dark:border-white/5">
-                        <a href="{{ route('events.index') }}?q=${encodeURIComponent(query)}" class="flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-[11px] font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors">
-                            <span>Search all setups for "<strong>${query}</strong>"</span>
-                            <span class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Press Enter ↵</span>
+                    <div class="pt-2.5 mt-2.5 border-t border-[#EFE7D8] dark:border-white/5">
+                        <a href="{{ route('events.index') }}?q=${encodeURIComponent(query)}" class="flex items-center justify-between px-3 py-1.5 rounded-xl hover:bg-[#FAF7F2] dark:hover:bg-white/5 text-xs font-heading font-semibold text-gray-800 dark:text-gray-200 transition-colors">
+                            <span>Search all celebrations for "<strong class="text-gray-950 dark:text-white">${query}</strong>"</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Press Enter ↵</span>
                         </a>
                     </div>
                 `;
@@ -1040,3 +606,19 @@
         }
     });
 </script>
+
+<style>
+    /* Prevent any focus ring, purple box-shadow, or jumping animations on search inputs */
+    #header-search-input,
+    #header-search-input:focus,
+    #header-search-input:active,
+    #mobile-search-input,
+    #mobile-search-input:focus,
+    #mobile-search-input:active {
+        box-shadow: none !important;
+        -webkit-box-shadow: none !important;
+        transform: none !important;
+        -webkit-transform: none !important;
+        outline: none !important;
+    }
+</style>

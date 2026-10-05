@@ -16,14 +16,19 @@ class Package extends Model
         'title',
         'slug',
         'description',
-        'image',
+        'price',
+        'original_price',
+        'badge',
         'tag',
+        'recipients',
+        'image',
         'gallery',
         'active',
     ];
 
     protected $casts = [
         'gallery' => 'array',
+        'recipients' => 'array',
         'active' => 'boolean',
     ];
 
@@ -40,5 +45,10 @@ class Package extends Model
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);
+    }
+
+    public function subcategories()
+    {
+        return $this->belongsToMany(Subcategory::class, 'package_subcategory')->withTimestamps();
     }
 }

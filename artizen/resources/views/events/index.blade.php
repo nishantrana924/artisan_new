@@ -1,907 +1,949 @@
 @extends('layouts.app')
 
-@section('content')
-<div class="min-h-screen pt-8 pb-12 px-4 md:px-12 bg-main-bg text-main-text relative">
-    <div class="w-full">
-        <style>
-            @keyframes text-slide {
-                0%, 20% { transform: translateY(0); }
-                25%, 45% { transform: translateY(-24px); }
-                50%, 70% { transform: translateY(-48px); }
-                75%, 95% { transform: translateY(-72px); }
-                100% { transform: translateY(0); }
-            }
-            .animate-text-slide {
-                animation: text-slide 12s infinite cubic-bezier(0.645, 0.045, 0.355, 1);
-            }
-        </style>
+@section('title', 'Explore All Celebrations & Packages in Indore | ARTIZEN')
+@section('meta_description', 'Browse and book curated celebration packages, birthday decorations, proposal setups, anniversary stages, DJ sound rigs, and live artists in Indore.')
 
-        <!-- New Compact Header Section -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-[#EAEAEA] dark:border-white/5 pb-6 mb-10 gap-4 text-left">
-            <div>
-                <span class="text-[9px] font-heading font-bold uppercase tracking-widest text-gold mb-1 block">ARTIZEN CATALOG</span>
-                <h1 class="font-heading font-extrabold text-2xl md:text-4xl uppercase tracking-tight text-black dark:text-white leading-none">
-                    {{ (!empty($selectedCategory) && $selectedCategory !== 'all') ? $selectedCategoryName : 'Explore Packages' }}
-                </h1>
-            </div>
+@section('content')
+<div class="min-h-screen bg-[#FCFBF8] text-gray-950 font-body select-none">
+
+    <!-- ========================================================
+         SECTION A: CLEAN MINIMAL PAGE HEADER
+         ======================================================== -->
+    <section class="border-b border-[#EFE7D8] bg-[#FAF7F2] py-8 sm:py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 class="font-heading font-extrabold text-2xl sm:text-3xl md:text-4xl text-gray-950 tracking-tight mb-1.5">
+                Explore Celebrations
+            </h1>
+            <p class="text-xs sm:text-sm text-gray-600 font-normal max-w-2xl">
+                Discover curated setups, romantic decors, DJ party rigs, and live artists across Indore.
+            </p>
+        </div>
+    </section>
+
+
+    <!-- ========================================================
+         SECTION B: HORIZONTAL CATEGORIES & FILTERS BUTTON (NON-STICKY)
+         ======================================================== -->
+    <section class="bg-[#FCFBF8] border-b border-[#EFE7D8] py-2.5 sm:py-3 shadow-none">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
             
-            <!-- Right Side Animated Text Block -->
-            <div class="flex items-center gap-3 bg-white dark:bg-[#121212] border border-[#EAEAEA] dark:border-white/10 rounded-2xl py-2.5 px-4 shadow-sm max-w-md w-full md:w-auto">
-                <span class="flex h-2.5 w-2.5 relative shrink-0">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-gold"></span>
-                </span>
-                <div class="text-left font-heading text-[10px] font-bold uppercase tracking-wider text-black dark:text-white relative overflow-hidden h-6 min-w-[260px] md:min-w-[300px]">
-                    <div class="absolute inset-0 flex flex-col gap-0 animate-text-slide leading-6">
-                        <span class="text-gold">Creating Celebration Vibes</span>
-                        <span>We don't just plan, we share feelings</span>
-                        <span class="text-gold">Delivering Happy Movements in Indore</span>
-                        <span>Reimagined Easy Event Bookings</span>
-                    </div>
-                </div>
+            <!-- Category Tabs Rail (Scrollable) -->
+            <div id="category-tabs-rail" class="flex items-center gap-2 overflow-x-auto scrollbar-hide py-0.5 flex-1 min-w-0" style="scrollbar-width: none; -ms-overflow-style: none;">
+                
+                <!-- Tab: All Celebrations -->
+                @php $isAllActive = ($selectedCategory === 'all' || empty($selectedCategory)); @endphp
+                <button type="button" 
+                        onclick="selectCategoryFilter('all', this)" 
+                        data-cat-slug="all"
+                        class="cat-tab-pill shrink-0 inline-flex items-center px-4 py-2 rounded-xl text-xs sm:text-[13px] font-heading font-bold transition-colors duration-150 cursor-pointer {{ $isAllActive ? 'bg-gray-950 text-white' : 'bg-white text-gray-700 hover:text-gray-950 border border-[#E8DFC8] hover:border-gray-400' }}">
+                    <span>All Celebrations</span>
+                </button>
+
+                <!-- Category Tabs (Clean text only, no badges or emojis) -->
+                @foreach($categoriesTaxonomy as $slug => $cat)
+                    @if($slug !== 'all')
+                        @php $isActive = ($selectedCategory === $slug); @endphp
+                        <button type="button" 
+                                onclick="selectCategoryFilter('{{ $slug }}', this)" 
+                                data-cat-slug="{{ $slug }}"
+                                class="cat-tab-pill shrink-0 inline-flex items-center px-4 py-2 rounded-xl text-xs sm:text-[13px] font-heading font-bold transition-colors duration-150 cursor-pointer {{ $isActive ? 'bg-gray-950 text-white' : 'bg-white text-gray-700 hover:text-gray-950 border border-[#E8DFC8] hover:border-gray-400' }}">
+                            <span>{{ $cat['name'] }}</span>
+                        </button>
+                    @endif
+                @endforeach
+
             </div>
+
+            <!-- Open Filter Sidebar Button -->
+            <button type="button" 
+                    onclick="openFilterDrawer()" 
+                    id="open-filter-btn"
+                    class="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#E8DFC8] hover:border-gray-950 bg-white hover:bg-gray-50 text-xs sm:text-[13px] font-heading font-bold text-gray-900 transition-colors cursor-pointer shadow-none">
+                <i class="fa-solid fa-sliders text-xs text-gray-700"></i>
+                <span>Filters</span>
+                <span id="active-filter-count-badge" class="hidden text-[11px] font-bold px-1.5 py-0.2 rounded-md bg-[#FAF7F2] border border-[#E8DFC8] text-gray-950 leading-tight"></span>
+            </button>
+
+        </div>
+    </section>
+
+
+    <!-- ========================================================
+         SECTION C: RESULTS STATUS & ACTIVE FILTER CHIPS
+         ======================================================== -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-1">
+        <div class="flex items-center justify-between flex-wrap gap-2 text-xs text-gray-600">
+            <div class="flex items-center gap-2 flex-wrap" id="active-chips-container">
+                <span class="font-heading font-bold text-gray-900 text-xs" id="results-count-text">
+                    Showing <span class="text-gray-950 font-extrabold" id="filtered-count-number">{{ count($allPackages) }}</span> celebrations in Indore
+                </span>
+
+                <!-- Active Filter Chips -->
+                <span id="active-category-chip" style="display: none;" class="items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-white border border-[#E8DFC8] text-[11px] font-semibold text-gray-800 shadow-none">
+                    <span class="chip-label"></span>
+                    <button type="button" onclick="selectCategoryFilter('all')" class="hover:text-red-600 cursor-pointer ml-1"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                </span>
+
+                <span id="active-subcategory-chip" style="display: none;" class="items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-white border border-[#E8DFC8] text-[11px] font-semibold text-gray-800 shadow-none">
+                    <span class="chip-label"></span>
+                    <button type="button" onclick="selectSubcategoryFilter('all')" class="hover:text-red-600 cursor-pointer ml-1"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                </span>
+
+                <span id="active-budget-chip" style="display: none;" class="items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-white border border-[#E8DFC8] text-[11px] font-semibold text-gray-800 shadow-none">
+                    <span class="chip-label"></span>
+                    <button type="button" onclick="handleBudgetFilter('all')" class="hover:text-red-600 cursor-pointer ml-1"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                </span>
+
+                <span id="active-for-chip" style="{{ !empty($forFilter) ? '' : 'display: none;' }}" class="items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-[#FFF5F5] border border-rose-200 text-[11px] font-semibold text-rose-900 shadow-none">
+                    <span>For: <strong class="chip-label">{{ ucfirst($forFilter) }}</strong></span>
+                    <button type="button" onclick="setDrawerFor('all')" class="hover:text-red-600 cursor-pointer ml-1"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                </span>
+            </div>
+
+            <!-- Clear all link (if any filters active) -->
+            <button type="button" 
+                    id="clear-all-filters-link" 
+                    onclick="resetAllCatalogFilters()" 
+                    class="hidden text-[11.5px] font-heading font-bold text-gray-600 hover:text-gray-950 underline cursor-pointer">
+                Clear all filters
+            </button>
+        </div>
+    </section>
+
+
+    <!-- ========================================================
+         SECTION D: COMPLETE SERVICE CATALOG GRID
+         ======================================================== -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 pb-16">
+        
+        <!-- Clean Empty State -->
+        <div id="catalog-empty-state" class="hidden text-center py-16 sm:py-20 bg-white border border-[#E8DFC8] rounded-2xl shadow-none max-w-md mx-auto my-8 px-6">
+            <div class="w-12 h-12 rounded-full bg-[#FAF7F2] border border-[#E8DFC8] flex items-center justify-center mx-auto mb-3 text-gray-500 text-lg">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+            <h3 class="font-heading font-extrabold text-base text-gray-950 mb-1">
+                No Celebrations Found
+            </h3>
+            <p class="text-xs text-gray-500 font-normal leading-relaxed mb-4">
+                Try adjusting or clearing your filters in the sidebar.
+            </p>
+            <button type="button" 
+                    onclick="resetAllCatalogFilters()" 
+                    class="inline-flex items-center gap-2 bg-gray-950 hover:bg-gray-800 text-white font-heading font-bold text-xs px-4 py-2 rounded-xl shadow-none transition-colors cursor-pointer">
+                <i class="fa-solid fa-rotate-left text-xs"></i>
+                <span>Reset Filters</span>
+            </button>
         </div>
 
-        <!-- Main Responsive Grid Layout (2 Columns on Desktop) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <!-- Left Side: Fixed/Sticky Dropdown Filters Panel (Super Compact Desktop / Slide-up Drawer Mobile) -->
-            <div id="filter-container" class="lg:col-span-3 lg:sticky lg:top-44 z-40 w-full max-lg:fixed max-lg:inset-0 max-lg:bg-black/60 max-lg:backdrop-blur-sm max-lg:hidden max-lg:flex max-lg:items-end max-lg:justify-center transition-all duration-300">
-                <div class="bg-card-bg border border-primary-border rounded-2xl lg:p-5 max-lg:p-6 shadow-sm flex flex-col gap-4 w-full max-lg:rounded-t-3xl max-lg:max-h-[80vh] max-lg:overflow-y-auto max-lg:shadow-2xl">
-                    <!-- Mobile Drawer Header -->
-                    <div class="flex items-center justify-between lg:hidden border-b border-primary-border pb-3">
-                        <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-main-text">Filters & Sort</h3>
-                        <button onclick="toggleMobileFilters(false)" class="text-main-text hover:text-gold cursor-pointer focus:outline-none bg-transparent border-0" aria-label="Close filters">
-                            <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
-                        </button>
-                    </div>
+        <!-- 4-Column Responsive Grid matching Homepage Service Card UI -->
+        <div id="catalog-grid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-4.5">
+            
+            @foreach($allPackages as $item)
+                @php
+                    $itemPrice = (int)$item['price'];
+                    $origPrice = (int)($item['original_price'] ?? round($itemPrice * 1.15));
+                    $eventDetailsUrl = route('events.show', ['slug' => $item['slug'] ?? \Illuminate\Support\Str::slug($item['title'])]);
+                    $tagsString = strtolower(implode(' ', array_merge([$item['title'], $item['subcategory'], $item['category_name'], $item['desc']], $item['tags'] ?? [])));
+                @endphp
+
+                <!-- Service Card (EXACT SAME UI DESIGN AS HOMEPAGE, NO HOVER ANIMATION, NO SHADOW) -->
+                <div class="catalog-item-card" 
+                     data-id="{{ $item['id'] }}"
+                     data-category="{{ $item['category_id'] }}"
+                     data-subcategory="{{ strtolower($item['subcategory']) }}"
+                     data-title="{{ strtolower($item['title']) }}"
+                     data-price="{{ $itemPrice }}"
+                     data-rating="{{ $item['rating'] ?? 4.9 }}"
+                     data-reviews="{{ $item['reviews_count'] ?? 50 }}"
+                     data-recipients="{{ strtolower(implode(',', (array)($item['recipients'] ?? []))) }}"
+                     data-search-terms="{{ $tagsString }}">
                     
-                    <!-- Search Input -->
-                    <div>
-                        <label for="catalog-search" class="block text-[9px] font-heading font-bold uppercase tracking-wider text-muted-text mb-1.5">
-                            Search Package
-                        </label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                                <i class="fa-solid fa-magnifying-glass text-xs" aria-hidden="true"></i>
-                            </span>
-                            <input type="text" id="catalog-search" placeholder="Type keywords..."
-                                class="w-full bg-card-bg border border-primary-border pl-9 pr-3 py-2 text-xs rounded-xl font-body text-main-text placeholder-gray-400 focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold transition-all">
-                        </div>
-                    </div>
-
-                    <!-- Sort Selection -->
-                    <div class="border-t border-primary-border pt-3">
-                        <label class="block text-[9px] font-heading font-bold uppercase tracking-wider text-muted-text mb-1.5">
-                            Sort Results
-                        </label>
-                        <div class="relative custom-dropdown" id="dropdown-sort">
-                            <button type="button" class="w-full bg-card-bg border border-primary-border pl-3 pr-8 py-2 text-xs rounded-xl font-heading font-semibold text-main-text text-left flex justify-between items-center focus:outline-none focus:border-gold transition-all cursor-pointer dropdown-toggle">
-                                <span class="selected-text">Recommended</span>
-                                <i class="fa-solid fa-chevron-down text-[10px] text-muted-text transition-transform duration-200 chevron" aria-hidden="true"></i>
-                            </button>
-                            <div class="dropdown-menu absolute left-0 right-0 mt-1.5 z-30 bg-card-bg border border-primary-border rounded-xl shadow-lg hidden py-1.5 transition-all">
-                                <div class="dropdown-item px-3 py-2 text-xs font-heading font-semibold text-main-text hover:bg-gold hover:text-white cursor-pointer transition-colors rounded-lg mx-1" data-value="default">Recommended</div>
-                                <div class="dropdown-item px-3 py-2 text-xs font-heading font-semibold text-main-text hover:bg-gold hover:text-white cursor-pointer transition-colors rounded-lg mx-1" data-value="price-low">Price: Low to High</div>
-                                <div class="dropdown-item px-3 py-2 text-xs font-heading font-semibold text-main-text hover:bg-gold hover:text-white cursor-pointer transition-colors rounded-lg mx-1" data-value="price-high">Price: High to Low</div>
-                                <div class="dropdown-item px-3 py-2 text-xs font-heading font-semibold text-main-text hover:bg-gold hover:text-white cursor-pointer transition-colors rounded-lg mx-1" data-value="rating">Rating: High to Low</div>
-                            </div>
-                            <input type="hidden" id="catalog-sort" value="default">
-                        </div>
-                    </div>
-
-                    <!-- Budget Filter Dropdown -->
-                    <div class="border-t border-primary-border pt-3">
-                        <label class="block text-[9px] font-heading font-bold uppercase tracking-wider text-muted-text mb-1.5">
-                            Filter by Budget
-                        </label>
-                        <div class="relative custom-dropdown" id="dropdown-budget">
-                            <button type="button" class="w-full bg-card-bg border border-primary-border pl-3 pr-8 py-2 text-xs rounded-xl font-heading font-semibold text-main-text text-left flex justify-between items-center focus:outline-none focus:border-gold transition-all cursor-pointer dropdown-toggle">
-                                <span class="selected-text">All Prices</span>
-                                <i class="fa-solid fa-chevron-down text-[10px] text-muted-text transition-transform duration-200 chevron" aria-hidden="true"></i>
-                            </button>
-                            <div class="dropdown-menu absolute left-0 right-0 mt-1.5 z-30 bg-card-bg border border-primary-border rounded-xl shadow-lg hidden py-1.5 transition-all">
-                                <div class="dropdown-item px-3 py-2 text-xs font-heading font-semibold text-main-text hover:bg-gold hover:text-white cursor-pointer transition-colors rounded-lg mx-1" data-value="all">All Prices</div>
-                                <div class="dropdown-item px-3 py-2 text-xs font-heading font-semibold text-main-text hover:bg-gold hover:text-white cursor-pointer transition-colors rounded-lg mx-1" data-value="under-8k">Under ₹8,000</div>
-                                <div class="dropdown-item px-3 py-2 text-xs font-heading font-semibold text-main-text hover:bg-gold hover:text-white cursor-pointer transition-colors rounded-lg mx-1" data-value="8k-15k">₹8,000 - ₹15,000</div>
-                                <div class="dropdown-item px-3 py-2 text-xs font-heading font-semibold text-main-text hover:bg-gold hover:text-white cursor-pointer transition-colors rounded-lg mx-1" data-value="15k-30k">₹15,000 - ₹30,000</div>
-                                <div class="dropdown-item px-3 py-2 text-xs font-heading font-semibold text-main-text hover:bg-gold hover:text-white cursor-pointer transition-colors rounded-lg mx-1" data-value="above-30k">₹30,000+</div>
-                            </div>
-                            <input type="hidden" id="catalog-budget" value="all">
-                        </div>
-                    </div>
-
-                    <!-- Category Filter Dropdown -->
-                    <div class="border-t border-primary-border pt-3">
-                        <label class="block text-[9px] font-heading font-bold uppercase tracking-wider text-muted-text mb-1.5">
-                            Filter by Category
-                        </label>
-                        <div class="relative custom-dropdown" id="dropdown-category">
-                            <button type="button" class="w-full bg-card-bg border border-primary-border pl-3 pr-8 py-2 text-xs rounded-xl font-heading font-semibold text-main-text text-left flex justify-between items-center focus:outline-none focus:border-gold transition-all cursor-pointer dropdown-toggle">
-                                <span class="selected-text">{{ $selectedCategoryName ?? 'All Categories' }}</span>
-                                <i class="fa-solid fa-chevron-down text-[10px] text-muted-text transition-transform duration-200 chevron" aria-hidden="true"></i>
-                            </button>
-                            <div class="dropdown-menu absolute left-0 right-0 mt-1.5 z-30 bg-card-bg border border-primary-border rounded-xl shadow-lg hidden max-h-60 overflow-y-auto py-1.5 transition-all">
-                                <div class="dropdown-item px-3 py-2 text-xs font-heading font-semibold text-main-text hover:bg-gold hover:text-white cursor-pointer transition-colors rounded-lg mx-1" data-value="all">All Categories</div>
-                                @foreach($categories as $id => $name)
-                                    <div class="dropdown-item px-3 py-2 text-xs font-heading font-semibold text-main-text hover:bg-gold hover:text-white cursor-pointer transition-colors rounded-lg mx-1" data-value="{{ $id }}">{{ $name }}</div>
-                                @endforeach
-                            </div>
-                            <input type="hidden" id="catalog-category" value="{{ $selectedCategory ?? 'all' }}">
-                        </div>
-                    </div>
-
-                    <!-- Reset Filters Button -->
-                    <button onclick="resetAllFilters()" class="w-full bg-main-text text-main-bg border border-primary-border hover:bg-gold hover:text-white transition-all py-2.5 text-[10px] font-heading font-bold uppercase tracking-wider rounded-xl transition-all duration-200 mt-1 cursor-pointer">
-                        Reset Filters
-                    </button>
-                </div>
-            </div>
-
-            <!-- Right Side: Packages Grid -->
-            <div class="lg:col-span-9 w-full">
-                <!-- No Packages Fallback -->
-                <div id="no-packages-found" class="hidden text-center py-20 bg-white dark:bg-[#121212] border border-[#EAEAEA] dark:border-white/10 rounded-2xl shadow-sm mb-12">
-                    <i class="fa-regular fa-face-frown text-5xl mx-auto text-gray-300 dark:text-white/20 mb-4 block" aria-hidden="true"></i>
-                    <h3 class="font-heading font-bold text-lg uppercase tracking-wider text-black dark:text-white">No Packages Match</h3>
-                    <p class="font-body text-xs text-muted-text mt-2">Try adjusting your filters, search keyword or category choices.</p>
-                </div>
-
-                <!-- Catalog Grid -->
-                <div id="packages-grid" class="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 items-start">
-                    @php
-                        $dividerShown = false;
-                        $hasActiveCategory = (!empty($selectedCategory) && $selectedCategory !== 'all');
-                        $cleanSel = $hasActiveCategory ? str_replace('cat-', '', $selectedCategory) : '';
-                    @endphp
-                    @foreach($packages as $package)
-                        @php
-                            $cardCat = $package['category_id'] ?? '';
-                            $cleanCardCat = str_replace('cat-', '', $cardCat);
-                            $isMatchingCategory = $hasActiveCategory 
-                                ? ($cardCat === $selectedCategory || $cleanCardCat === $cleanSel || str_contains($cleanCardCat, $cleanSel) || str_contains($cleanSel, $cleanCardCat))
-                                : true;
-                        @endphp
-
-                        @if(!$dividerShown && $hasActiveCategory && !$isMatchingCategory)
-                            @php $dividerShown = true; @endphp
-                            <div id="other-packages-divider" class="col-span-2 lg:col-span-3 pt-6 pb-2 border-t border-[#EAEAEA] dark:border-white/10 mt-4 mb-2 flex items-center justify-between">
-                                <div>
-                                    <span class="text-[10px] font-heading font-extrabold text-gold uppercase tracking-widest block mb-0.5">Explore More</span>
-                                    <h4 class="text-sm md:text-base font-heading font-extrabold text-black dark:text-white uppercase tracking-wider">Other Celebration Packages</h4>
-                                </div>
-                                <span class="text-[11px] text-muted-text font-body hidden sm:inline-block">Browse all celebration packages</span>
-                            </div>
-                        @endif
-
-                        <div class="experience-card relative flex flex-col !h-auto bg-white dark:bg-[#161615] rounded-sm overflow-hidden border border-[#EAEAEA] dark:border-white/5 shadow-sm"
-                            data-id="{{ $package['id'] }}"
-                            data-event-id="{{ $package['event_id'] }}"
-                            data-tier-index="{{ $package['tier_index'] }}"
-                            data-category="{{ $package['category_id'] }}"
-                            data-price="{{ $package['price'] }}"
-                            data-rating="{{ $package['rating'] }}"
-                            data-title="{{ $package['title'] }}"
-                            data-desc="{{ $package['desc'] }}">
+                    <a href="{{ $eventDetailsUrl }}" 
+                       class="block w-full bg-white rounded-2xl border border-[#E8DFC8] overflow-hidden shadow-none text-left flex flex-col justify-between h-full select-none cursor-pointer">
+                        
+                        <!-- Image Box (Aspect 4/3.8 Crisp & Clean, No Hover Zoom) -->
+                        <div class="relative w-full aspect-[4/3.8] overflow-hidden bg-[#FAF7F2] shrink-0">
+                            <img src="{{ $item['image'] }}" 
+                                 alt="{{ $item['title'] }}" 
+                                 class="w-full h-full object-cover select-none pointer-events-none" 
+                                 draggable="false"
+                                 loading="lazy">
                             
-                            <!-- Card Header Image -->
-                            <div class="experience-card-img-container relative h-28 md:h-40 w-full overflow-hidden bg-gray-100 rounded-sm" data-card-images='@json($package['all_images'] ?? [$package['image']])'>
-                                <img src="{{ $package['image'] }}" alt="{{ $package['title'] }}" class="w-full h-full object-cover primary-img" loading="lazy">
-                                @if(!empty($package['secondary_image']) && $package['secondary_image'] !== $package['image'])
-                                    <img src="{{ $package['secondary_image'] }}" alt="{{ $package['title'] }}" class="w-full h-full object-cover secondary-img" loading="lazy">
-                                @endif
-                                <div class="experience-card-badge absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md text-[8px] md:text-[10px] font-heading font-extrabold uppercase tracking-wider py-0.5 md:py-1 px-2 md:px-3.5 rounded-md border border-white/10">
-                                    {{ $package['badge'] }}
-                                </div>
-                                @if(!empty($package['all_images']) && count($package['all_images']) > 1)
-                                    <div class="card-img-indicators">
-                                        @foreach($package['all_images'] as $i => $img)
-                                            <span class="card-img-dot {{ $i === 0 ? 'active' : '' }}"></span>
-                                        @endforeach
-                                    </div>
-                                @endif
-                                
-                                <!-- Sleek Compare Toggle Checkbox -->
-                                <label class="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 bg-black/70 backdrop-blur-md border border-white/10 text-white rounded-md py-1 px-2 cursor-pointer hover:bg-black/90 transition-colors" onclick="event.stopPropagation();">
-                                    <input type="checkbox" class="compare-checkbox hidden" 
-                                        data-id="{{ $package['id'] }}" 
-                                        data-title="{{ $package['title'] }}" 
-                                        data-price="{{ $package['price'] }}" 
-                                        data-image="{{ $package['image'] }}" 
-                                        data-rating="{{ $package['rating'] }}" 
-                                        data-inclusions='@json($package['inclusions'])' 
-                                        data-url="javascript:openEventLightbox({{ $package['event_id'] }}, {{ $package['tier_index'] }})"
-                                        onchange="toggleComparePackage(this)">
-                                    <span class="compare-label text-[8px] md:text-[9px] font-heading font-extrabold uppercase tracking-wider select-none text-gray-300">Compare</span>
-                                    <i class="fa-solid fa-code-compare text-[10px] compare-icon text-gray-400 transition-colors" aria-hidden="true"></i>
-                                </label>
+                            <!-- Rating Badge Top-Right -->
+                            <span class="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-xs px-2 py-0.5 rounded text-[11px] font-bold text-gray-900 flex items-center gap-1 shadow-none z-20">
+                                <i class="fa-solid fa-star text-amber-400 text-[10px]"></i>
+                                <span>{{ $item['rating'] ?? '4.9' }}</span>
+                            </span>
+                        </div>
+
+                        <!-- Body -->
+                        <div class="p-3 sm:p-3.5 flex flex-col justify-between flex-1">
+                            <div class="mb-2.5">
+                                <span class="text-[9.5px] sm:text-[10px] font-heading font-extrabold uppercase tracking-wider text-[#B89700] block mb-0.5 truncate">
+                                    {{ $item['subcategory'] }}
+                                </span>
+                                <h4 class="font-heading font-bold text-[13.5px] sm:text-[14.5px] text-gray-900 leading-snug line-clamp-1">
+                                    {{ $item['title'] }}
+                                </h4>
                             </div>
 
-                            <!-- Card Body -->
-                            <div class="p-3 md:p-4 flex flex-col flex-grow text-left">
-                                <div class="flex items-start justify-between gap-2 mb-2">
-                                    <h4 class="font-heading font-extrabold text-xs md:text-sm uppercase text-black dark:text-white tracking-wide line-clamp-1 flex-1 mb-0">
-                                        {{ $package['title'] }}
-                                    </h4>
-                                    <div class="flex items-center gap-1 text-[10px] md:text-[11px] font-heading font-extrabold text-gold shrink-0 pt-0.5">
-                                        <i class="fa-solid fa-star text-gold text-[10px]" aria-hidden="true"></i>
-                                        <span>{{ $package['rating'] }}</span>
-                                    </div>
-                                </div>
-                                <p class="font-body text-[10px] md:text-xs text-muted-text leading-relaxed mb-2.5 line-clamp-2">
-                                    {{ \Illuminate\Support\Str::limit($package['desc'], 85) }}
-                                </p>
-
-                                <!-- Inclusions Toggle Accordion -->
-                                <div class="border-t border-[#EAEAEA] dark:border-white/5 py-2 md:py-3">
-                                    <button onclick="toggleInclusions(this)" class="flex items-center justify-between w-full text-left text-xs font-heading font-bold uppercase tracking-wider text-black dark:text-white hover:text-gold transition-colors focus:outline-none">
-                                        <span>What's Included</span>
-                                        <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300 transform" aria-hidden="true"></i>
-                                    </button>
-                                    <div class="inclusions-panel hidden mt-2">
-                                        <ul class="space-y-1.5">
-                                            @foreach($package['inclusions'] as $inclusion)
-                                                <li class="flex items-start gap-2 text-xs text-gray-500">
-                                                    <i class="fa-solid fa-check text-gold text-xs shrink-0 mt-0.5" aria-hidden="true"></i>
-                                                    <span class="font-body">{{ $inclusion }}</span>
-                                                </li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                </div>
-
-                                <!-- Card Footer -->
-                                <div class="border-t border-[#EAEAEA] dark:border-white/5 pt-3 mt-auto flex items-center justify-between gap-1.5">
-                                    <div class="flex flex-col">
-                                        <span class="text-[8px] uppercase tracking-wider text-gray-400">Price</span>
-                                        <span class="font-heading font-extrabold text-xs md:text-sm lg:text-base text-black dark:text-white">₹{{ number_format($package['price']) }}</span>
-                                    </div>
-                                    <span onclick="openEventLightbox({{ $package['event_id'] }}, {{ $package['tier_index'] }})" class="experience-card-btn cursor-pointer !text-[9px] md:!text-xs !py-1 md:!py-1.5 !px-2 md:!px-3.5 flex items-center gap-1">
-                                        Book
-                                        <i class="fa-solid fa-chevron-right text-[9px]" aria-hidden="true"></i>
+                            <!-- Pricing Line (Discount Offer & Actual Price) -->
+                            <div class="pt-2.5 border-t border-[#F2ECE0] flex items-baseline justify-between mt-auto">
+                                <div class="flex items-baseline gap-1.5 flex-wrap">
+                                    <span class="font-heading font-extrabold text-[15px] sm:text-base text-gray-950 tracking-tight">
+                                        ₹{{ number_format($itemPrice) }}
+                                    </span>
+                                    <span class="text-[11px] text-gray-400 line-through font-normal">
+                                        ₹{{ number_format($origPrice) }}
+                                    </span>
+                                    <span class="text-[10.5px] font-bold text-emerald-600">
+                                        15% OFF
                                     </span>
                                 </div>
                             </div>
                         </div>
-                    @endforeach
 
-                    @if(!$dividerShown)
-                        <div id="other-packages-divider" class="hidden col-span-2 lg:col-span-3 pt-6 pb-2 border-t border-[#EAEAEA] dark:border-white/10 mt-4 mb-2 flex items-center justify-between">
-                            <div>
-                                <span class="text-[10px] font-heading font-extrabold text-gold uppercase tracking-widest block mb-0.5">Explore More</span>
-                                <h4 class="text-sm md:text-base font-heading font-extrabold text-black dark:text-white uppercase tracking-wider">Other Celebration Packages</h4>
-                            </div>
-                            <span class="text-[11px] text-muted-text font-body hidden sm:inline-block">Browse all celebration packages</span>
-                        </div>
-                    @endif
+                    </a>
+
+                </div>
+            @endforeach
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         SECTION E: CUSTOM CELEBRATION CONSULTATION BANNER
+         ======================================================== -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div class="relative rounded-3xl overflow-hidden border border-[#E8DFC8] bg-[#FAF7F2]">
+            <!-- Background Image with Soft Clean Gradient Overlay -->
+            <div class="absolute inset-0 z-0">
+                <img src="{{ asset('images/banners/custom_tree_canopy.webp') }}" 
+                     alt="Custom Event Celebration in Indore" 
+                     class="w-full h-full object-cover object-right select-none pointer-events-none"
+                     loading="lazy">
+                <div class="absolute inset-0 bg-gradient-to-r from-[#FAF7F2] via-[#FAF7F2]/95 md:via-[#FAF7F2]/85 to-transparent"></div>
+            </div>
+
+            <!-- Content Area (Clean Typography & Instant CTAs) -->
+            <div class="relative z-10 p-6 sm:p-10 md:p-12 max-w-2xl text-left">
+                <h3 class="font-heading font-extrabold text-xl sm:text-2xl md:text-3xl text-gray-950 tracking-tight mb-2.5">
+                    Looking for a Custom Setup?
+                </h3>
+
+                <p class="text-xs sm:text-sm text-gray-600 font-normal leading-relaxed mb-6">
+                    Can't find the exact theme or planning a grand celebration at a farmhouse, rooftop, or private lawn? Our celebration stylists will design a bespoke decor, sound, and lighting package for you in Indore.
+                </p>
+
+                <div class="flex items-center gap-3 flex-wrap sm:flex-nowrap">
+                    <a href="https://wa.me/919109109100?text=Hi%20Artizen,%20I%20want%20to%20discuss%20a%20custom%20celebration%20package%20in%20Indore" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       class="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white font-heading font-bold text-xs sm:text-[13px] px-5 py-3 rounded-xl shadow-none transition-colors cursor-pointer">
+                        <i class="fa-brands fa-whatsapp text-sm"></i>
+                        <span>Chat on WhatsApp</span>
+                    </a>
+
+                    <a href="{{ route('contact.index') }}" 
+                       class="inline-flex items-center justify-center gap-2 bg-gray-950 hover:bg-gray-800 text-white font-heading font-bold text-xs sm:text-[13px] px-5 py-3 rounded-xl shadow-none transition-colors cursor-pointer">
+                        <i class="fa-solid fa-headset text-xs"></i>
+                        <span>Contact Specialist</span>
+                    </a>
                 </div>
             </div>
-
-            <!-- Floating Mobile Filters Trigger Button -->
-            <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 lg:hidden">
-                <button onclick="toggleMobileFilters(true)" class="flex items-center gap-2 bg-main-text text-main-bg px-6 py-3 rounded-full font-heading text-xs font-bold uppercase tracking-widest shadow-2xl border border-primary-border cursor-pointer transition-transform active:scale-95">
-                    <i class="fa-solid fa-sliders text-gold text-xs" aria-hidden="true"></i>
-                    Filter & Sort
-                </button>
-            </div>
-
         </div>
-    </div>
+    </section>
+
 </div>
 
-<!-- Floating Compare Bar -->
-<div id="compare-bar" class="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-40 bg-black/85 backdrop-blur-md border border-white/10 rounded-2xl py-3 px-4 md:px-6 shadow-2xl flex items-center justify-between gap-4 md:gap-8 w-[92%] max-w-xl transition-all duration-500 transform translate-y-28 opacity-0 hidden">
-    <div class="flex items-center gap-3">
-        <span class="bg-[#FFD600] text-[#171719] font-heading font-extrabold text-[10px] md:text-xs uppercase tracking-wider py-1 px-2.5 rounded-lg shadow-md" id="compare-count-badge">
-            Compare (0/3)
-        </span>
-        <!-- Selected thumbnails container -->
-        <div class="flex items-center -space-x-2" id="compare-thumbnails">
-            <!-- Thumbnail bubbles will be injected here by JS -->
-        </div>
-    </div>
-    <div class="flex items-center gap-2">
-        <button onclick="clearCompare()" class="text-[10px] md:text-xs font-heading font-bold uppercase tracking-wider text-gray-400 hover:text-white transition-colors cursor-pointer bg-transparent border-0 focus:outline-none">
-            Clear
-        </button>
-        <button onclick="openCompareModal()" class="bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] font-heading font-bold text-[10px] md:text-xs uppercase tracking-wider py-2 px-4 rounded-xl transition-all cursor-pointer shadow-lg focus:outline-none border-0">
-            Compare Now
-        </button>
-    </div>
+
+<!-- ========================================================
+     SLIDE-OUT FILTER SIDEBAR DRAWER (ACCORDION & DROPDOWN STYLE)
+     ======================================================== -->
+<div id="filter-drawer-backdrop" 
+     onclick="closeFilterDrawer()" 
+     class="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs transition-opacity duration-200 opacity-0 pointer-events-none">
 </div>
 
-<!-- Compare Modal -->
-<div id="compare-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
-    <div class="bg-card-bg border border-primary-border w-full max-w-4xl rounded-2xl p-6 shadow-2xl flex flex-col max-h-[90vh]">
-        <!-- Header -->
-        <div class="flex items-center justify-between border-b border-primary-border pb-4 mb-4">
-            <h3 class="font-heading font-extrabold text-base uppercase tracking-wider text-main-text">Compare Packages</h3>
-            <button onclick="closeCompareModal()" class="text-main-text hover:text-gold cursor-pointer bg-transparent border-0 focus:outline-none" aria-label="Close compare modal">
-                <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
+<div id="filter-drawer" 
+     class="fixed top-0 right-0 bottom-0 z-50 w-full max-w-md bg-white border-l border-[#E8DFC8] shadow-2xl flex flex-col justify-between transform translate-x-full transition-transform duration-300 ease-out select-none text-left overscroll-contain"
+     style="touch-action: pan-y;">
+    
+    <!-- Drawer Header -->
+    <div class="px-5 py-4 border-b border-[#EFE7D8] flex items-center justify-between bg-[#FAF7F2] shrink-0">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-sm text-gray-800"></i>
+            <h3 class="font-heading font-extrabold text-base text-gray-950">Filters</h3>
+        </div>
+        <div class="flex items-center gap-3">
+            <button type="button" 
+                    onclick="resetAllCatalogFilters()" 
+                    class="text-xs font-heading font-bold text-gray-500 hover:text-gray-950 transition-colors cursor-pointer">
+                Reset all
+            </button>
+            <button type="button" 
+                    onclick="closeFilterDrawer()" 
+                    class="w-8 h-8 rounded-full bg-white border border-[#E8DFC8] hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-colors cursor-pointer">
+                <i class="fa-solid fa-xmark text-xs"></i>
             </button>
         </div>
-        
-        <!-- Content columns -->
-        <div class="overflow-x-auto flex-grow scrollbar-hide">
-            <table class="w-full text-left border-collapse min-w-[600px]">
-                <thead>
-                    <tr id="compare-table-header" class="border-b border-primary-border">
-                        <!-- JS will inject header titles, images, and pricing -->
-                    </tr>
-                </thead>
-                <tbody id="compare-table-body">
-                    <!-- JS will inject rows for Rating, Inclusions, and Actions -->
-                </tbody>
-            </table>
-        </div>
     </div>
+
+    <!-- Drawer Scrollable Content -->
+    <div class="p-5 overflow-y-auto flex-1 space-y-6 overscroll-contain" style="-webkit-overflow-scrolling: touch; touch-action: pan-y;">
+        
+        <!-- 1. Categories & Subcategories (Clean Dropdown / Accordion Type) -->
+        <div>
+            <h4 class="text-xs font-heading font-extrabold uppercase tracking-wider text-gray-900 mb-3">
+                Celebration Categories
+            </h4>
+
+            <div class="space-y-2">
+                
+                <!-- Option: All Celebrations -->
+                <button type="button" 
+                        onclick="setDrawerCategory('all')" 
+                        data-drawer-cat="all"
+                        class="drawer-cat-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-[#E8DFC8] bg-white text-xs font-heading font-bold text-gray-900 hover:border-gray-950 transition-colors cursor-pointer">
+                    <span>All Celebrations</span>
+                    <span class="text-[11px] text-gray-400 font-normal">33 setups</span>
+                </button>
+
+                <!-- Accordion Dropdown for Each Category -->
+                @foreach($subcategoriesByCategory as $catSlug => $subs)
+                    @php $catInfo = $categoriesTaxonomy[$catSlug] ?? null; @endphp
+                    @if($catInfo)
+                        <div class="category-accordion-group border border-[#E8DFC8] rounded-xl overflow-hidden bg-white transition-colors" data-accordion-cat="{{ $catSlug }}">
+                            
+                            <!-- Accordion Header: Category Title + Subcategory Count + Chevron -->
+                            <div class="flex items-center justify-between px-3.5 py-3 cursor-pointer hover:bg-[#FAF7F2] transition-colors" 
+                                 onclick="toggleCategoryAccordion('{{ $catSlug }}')">
+                                <span class="text-xs font-heading font-bold text-gray-950">{{ $catInfo['name'] }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10.5px] text-gray-400 font-medium">{{ count($subs) }} themes</span>
+                                    <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 accordion-chevron transition-transform duration-200"></i>
+                                </div>
+                            </div>
+
+                            <!-- Accordion Subcategory Dropdown Content -->
+                            <div class="accordion-sub-content hidden px-3.5 pb-3 pt-1 border-t border-[#F2ECE0] bg-[#FAF7F2]/40">
+                                <div class="flex flex-wrap gap-1.5 pt-1.5">
+                                    <button type="button" 
+                                            onclick="setDrawerCategory('{{ $catSlug }}')" 
+                                            data-drawer-sub="all-{{ $catSlug }}"
+                                            class="drawer-sub-btn text-[11px] px-2.5 py-1 rounded-lg bg-white border border-[#E8DFC8] hover:border-gray-950 text-gray-800 font-medium transition-colors cursor-pointer">
+                                        All in {{ $catInfo['name'] }}
+                                    </button>
+                                    @foreach($subs as $subName)
+                                        <button type="button" 
+                                                onclick="setDrawerSubcategory('{{ $catSlug }}', '{{ strtolower($subName) }}')" 
+                                                data-drawer-sub="{{ strtolower($subName) }}"
+                                                class="drawer-sub-btn text-[11px] px-2.5 py-1 rounded-lg bg-white border border-[#E8DFC8] hover:border-gray-950 text-gray-700 font-medium transition-colors cursor-pointer">
+                                            {{ $subName }}
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                        </div>
+                    @endif
+                @endforeach
+
+            </div>
+        </div>
+
+        <!-- 1.b Celebration For / For Whom Filter -->
+        @if(isset($personas) && $personas->isNotEmpty())
+        <div>
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-xs font-heading font-extrabold uppercase tracking-wider text-gray-900">
+                    Celebration For / For Whom
+                </h4>
+                <span class="text-[11px] text-gray-400 font-medium">Storefront Personas</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <!-- Option: Anyone / All -->
+                <button type="button" 
+                        onclick="setDrawerFor('all')" 
+                        data-drawer-for="all" 
+                        class="drawer-for-btn h-11 p-0 overflow-hidden text-xs font-heading font-bold rounded-xl border border-[#E8DFC8] bg-white text-gray-800 text-center hover:border-gray-950 transition-colors cursor-pointer col-span-2 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-users text-xs text-gray-400"></i>
+                    <span>Anyone / All Celebrations</span>
+                </button>
+
+                @foreach($personas as $pItem)
+                    <button type="button" 
+                            onclick="setDrawerFor('{{ $pItem->slug }}')" 
+                            data-drawer-for="{{ $pItem->slug }}" 
+                            class="drawer-for-btn h-12 p-0 overflow-hidden text-xs font-heading font-bold rounded-xl border border-[#E8DFC8] bg-white text-gray-800 hover:border-gray-950 transition-colors cursor-pointer flex items-center text-left group">
+                        @if($pItem->image)
+                            <div class="h-full w-14 shrink-0 overflow-hidden bg-[#FFF5F5] border-r border-black/5">
+                                <img src="{{ asset($pItem->image) }}" alt="{{ $pItem->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200">
+                            </div>
+                        @else
+                            <div class="h-full w-14 shrink-0 overflow-hidden bg-gray-100 border-r border-black/5 flex items-center justify-center text-gray-400">
+                                <i class="fa-regular fa-image text-xs"></i>
+                            </div>
+                        @endif
+                        <span class="px-3 truncate flex-1 font-bold">{{ $pItem->name }}</span>
+                    </button>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        <!-- 2. Price Range -->
+        <div>
+            <h4 class="text-xs font-heading font-extrabold uppercase tracking-wider text-gray-900 mb-3">
+                Price Range
+            </h4>
+            <div class="grid grid-cols-2 gap-2">
+                <button type="button" onclick="setDrawerBudget('all')" data-drawer-budget="all" class="drawer-budget-btn p-2.5 text-xs font-heading font-bold rounded-xl border border-[#E8DFC8] bg-white text-gray-800 text-center hover:border-gray-950 transition-colors cursor-pointer">Any Price</button>
+                <button type="button" onclick="setDrawerBudget('under-5k')" data-drawer-budget="under-5k" class="drawer-budget-btn p-2.5 text-xs font-heading font-bold rounded-xl border border-[#E8DFC8] bg-white text-gray-800 text-center hover:border-gray-950 transition-colors cursor-pointer">Under ₹5,000</button>
+                <button type="button" onclick="setDrawerBudget('5k-7k')" data-drawer-budget="5k-7k" class="drawer-budget-btn p-2.5 text-xs font-heading font-bold rounded-xl border border-[#E8DFC8] bg-white text-gray-800 text-center hover:border-gray-950 transition-colors cursor-pointer">₹5,000 - ₹7,000</button>
+                <button type="button" onclick="setDrawerBudget('7k-9k')" data-drawer-budget="7k-9k" class="drawer-budget-btn p-2.5 text-xs font-heading font-bold rounded-xl border border-[#E8DFC8] bg-white text-gray-800 text-center hover:border-gray-950 transition-colors cursor-pointer">₹7,000 - ₹9,000</button>
+                <button type="button" onclick="setDrawerBudget('above-9k')" data-drawer-budget="above-9k" class="drawer-budget-btn p-2.5 text-xs font-heading font-bold rounded-xl border border-[#E8DFC8] bg-white text-gray-800 text-center hover:border-gray-950 transition-colors cursor-pointer col-span-2">Above ₹9,000</button>
+            </div>
+        </div>
+
+        <!-- 3. Sort By -->
+        <div>
+            <h4 class="text-xs font-heading font-extrabold uppercase tracking-wider text-gray-900 mb-3">
+                Sort Order
+            </h4>
+            <div class="grid grid-cols-2 gap-2">
+                <button type="button" onclick="setDrawerSort('default')" data-drawer-sort="default" class="drawer-sort-btn p-2.5 text-xs font-heading font-bold rounded-xl border border-[#E8DFC8] bg-white text-gray-800 text-center hover:border-gray-950 transition-colors cursor-pointer">Featured</button>
+                <button type="button" onclick="setDrawerSort('price-low')" data-drawer-sort="price-low" class="drawer-sort-btn p-2.5 text-xs font-heading font-bold rounded-xl border border-[#E8DFC8] bg-white text-gray-800 text-center hover:border-gray-950 transition-colors cursor-pointer">Price: Low to High</button>
+                <button type="button" onclick="setDrawerSort('price-high')" data-drawer-sort="price-high" class="drawer-sort-btn p-2.5 text-xs font-heading font-bold rounded-xl border border-[#E8DFC8] bg-white text-gray-800 text-center hover:border-gray-950 transition-colors cursor-pointer">Price: High to Low</button>
+                <button type="button" onclick="setDrawerSort('rating')" data-drawer-sort="rating" class="drawer-sort-btn p-2.5 text-xs font-heading font-bold rounded-xl border border-[#E8DFC8] bg-white text-gray-800 text-center hover:border-gray-950 transition-colors cursor-pointer">Top Rated</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Drawer Sticky Footer -->
+    <div class="p-4 border-t border-[#EFE7D8] bg-[#FAF7F2] flex items-center justify-between gap-3">
+        <button type="button" 
+                onclick="resetAllCatalogFilters()" 
+                class="px-4 py-3 rounded-xl border border-[#E8DFC8] bg-white text-xs font-heading font-bold text-gray-700 hover:text-gray-950 transition-colors cursor-pointer">
+            Clear all
+        </button>
+        <button type="button" 
+                onclick="closeFilterDrawer()" 
+                class="flex-1 px-5 py-3 rounded-xl bg-gray-950 hover:bg-gray-800 text-white text-xs sm:text-sm font-heading font-bold text-center transition-colors cursor-pointer shadow-none">
+            Show <span id="drawer-results-count">{{ count($allPackages) }}</span> Celebrations
+        </button>
+    </div>
+
 </div>
 
-<!-- Inline Filtering Logic Script -->
+
+<!-- ========================================================
+     CLIENT-SIDE FILTER & SIDEBAR ENGINE
+     ======================================================== -->
 <script>
-    let activeCategory = '{{ $selectedCategory ?? "all" }}';
-    let activeBudget = 'all';
-    let searchQuery = '';
+    (function() {
+        const state = {
+            category: '{{ $selectedCategory ?? "all" }}',
+            subcategory: 'all',
+            budget: '{{ $budgetFilter ?? "all" }}',
+            sort: '{{ $sortFilter ?? "default" }}',
+            for: '{{ !empty($forFilter) ? strtolower($forFilter) : "all" }}'
+        };
 
-    // Check URL parameters for category
-    try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const catQuery = urlParams.get('category') || urlParams.get('cat');
-        if (catQuery && catQuery !== 'all') {
-            activeCategory = catQuery;
-        }
-    } catch(e) {}
+        const categoriesMap = @json($categoriesTaxonomy);
 
-    // Initialize Page
-    document.addEventListener('DOMContentLoaded', () => {
-        // Sync activeCategory with dropdown UI if pre-selected
-        if (activeCategory !== 'all') {
-            const catInput = document.getElementById('catalog-category');
-            if (catInput) catInput.value = activeCategory;
+        function filterAndSortCatalog() {
+            const items = Array.from(document.querySelectorAll('.catalog-item-card'));
+            let visibleCount = 0;
 
-            const dropdownCategory = document.getElementById('dropdown-category');
-            if (dropdownCategory) {
-                const cleanActive = activeCategory.replace(/^cat-/, '').toLowerCase();
-                const items = dropdownCategory.querySelectorAll('.dropdown-item');
-                let foundItem = null;
-                items.forEach(item => {
-                    const val = item.getAttribute('data-value');
-                    const cleanVal = val.replace(/^cat-/, '').toLowerCase();
-                    if (val === activeCategory || cleanVal === cleanActive || (cleanActive && cleanVal.includes(cleanActive)) || (cleanVal && cleanActive.includes(cleanVal))) {
-                        foundItem = item;
+            items.forEach(function(item) {
+                const itemCat = item.getAttribute('data-category');
+                const itemSub = (item.getAttribute('data-subcategory') || '').toLowerCase();
+                const itemPrice = parseInt(item.getAttribute('data-price') || '0', 10);
+
+                // 1. Category Match
+                let matchesCat = (state.category === 'all' || itemCat === state.category);
+
+                // 2. Subcategory Match
+                let matchesSub = (state.subcategory === 'all' || itemSub === state.subcategory.toLowerCase());
+
+                // 3. Budget Match
+                let matchesBudget = true;
+                if (state.budget === 'under-5k') matchesBudget = (itemPrice < 5000);
+                else if (state.budget === '5k-7k') matchesBudget = (itemPrice >= 5000 && itemPrice <= 7000);
+                else if (state.budget === '7k-9k') matchesBudget = (itemPrice > 7000 && itemPrice <= 9000);
+                else if (state.budget === 'above-9k') matchesBudget = (itemPrice > 9000);
+
+                // 4. Recipient ("For Whom") Match
+                let matchesFor = true;
+                if (state.for && state.for !== 'all') {
+                    const itemRecipients = (item.getAttribute('data-recipients') || '').split(',').map(s => s.trim().toLowerCase());
+                    const itemSearchTerms = (item.getAttribute('data-search-terms') || '').toLowerCase();
+                    const itemTitle = (item.getAttribute('data-title') || '').toLowerCase();
+
+                    if (itemRecipients.includes(state.for.toLowerCase())) {
+                        matchesFor = true;
+                    } else {
+                        // Fallback intelligent persona keywords
+                        const forVal = state.for.toLowerCase();
+                        if (forVal === 'him') matchesFor = itemSearchTerms.includes('him') || itemSearchTerms.includes('men') || itemSearchTerms.includes('birthday');
+                        else if (forVal === 'her') matchesFor = itemSearchTerms.includes('her') || itemSearchTerms.includes('women') || itemSearchTerms.includes('princess') || itemSearchTerms.includes('proposal');
+                        else if (forVal === 'kids') matchesFor = itemSearchTerms.includes('kid') || itemSearchTerms.includes('baby');
+                        else if (forVal === 'friend') matchesFor = itemSearchTerms.includes('party') || itemSearchTerms.includes('dj') || itemSearchTerms.includes('club');
+                        else if (forVal === 'wife') matchesFor = itemSearchTerms.includes('proposal') || itemSearchTerms.includes('anniversary') || itemSearchTerms.includes('cabana');
+                        else if (forVal === 'husband') matchesFor = itemSearchTerms.includes('anniversary') || itemSearchTerms.includes('party');
+                        else if (forVal === 'parents') matchesFor = itemSearchTerms.includes('parent') || itemSearchTerms.includes('jubilee');
+                        else matchesFor = itemSearchTerms.includes(forVal) || itemTitle.includes(forVal);
                     }
-                });
+                }
 
-                if (foundItem) {
-                    const selText = dropdownCategory.querySelector('.selected-text');
-                    if (selText) selText.textContent = foundItem.textContent;
-                    activeCategory = foundItem.getAttribute('data-value');
+                if (matchesCat && matchesSub && matchesBudget && matchesFor) {
+                    item.style.display = '';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Sorting
+            const grid = document.getElementById('catalog-grid');
+            const sortedItems = items.filter(i => i.style.display !== 'none');
+
+            sortedItems.sort(function(a, b) {
+                const priceA = parseInt(a.getAttribute('data-price') || '0', 10);
+                const priceB = parseInt(b.getAttribute('data-price') || '0', 10);
+                const titleA = (a.getAttribute('data-title') || '').toLowerCase();
+                const titleB = (b.getAttribute('data-title') || '').toLowerCase();
+                const reviewsA = parseInt(a.getAttribute('data-reviews') || '0', 10);
+                const reviewsB = parseInt(b.getAttribute('data-reviews') || '0', 10);
+
+                if (state.sort === 'price-low') return priceA - priceB;
+                if (state.sort === 'price-high') return priceB - priceA;
+                if (state.sort === 'name-az') return titleA.localeCompare(titleB);
+                if (state.sort === 'rating') return reviewsB - reviewsA;
+                return 0; // Default order
+            });
+
+            sortedItems.forEach(item => grid.appendChild(item));
+
+            // Update Counters
+            const emptyState = document.getElementById('catalog-empty-state');
+            const countElem = document.getElementById('filtered-count-number');
+            const drawerCountElem = document.getElementById('drawer-results-count');
+            
+            if (countElem) countElem.textContent = visibleCount;
+            if (drawerCountElem) drawerCountElem.textContent = visibleCount;
+
+            if (visibleCount === 0) {
+                if (emptyState) emptyState.classList.remove('hidden');
+                if (grid) grid.classList.add('hidden');
+            } else {
+                if (emptyState) emptyState.classList.add('hidden');
+                if (grid) grid.classList.remove('hidden');
+            }
+
+            updateChipsAndPills();
+            updateDrawerUI();
+            updateUrl();
+        }
+
+        function updateChipsAndPills() {
+            // Category Chip
+            const catChip = document.getElementById('active-category-chip');
+            if (catChip) {
+                if (state.category !== 'all' && categoriesMap[state.category]) {
+                    catChip.querySelector('.chip-label').textContent = 'Category: ' + categoriesMap[state.category].name;
+                    catChip.style.display = 'inline-flex';
+                } else {
+                    catChip.style.display = 'none';
                 }
             }
+
+            // Subcategory Chip
+            const subChip = document.getElementById('active-subcategory-chip');
+            if (subChip) {
+                if (state.subcategory !== 'all') {
+                    subChip.querySelector('.chip-label').textContent = 'Theme: ' + state.subcategory;
+                    subChip.style.display = 'inline-flex';
+                } else {
+                    subChip.style.display = 'none';
+                }
+            }
+
+            // Budget Chip
+            const budgetChip = document.getElementById('active-budget-chip');
+            if (budgetChip) {
+                if (state.budget !== 'all') {
+                    const budgetLabels = {
+                        'under-5k': 'Under ₹5,000',
+                        '5k-7k': '₹5,000 - ₹7,000',
+                        '7k-9k': '₹7,000 - ₹9,000',
+                        'above-9k': 'Above ₹9,000'
+                    };
+                    budgetChip.querySelector('.chip-label').textContent = 'Budget: ' + (budgetLabels[state.budget] || state.budget);
+                    budgetChip.style.display = 'inline-flex';
+                } else {
+                    budgetChip.style.display = 'none';
+                }
+            }
+
+            // Recipient ("For Whom") Chip
+            const forChip = document.getElementById('active-for-chip');
+            if (forChip) {
+                if (state.for !== 'all') {
+                    forChip.querySelector('.chip-label').textContent = state.for.charAt(0).toUpperCase() + state.for.slice(1);
+                    forChip.style.display = 'inline-flex';
+                } else {
+                    forChip.style.display = 'none';
+                }
+            }
+
+            // Active Filters Badge Count
+            let activeFilterCount = 0;
+            if (state.category !== 'all') activeFilterCount++;
+            if (state.subcategory !== 'all') activeFilterCount++;
+            if (state.budget !== 'all') activeFilterCount++;
+            if (state.for !== 'all') activeFilterCount++;
+            if (state.sort !== 'default') activeFilterCount++;
+
+            const filterBadge = document.getElementById('active-filter-count-badge');
+            const filterBtn = document.getElementById('open-filter-btn');
+            const clearAllLink = document.getElementById('clear-all-filters-link');
+
+            if (filterBadge) {
+                if (activeFilterCount > 0) {
+                    filterBadge.textContent = activeFilterCount;
+                    filterBadge.classList.remove('hidden');
+                } else {
+                    filterBadge.classList.add('hidden');
+                }
+            }
+            if (filterBtn) {
+                if (activeFilterCount > 0) {
+                    filterBtn.classList.add('border-gray-900', 'bg-[#FAF7F2]');
+                    filterBtn.classList.remove('bg-white');
+                } else {
+                    filterBtn.classList.remove('border-gray-900', 'bg-[#FAF7F2]');
+                    filterBtn.classList.add('bg-white');
+                }
+            }
+            if (clearAllLink) {
+                if (activeFilterCount > 0) clearAllLink.classList.remove('hidden');
+                else clearAllLink.classList.add('hidden');
+            }
         }
 
-        // Search listener
-        const searchInput = document.getElementById('catalog-search');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                searchQuery = e.target.value.toLowerCase().trim();
-                applyFilters();
+        function updateDrawerUI() {
+            // Category Buttons in Drawer
+            document.querySelectorAll('.drawer-cat-btn').forEach(function(btn) {
+                const cat = btn.getAttribute('data-drawer-cat');
+                if (cat === state.category) {
+                    btn.classList.add('bg-gray-950', 'text-white', 'border-gray-950');
+                    btn.classList.remove('bg-white', 'text-gray-900', 'border-[#E8DFC8]');
+                } else {
+                    btn.classList.remove('bg-gray-950', 'text-white', 'border-gray-950');
+                    btn.classList.add('bg-white', 'text-gray-900', 'border-[#E8DFC8]');
+                }
             });
-        }
 
-        // Setup custom dropdowns
-        const customDropdowns = document.querySelectorAll('.custom-dropdown');
-        customDropdowns.forEach(dropdown => {
-            const toggle = dropdown.querySelector('.dropdown-toggle');
-            const menu = dropdown.querySelector('.dropdown-menu');
-            const chevron = dropdown.querySelector('.chevron');
-            const input = dropdown.querySelector('input[type="hidden"]');
-            const selectedText = dropdown.querySelector('.selected-text');
-            const items = dropdown.querySelectorAll('.dropdown-item');
+            // Accordion Groups highlighting & open state
+            document.querySelectorAll('.category-accordion-group').forEach(function(group) {
+                const cat = group.getAttribute('data-accordion-cat');
+                const isCurrentCat = (cat === state.category);
+                const content = group.querySelector('.accordion-sub-content');
+                const chevron = group.querySelector('.accordion-chevron');
 
-            // Open/Close Dropdown
-            toggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                // Close all other dropdowns
-                customDropdowns.forEach(other => {
-                    if (other !== dropdown) {
-                        other.querySelector('.dropdown-menu').classList.add('hidden');
-                        other.querySelector('.chevron').classList.remove('rotate-180');
+                if (isCurrentCat) {
+                    group.classList.add('border-gray-900');
+                    if (content && chevron) {
+                        content.classList.remove('hidden');
+                        chevron.classList.add('rotate-180');
                     }
-                });
-                menu.classList.toggle('hidden');
-                chevron.classList.toggle('rotate-180');
+                } else {
+                    group.classList.remove('border-gray-900');
+                }
             });
 
-            // Select Dropdown Option
-            items.forEach(item => {
-                item.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const val = item.getAttribute('data-value');
-                    const text = item.textContent;
-
-                    // Update UI text and hidden input value
-                    selectedText.textContent = text;
-                    input.value = val;
-
-                    // Close menu
-                    menu.classList.add('hidden');
-                    chevron.classList.remove('rotate-180');
-
-                    // Trigger filter updates
-                    if (input.id === 'catalog-category') {
-                        selectCategory(val);
-                    } else if (input.id === 'catalog-budget') {
-                        selectBudget(val);
-                    } else if (input.id === 'catalog-sort') {
-                        sortPackages();
-                    }
-                });
+            // Subcategory Buttons in Drawer
+            document.querySelectorAll('.drawer-sub-btn').forEach(function(btn) {
+                const sub = btn.getAttribute('data-drawer-sub');
+                if (sub === state.subcategory.toLowerCase() || (sub === `all-${state.category}` && state.subcategory === 'all')) {
+                    btn.classList.add('bg-gray-950', 'text-white', 'border-gray-950');
+                    btn.classList.remove('bg-white', 'text-gray-700', 'text-gray-800', 'border-[#E8DFC8]');
+                } else {
+                    btn.classList.remove('bg-gray-950', 'text-white', 'border-gray-950');
+                    btn.classList.add('bg-white', 'text-gray-700', 'border-[#E8DFC8]');
+                }
             });
-        });
 
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', () => {
-            customDropdowns.forEach(dropdown => {
-                dropdown.querySelector('.dropdown-menu').classList.add('hidden');
-                dropdown.querySelector('.chevron').classList.remove('rotate-180');
+            // Budget Buttons in Drawer
+            document.querySelectorAll('.drawer-budget-btn').forEach(function(btn) {
+                const b = btn.getAttribute('data-drawer-budget');
+                if (b === state.budget) {
+                    btn.classList.add('bg-gray-950', 'text-white', 'border-gray-950');
+                    btn.classList.remove('bg-white', 'text-gray-800', 'border-[#E8DFC8]');
+                } else {
+                    btn.classList.remove('bg-gray-950', 'text-white', 'border-gray-950');
+                    btn.classList.add('bg-white', 'text-gray-800', 'border-[#E8DFC8]');
+                }
             });
-        });
 
-        applyFilters();
-    });
+            // Sort Buttons in Drawer
+            document.querySelectorAll('.drawer-sort-btn').forEach(function(btn) {
+                const s = btn.getAttribute('data-drawer-sort');
+                if (s === state.sort) {
+                    btn.classList.add('bg-gray-950', 'text-white', 'border-gray-950');
+                    btn.classList.remove('bg-white', 'text-gray-800', 'border-[#E8DFC8]');
+                } else {
+                    btn.classList.remove('bg-gray-950', 'text-white', 'border-gray-950');
+                    btn.classList.add('bg-white', 'text-gray-800', 'border-[#E8DFC8]');
+                }
+            });
 
-    // Inclusions Accordion Toggle
-    function toggleInclusions(button) {
-        const panel = button.nextElementSibling;
-        const svg = button.querySelector('svg');
-        if (panel.classList.contains('hidden')) {
-            panel.classList.remove('hidden');
-            svg.classList.add('rotate-180');
-        } else {
-            panel.classList.add('hidden');
-            svg.classList.remove('rotate-180');
+            // Recipient / For Whom Buttons in Drawer
+            document.querySelectorAll('.drawer-for-btn').forEach(function(btn) {
+                const f = btn.getAttribute('data-drawer-for');
+                if (f === state.for) {
+                    btn.classList.add('bg-gray-950', 'text-white', 'border-gray-950');
+                    btn.classList.remove('bg-white', 'text-gray-800', 'border-[#E8DFC8]');
+                } else {
+                    btn.classList.remove('bg-gray-950', 'text-white', 'border-gray-950');
+                    btn.classList.add('bg-white', 'text-gray-800', 'border-[#E8DFC8]');
+                }
+            });
         }
-    }
 
-    // Helper to test if card matches active category
-    function isCardMatchingCategory(card, targetCategory) {
-        if (!targetCategory || targetCategory === 'all') return true;
-        const cardCat = (card.getAttribute('data-category') || '').toLowerCase();
-        const cleanTarget = targetCategory.replace(/^cat-/, '').toLowerCase();
-        const cleanCard = cardCat.replace(/^cat-/, '').toLowerCase();
+        function updateUrl() {
+            const params = new URLSearchParams();
+            if (state.category !== 'all') params.set('category', state.category);
+            if (state.subcategory !== 'all') params.set('theme', state.subcategory);
+            if (state.budget !== 'all') params.set('budget', state.budget);
+            if (state.for && state.for !== 'all') params.set('for', state.for);
+            if (state.sort !== 'default') params.set('sort', state.sort);
 
-        return (
-            cardCat === targetCategory.toLowerCase() ||
-            cleanCard === cleanTarget ||
-            cleanCard.includes(cleanTarget) ||
-            cleanTarget.includes(cleanCard)
-        );
-    }
-
-    // Filter by Category Select Option
-    function selectCategory(catId) {
-        activeCategory = catId;
-        if (window.history && window.history.replaceState) {
-            const newUrl = catId === 'all' ? window.location.pathname : `${window.location.pathname}?category=${encodeURIComponent(catId)}`;
+            const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
             window.history.replaceState({}, '', newUrl);
         }
-        applyFilters();
-    }
 
-    // Filter by Budget Select Option
-    function selectBudget(budgetRange) {
-        activeBudget = budgetRange;
-        applyFilters();
-    }
+        // Global Actions
+        window.openFilterDrawer = function() {
+            const backdrop = document.getElementById('filter-drawer-backdrop');
+            const drawer = document.getElementById('filter-drawer');
+            const waWidget = document.getElementById('whatsapp-floating-widget');
 
-    // Apply Combined Filters
-    function applyFilters() {
-        const cards = document.querySelectorAll('#packages-grid > .experience-card');
-        let visibleCount = 0;
+            if (backdrop && drawer) {
+                backdrop.classList.remove('pointer-events-none', 'opacity-0');
+                backdrop.classList.add('opacity-100');
+                drawer.classList.remove('translate-x-full');
+                
+                // Prevent background page from scrolling
+                document.documentElement.style.overflow = 'hidden';
+                document.body.style.overflow = 'hidden';
+                document.body.style.touchAction = 'none';
 
-        cards.forEach(card => {
-            const cardPrice = parseInt(card.getAttribute('data-price')) || 0;
-            const cardTitle = (card.getAttribute('data-title') || '').toLowerCase();
-            const cardDesc = (card.getAttribute('data-desc') || '').toLowerCase();
-
-            // 1. Budget Check
-            let matchesBudget = false;
-            if (activeBudget === 'all') {
-                matchesBudget = true;
-            } else if (activeBudget === 'under-8k' && cardPrice < 8000) {
-                matchesBudget = true;
-            } else if (activeBudget === '8k-15k' && cardPrice >= 8000 && cardPrice <= 15000) {
-                matchesBudget = true;
-            } else if (activeBudget === '15k-30k' && cardPrice > 15000 && cardPrice <= 30000) {
-                matchesBudget = true;
-            } else if (activeBudget === 'above-30k' && cardPrice > 30000) {
-                matchesBudget = true;
-            }
-
-            // 2. Search Query Check
-            const matchesSearch = (searchQuery === '' || cardTitle.includes(searchQuery) || cardDesc.includes(searchQuery));
-
-            // Selected category shows first, other categories show below.
-            // Cards are shown if they pass budget & search filters.
-            if (matchesBudget && matchesSearch) {
-                card.classList.remove('hidden');
-                card.style.removeProperty('display');
-                visibleCount++;
-            } else {
-                card.classList.add('hidden');
-                card.style.setProperty('display', 'none', 'important');
-            }
-        });
-
-        // Re-order DOM: matching category cards first, then divider, then other cards below
-        sortPackages();
-
-        // Toggle No-Packages Found Warning
-        const fallback = document.getElementById('no-packages-found');
-        const grid = document.getElementById('packages-grid');
-        if (visibleCount === 0) {
-            fallback.classList.remove('hidden');
-            grid.classList.add('hidden');
-        } else {
-            fallback.classList.add('hidden');
-            grid.classList.remove('hidden');
-        }
-    }
-
-    // Sort Packages in DOM (priority to active category, then sort criteria)
-    function sortPackages() {
-        const select = document.getElementById('catalog-sort');
-        const sortBy = select ? select.value : 'default';
-        const grid = document.getElementById('packages-grid');
-        if (!grid) return;
-
-        const cards = Array.from(grid.querySelectorAll('.experience-card'));
-        const divider = document.getElementById('other-packages-divider');
-
-        const compareFn = (a, b) => {
-            const priceA = parseInt(a.getAttribute('data-price')) || 0;
-            const priceB = parseInt(b.getAttribute('data-price')) || 0;
-            const ratingA = parseFloat(a.getAttribute('data-rating')) || 0;
-            const ratingB = parseFloat(b.getAttribute('data-rating')) || 0;
-            const idA = parseInt(a.getAttribute('data-id')) || 0;
-            const idB = parseInt(b.getAttribute('data-id')) || 0;
-
-            if (sortBy === 'price-low') {
-                return priceA - priceB;
-            } else if (sortBy === 'price-high') {
-                return priceB - priceA;
-            } else if (sortBy === 'rating') {
-                return ratingB - ratingA;
-            } else {
-                return idA - idB; // Default sorted by list ID
+                // Hide floating WhatsApp button when sidebar is open
+                if (waWidget) {
+                    waWidget.style.display = 'none';
+                }
             }
         };
 
-        const hasCategoryPriority = (activeCategory && activeCategory !== 'all');
+        window.closeFilterDrawer = function() {
+            const backdrop = document.getElementById('filter-drawer-backdrop');
+            const drawer = document.getElementById('filter-drawer');
+            const waWidget = document.getElementById('whatsapp-floating-widget');
 
-        if (hasCategoryPriority) {
-            const primaryCards = [];
-            const otherCards = [];
+            if (backdrop && drawer) {
+                backdrop.classList.remove('opacity-100');
+                backdrop.classList.add('opacity-0', 'pointer-events-none');
+                drawer.classList.add('translate-x-full');
+                
+                // Restore background page scrolling
+                document.documentElement.style.overflow = '';
+                document.body.style.overflow = '';
+                document.body.style.touchAction = '';
 
-            cards.forEach(card => {
-                if (isCardMatchingCategory(card, activeCategory)) {
-                    primaryCards.push(card);
-                } else {
-                    otherCards.push(card);
-                }
-            });
-
-            primaryCards.sort(compareFn);
-            otherCards.sort(compareFn);
-
-            // Re-append primary matching cards first
-            primaryCards.forEach(card => grid.appendChild(card));
-
-            // Position and toggle divider
-            if (divider) {
-                const visiblePrimary = primaryCards.filter(c => !c.classList.contains('hidden'));
-                const visibleOther = otherCards.filter(c => !c.classList.contains('hidden'));
-                if (visiblePrimary.length > 0 && visibleOther.length > 0) {
-                    divider.classList.remove('hidden');
-                    grid.appendChild(divider);
-                } else {
-                    divider.classList.add('hidden');
+                // Restore floating WhatsApp button
+                if (waWidget) {
+                    waWidget.style.display = '';
                 }
             }
+        };
 
-            // Re-append other cards below
-            otherCards.forEach(card => grid.appendChild(card));
-        } else {
-            if (divider) divider.classList.add('hidden');
-            cards.sort(compareFn);
-            cards.forEach(card => grid.appendChild(card));
-        }
-    }
+        window.toggleCategoryAccordion = function(catSlug) {
+            const group = document.querySelector(`.category-accordion-group[data-accordion-cat="${catSlug}"]`);
+            if (!group) return;
+            const content = group.querySelector('.accordion-sub-content');
+            const chevron = group.querySelector('.accordion-chevron');
+            
+            const isHidden = content.classList.contains('hidden');
+            
+            // Close other accordions
+            document.querySelectorAll('.category-accordion-group').forEach(function(g) {
+                const c = g.querySelector('.accordion-sub-content');
+                const ch = g.querySelector('.accordion-chevron');
+                if (c) c.classList.add('hidden');
+                if (ch) ch.classList.remove('rotate-180');
+            });
 
-    // Reset Filters Button
-    function resetAllFilters() {
-        const searchInput = document.getElementById('catalog-search');
-        if (searchInput) searchInput.value = '';
-        searchQuery = '';
-        
-        // Reset category dropdown
-        const catSelect = document.getElementById('catalog-category');
-        if (catSelect) {
-            catSelect.value = 'all';
-            const catSelectedText = document.querySelector('#dropdown-category .selected-text');
-            if (catSelectedText) catSelectedText.textContent = 'All Categories';
-        }
-        activeCategory = 'all';
+            if (isHidden) {
+                content.classList.remove('hidden');
+                chevron.classList.add('rotate-180');
+            }
+        };
 
-        // Reset budget dropdown
-        const budgetSelect = document.getElementById('catalog-budget');
-        if (budgetSelect) {
-            budgetSelect.value = 'all';
-            const budgetSelectedText = document.querySelector('#dropdown-budget .selected-text');
-            if (budgetSelectedText) budgetSelectedText.textContent = 'All Prices';
-        }
-        activeBudget = 'all';
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.closeFilterDrawer();
+            }
+        });
 
-        // Reset sort dropdown
-        const sortSelect = document.getElementById('catalog-sort');
-        if (sortSelect) {
-            sortSelect.value = 'default';
-            const sortSelectedText = document.querySelector('#dropdown-sort .selected-text');
-            if (sortSelectedText) sortSelectedText.textContent = 'Recommended';
-        }
+        window.selectCategoryFilter = function(catSlug, btnElem) {
+            state.category = catSlug;
+            state.subcategory = 'all'; // Reset subcategory when category changes
 
-        if (window.history && window.history.replaceState) {
-            window.history.replaceState({}, '', window.location.pathname);
-        }
+            // Update Tab UI
+            document.querySelectorAll('.cat-tab-pill').forEach(function(pill) {
+                const isSelected = (pill.getAttribute('data-cat-slug') === catSlug);
+                pill.className = 'cat-tab-pill shrink-0 inline-flex items-center px-4 py-2 rounded-xl text-xs sm:text-[13px] font-heading font-bold transition-colors duration-150 cursor-pointer ' + 
+                    (isSelected ? 'bg-gray-950 text-white' : 'bg-white text-gray-700 hover:text-gray-950 border border-[#E8DFC8] hover:border-gray-400');
+            });
 
-        applyFilters();
-    }
+            if (btnElem && typeof btnElem.scrollIntoView === 'function') {
+                btnElem.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
 
-    // Toggle Mobile Drawer Filters
-    function toggleMobileFilters(isOpen) {
-        const filterContainer = document.getElementById('filter-container');
-        if (filterContainer) {
-            if (isOpen) {
-                filterContainer.classList.remove('max-lg:hidden');
-                document.body.style.overflow = 'hidden'; // Lock scrolling
+            filterAndSortCatalog();
+        };
+
+        window.selectSubcategoryFilter = function(subName) {
+            state.subcategory = subName;
+            filterAndSortCatalog();
+        };
+
+        window.setDrawerCategory = function(catSlug) {
+            state.category = catSlug;
+            state.subcategory = 'all';
+            
+            // Sync top pill
+            const pill = document.querySelector(`.cat-tab-pill[data-cat-slug="${catSlug}"]`);
+            if (pill) {
+                window.selectCategoryFilter(catSlug, pill);
             } else {
-                filterContainer.classList.add('max-lg:hidden');
-                document.body.style.overflow = ''; // Unlock scrolling
+                filterAndSortCatalog();
             }
-        }
-    }
+        };
 
-    // Backdrop click close listener
-    document.addEventListener('DOMContentLoaded', () => {
-        const container = document.getElementById('filter-container');
-        if (container) {
-            container.addEventListener('click', (e) => {
-                if (e.target === container) {
-                    toggleMobileFilters(false);
-                }
-            });
-        }
-
-        // Compare Modal backdrop click closer
-        const compareModal = document.getElementById('compare-modal');
-        if (compareModal) {
-            compareModal.addEventListener('click', (e) => {
-                if (e.target === compareModal) {
-                    closeCompareModal();
-                }
-            });
-        }
-    });
-
-    // Package Comparison Feature Logic
-    let comparedPackages = [];
-
-    function toggleComparePackage(checkbox) {
-        const id = checkbox.getAttribute('data-id');
-        const title = checkbox.getAttribute('data-title');
-        const price = parseInt(checkbox.getAttribute('data-price'));
-        const image = checkbox.getAttribute('data-image');
-        const rating = checkbox.getAttribute('data-rating');
-        const inclusions = JSON.parse(checkbox.getAttribute('data-inclusions'));
-        const url = checkbox.getAttribute('data-url');
-        const label = checkbox.parentElement.querySelector('.compare-label');
-        const icon = checkbox.parentElement.querySelector('.compare-icon');
-
-        if (checkbox.checked) {
-            if (comparedPackages.length >= 3) {
-                checkbox.checked = false;
-                alert("You can compare a maximum of 3 packages.");
-                return;
+        window.setDrawerSubcategory = function(catSlug, subName) {
+            state.category = catSlug;
+            state.subcategory = subName;
+            
+            // Sync top pill
+            const pill = document.querySelector(`.cat-tab-pill[data-cat-slug="${catSlug}"]`);
+            if (pill) {
+                document.querySelectorAll('.cat-tab-pill').forEach(function(p) {
+                    const isSelected = (p.getAttribute('data-cat-slug') === catSlug);
+                    p.className = 'cat-tab-pill shrink-0 inline-flex items-center px-4 py-2 rounded-xl text-xs sm:text-[13px] font-heading font-bold transition-colors duration-150 cursor-pointer ' + 
+                        (isSelected ? 'bg-gray-950 text-white' : 'bg-white text-gray-700 hover:text-gray-950 border border-[#E8DFC8] hover:border-gray-400');
+                });
             }
-            comparedPackages.push({ id, title, price, image, rating, inclusions, url });
-            
-            // Flip container styling to gold
-            checkbox.parentElement.classList.remove('bg-black/70', 'text-white');
-            checkbox.parentElement.classList.add('bg-[#FFD600]', 'text-[#171719]', 'border-[#FFD600]');
-            
-            // Flip elements color
-            label.classList.remove('text-gray-300');
-            label.classList.add('text-[#171719]');
-            icon.classList.remove('text-gray-400');
-            icon.classList.add('text-[#171719]');
-        } else {
-            comparedPackages = comparedPackages.filter(pkg => pkg.id !== id);
-            
-            // Restore container styling
-            checkbox.parentElement.classList.remove('bg-[#FFD600]', 'text-[#171719]', 'border-[#FFD600]');
-            checkbox.parentElement.classList.add('bg-black/70', 'text-white');
-            
-            // Restore elements color
-            label.classList.remove('text-[#171719]');
-            label.classList.add('text-gray-300');
-            icon.classList.remove('text-[#171719]');
-            icon.classList.add('text-gray-400');
-        }
 
-        updateCompareBar();
-    }
+            filterAndSortCatalog();
+        };
 
-    function updateCompareBar() {
-        const bar = document.getElementById('compare-bar');
-        const badge = document.getElementById('compare-count-badge');
-        const thumbnailsContainer = document.getElementById('compare-thumbnails');
+        window.setDrawerBudget = function(val) {
+            state.budget = val;
+            filterAndSortCatalog();
+        };
 
-        if (comparedPackages.length > 0) {
-            badge.textContent = `Compare (${comparedPackages.length}/3)`;
-            
-            // Build thumbnail bubbles
-            thumbnailsContainer.innerHTML = '';
-            comparedPackages.forEach(pkg => {
-                const img = document.createElement('img');
-                img.src = pkg.image;
-                img.className = 'w-7 h-7 rounded-full border-2 border-[#1E1E24] object-cover';
-                thumbnailsContainer.appendChild(img);
-            });
+        window.setDrawerSort = function(val) {
+            state.sort = val;
+            filterAndSortCatalog();
+        };
 
-            // Show compare bar
-            bar.classList.remove('hidden');
-            setTimeout(() => {
-                bar.classList.remove('opacity-0', 'translate-y-28');
-            }, 10);
-        } else {
-            // Hide compare bar
-            bar.classList.add('opacity-0', 'translate-y-28');
-            setTimeout(() => {
-                bar.classList.add('hidden');
-            }, 300);
-        }
-    }
+        window.handleBudgetFilter = function(val) {
+            state.budget = val;
+            filterAndSortCatalog();
+        };
 
-    function clearCompare() {
-        comparedPackages = [];
-        document.querySelectorAll('.compare-checkbox').forEach(cb => {
-            cb.checked = false;
-            
-            // Restore container styling
-            cb.parentElement.classList.remove('bg-[#FFD600]', 'text-[#171719]', 'border-[#FFD600]');
-            cb.parentElement.classList.add('bg-black/70', 'text-white');
-            
-            // Restore elements color
-            const label = cb.parentElement.querySelector('.compare-label');
-            const icon = cb.parentElement.querySelector('.compare-icon');
-            label.classList.remove('text-[#171719]');
-            label.classList.add('text-gray-300');
-            icon.classList.remove('text-[#171719]');
-            icon.classList.add('text-gray-400');
+        window.setDrawerFor = function(val) {
+            state.for = val;
+            filterAndSortCatalog();
+        };
+
+        window.resetAllCatalogFilters = function() {
+            state.category = 'all';
+            state.subcategory = 'all';
+            state.budget = 'all';
+            state.for = 'all';
+            state.sort = 'default';
+
+            const allTab = document.querySelector('.cat-tab-pill[data-cat-slug="all"]');
+            window.selectCategoryFilter('all', allTab);
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            filterAndSortCatalog();
         });
-        updateCompareBar();
-    }
-
-    function openCompareModal() {
-        if (comparedPackages.length === 0) return;
-        const modal = document.getElementById('compare-modal');
-        const headerRow = document.getElementById('compare-table-header');
-        const body = document.getElementById('compare-table-body');
-
-        // Build header row
-        let headerHtml = `<th class="py-4 px-3 font-heading text-xs font-bold uppercase tracking-wider text-muted-text">Feature</th>`;
-        comparedPackages.forEach(pkg => {
-            headerHtml += `
-                <th class="py-4 px-4 w-1/3">
-                    <div class="flex flex-col gap-2">
-                        <img src="${pkg.image}" class="w-full h-24 object-cover rounded-xl border border-primary-border bg-gray-100 dark:bg-gray-900">
-                        <h4 class="font-heading font-extrabold text-[10px] md:text-xs uppercase tracking-wide text-main-text line-clamp-2 leading-tight">${pkg.title}</h4>
-                    </div>
-                </th>
-            `;
-        });
-        headerRow.innerHTML = headerHtml;
-
-        // Build table body
-        let bodyHtml = '';
-
-        // Price Row
-        bodyHtml += `
-            <tr class="border-b border-primary-border">
-                <td class="py-3 px-3 font-heading text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-text">Price</td>
-        `;
-        comparedPackages.forEach(pkg => {
-            bodyHtml += `<td class="py-3 px-4 font-heading font-extrabold text-xs md:text-sm text-gold">₹${new Intl.NumberFormat('en-IN').format(pkg.price)}</td>`;
-        });
-        bodyHtml += `</tr>`;
-
-        // Rating Row
-        bodyHtml += `
-            <tr class="border-b border-primary-border">
-                <td class="py-3 px-3 font-heading text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-text">Rating</td>
-        `;
-        comparedPackages.forEach(pkg => {
-            bodyHtml += `
-                <td class="py-3 px-4">
-                    <div class="flex items-center gap-1 font-heading font-extrabold text-xs text-gold">
-                        <i class="fa-solid fa-star text-gold text-[10px]" aria-hidden="true"></i>
-                        <span>${pkg.rating}</span>
-                    </div>
-                </td>
-            `;
-        });
-        bodyHtml += `</tr>`;
-
-        // Gather all unique inclusions
-        let allInclusions = new Set();
-        comparedPackages.forEach(pkg => {
-            pkg.inclusions.forEach(inc => allInclusions.add(inc));
-        });
-
-        allInclusions.forEach(inc => {
-            bodyHtml += `
-                <tr class="border-b border-primary-border">
-                    <td class="py-3 px-3 font-body text-[10px] md:text-xs text-muted-text leading-relaxed">${inc}</td>
-            `;
-            comparedPackages.forEach(pkg => {
-                const hasInclusion = pkg.inclusions.includes(inc);
-                if (hasInclusion) {
-                    bodyHtml += `
-                        <td class="py-3 px-4 text-gold">
-                            <i class="fa-solid fa-check text-gold text-sm" aria-hidden="true"></i>
-                        </td>
-                    `;
-                } else {
-                    bodyHtml += `
-                        <td class="py-3 px-4 text-gray-500">
-                            <i class="fa-solid fa-xmark text-gray-400 dark:text-gray-600 text-sm" aria-hidden="true"></i>
-                        </td>
-                    `;
-                }
-            });
-            bodyHtml += `</tr>`;
-        });
-
-        // Booking CTA Action Row
-        bodyHtml += `
-            <tr>
-                <td class="py-4 px-3 font-heading text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-text">Action</td>
-        `;
-        comparedPackages.forEach(pkg => {
-            const actionUrl = pkg.url.startsWith('javascript:') ? pkg.url.substring(11) : pkg.url;
-            bodyHtml += `
-                <td class="py-4 px-4">
-                    <span onclick="closeCompareModal(); ${actionUrl};" class="cursor-pointer bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] font-heading font-bold uppercase tracking-wider rounded-xl py-1.5 md:py-2 px-3 md:px-4 inline-flex items-center justify-center gap-1 transition-all text-[9px] md:text-[10px] border border-[#FFD600]">
-                        Book Now
-                        <i class="fa-solid fa-chevron-right text-[9px]" aria-hidden="true"></i>
-                    </span>
-                </td>
-            `;
-        });
-        bodyHtml += `</tr>`;
-
-        body.innerHTML = bodyHtml;
-
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeCompareModal() {
-        document.getElementById('compare-modal').classList.add('hidden');
-        const filterContainer = document.getElementById('filter-container');
-        if (!filterContainer || filterContainer.classList.contains('max-lg:hidden') || filterContainer.classList.contains('hidden')) {
-            document.body.style.overflow = '';
-        }
-    }
+    })();
 </script>
+
+<style>
+    /* Absolute reset for cards: Zero hover animations, zero shadows, zero image zoom */
+    #catalog-grid,
+    #catalog-grid *,
+    #catalog-grid .catalog-item-card,
+    #catalog-grid .catalog-item-card *,
+    #catalog-grid .catalog-item-card a,
+    #catalog-grid .catalog-item-card a:hover,
+    #catalog-grid .catalog-item-card a:focus,
+    #catalog-grid .catalog-item-card a:active,
+    .catalog-item-card,
+    .catalog-item-card *,
+    .catalog-item-card a,
+    .catalog-item-card a:hover,
+    .catalog-item-card a:focus,
+    .catalog-item-card a:active {
+        box-shadow: none !important;
+        -webkit-box-shadow: none !important;
+        transform: none !important;
+        -webkit-transform: none !important;
+        transition: none !important;
+        -webkit-transition: none !important;
+        animation: none !important;
+        -webkit-animation: none !important;
+        text-decoration: none !important;
+    }
+    #catalog-grid img,
+    #catalog-grid a img,
+    #catalog-grid a:hover img,
+    #catalog-grid img:hover,
+    .catalog-item-card img,
+    .catalog-item-card a img,
+    .catalog-item-card a:hover img,
+    .catalog-item-card img:hover {
+        transform: none !important;
+        -webkit-transform: none !important;
+        scale: none !important;
+        transition: none !important;
+        -webkit-transition: none !important;
+        animation: none !important;
+        filter: none !important;
+        -webkit-filter: none !important;
+    }
+
+    #open-filter-btn,
+    #open-filter-btn:focus {
+        box-shadow: none !important;
+        -webkit-box-shadow: none !important;
+        transform: none !important;
+        -webkit-transform: none !important;
+        outline: none !important;
+    }
+</style>
 @endsection

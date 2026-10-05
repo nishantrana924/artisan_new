@@ -1,0 +1,41 @@
+{
+    "1": {
+        "id": 1,
+        "title": "Baby Shower",
+        "desc": "Dreamy pastel clouds and customized stage backdrop.",
+        "image": "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?q=80&w=800",
+        "tag": "decor",
+        "active": true,
+        "gallery": [],
+        "tiers": [
+            {
+                "name": "Basic Cloud Setup",
+                "slug": "basic-cloud-setup-1",
+                "price": 7499,
+                "original_price": 9999,
+                "desc": "",
+                "image": null,
+                "inclusions": [
+                    "Pastel Balloon Ring",
+                    "Custom Welcome Easel",
+                    "LED Spotlights"
+                ],
+                "badge": "TRENDING"
+            },
+            {
+                "name": "Luxury Cloud Suite",
+                "slug": "luxury-cloud-suite-2",
+                "price": 12499,
+                "original_price": 9999,
+                "desc": "",
+                "image": null,
+                "inclusions": [
+                    "Full Stage Backing",
+                    "Teddy Props",
+                    "Fog Machine Entrance"
+                ],
+                "badge": "TRENDING"
+            }
+        ]
+    }
+}

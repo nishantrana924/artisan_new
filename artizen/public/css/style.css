@@ -10,16 +10,16 @@
     --color-dark-soft: #292929;
 
     /* Light Backgrounds */
-    --color-background: #FAF9F6;
+    --color-background: #F8F9FA;
     --color-surface: #FFFFFF;
-    --color-surface-soft: #F1EEE7;
-    --color-border: #E6E2D8;
+    --color-surface-soft: #F3F4F6;
+    --color-border: #E5E7EB;
 
     /* Text */
-    --color-text-primary: #171719;
-    --color-text-secondary: #666666;
+    --color-text-primary: #111827;
+    --color-text-secondary: #4B5563;
     --color-text-light: #FFFFFF;
-    --color-text-muted: #999999;
+    --color-text-muted: #6B7280;
 
     /* Feedback */
     --color-success: #237A4B;
@@ -54,7 +54,7 @@
 
     /* Borders */
     --border-color: var(--color-border);
-    --border-hover: var(--color-primary);
+    --border-hover: var(--color-border);
 
     /* Branding / Accent colors */
     --accent: var(--color-primary);
@@ -429,10 +429,10 @@ select {
 
 input:focus,
 select:focus {
-    box-shadow: 0 6px 18px rgba(151, 128, 255, 0.12);
-    transform: translateY(-1px);
+    box-shadow: none !important;
+    transform: none !important;
     border-color: var(--border-hover);
-    outline: none;
+    outline: none !important;
 }
 
 /* Focus styles for keyboard users */
@@ -441,8 +441,7 @@ select:focus {
 }
 
 :focus-visible {
-    outline: 2px solid var(--artizen-orange);
-    outline-offset: 2px;
+    outline: none !important;
 }
 
 /* Card hover micro-interaction */
@@ -676,58 +675,14 @@ header {
     color: var(--text-muted);
 }
 
-/* Cart drawer / modal basic styles */
-#cart-drawer {
-    position: fixed;
-    right: 0;
-    left: auto;
-    top: 0;
-    height: 100%;
-    width: 360px;
-    max-width: 92%;
-    background: transparent;
-    border: none;
-    z-index: 60;
-    pointer-events: none;
-}
-
-/* Overlay covers viewport regardless of drawer container size */
+/* Cart drawer / modal basic styles - Disabled */
+#cart-drawer,
+#cart-body,
 #cart-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    opacity: 0;
-    transition: opacity 260ms;
-    z-index: 58;
-    display: none;
-}
-
-/* Drawer body (actual panel) slides in/out via translate utilities on #cart-body */
-#cart-body {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 100%;
-    max-width: 480px;
-    height: 100%;
-    transform: translateX(100%);
-    transition: transform 260ms ease;
-    pointer-events: auto;
-    z-index: 59;
-}
-
-/* When overlay visible display block and pointer events enabled */
-#cart-drawer.open {
-    pointer-events: auto;
-}
-
-#cart-drawer.open #cart-overlay {
-    display: block;
-    opacity: 1;
-}
-
-#cart-drawer.open #cart-body {
-    transform: translateX(0%);
+    display: none !important;
+    visibility: hidden !important;
+    box-shadow: none !important;
+    pointer-events: none !important;
 }
 
 /* Mobile bottom sticky quick-book (removed) */
@@ -1205,7 +1160,7 @@ header.header-premium.scrolled {
 #header-top-bar {
     max-height: 50px;
     opacity: 1;
-    transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, padding 0.3s ease, border-color 0.3s ease !important;
+    transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, padding 0.3s ease, border-color 0.3s ease !important;
 }
 
 header.header-premium.scrolled #header-top-bar {
@@ -1337,9 +1292,21 @@ header.header-premium #search-input:focus {
 
 /* Mobile drawer and backdrop animations */
 #mobile-nav {
-    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.05);
+    box-shadow: none !important;
     transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
     background-color: #FFFFFF !important;
+}
+
+#mobile-nav:not(.translate-x-full):not(.hidden) {
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.1) !important;
+}
+
+#mobile-nav.translate-x-full,
+#mobile-nav.hidden,
+#mobile-nav.invisible {
+    display: none !important;
+    visibility: hidden !important;
+    box-shadow: none !important;
 }
 
 #mobile-nav a,
@@ -1559,44 +1526,58 @@ header.header-premium #search-input:focus {
 
 /* Premium Experience Card Design */
 .experience-card {
-    width: 320px;
-    background-color: #FFFFFF;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    border-radius: 2px !important;
-    padding: 1rem;
+    width: 300px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 20px !important;
+    padding: 14px;
     flex-shrink: 0;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-    transition: none !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease !important;
     cursor: pointer;
     text-align: left;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 [data-theme="dark"] .experience-card {
-    background-color: #121212;
-    border-color: rgba(255, 255, 255, 0.06);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    background-color: #18181B;
+    border-color: rgba(255, 255, 255, 0.09);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-.experience-card:hover,
+.experience-card:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
 [data-theme="dark"] .experience-card:hover {
-    transform: none !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
 }
 
 .experience-card-img-container {
     width: 100%;
-    aspect-ratio: 4/3;
+    aspect-ratio: 4/3.1;
     overflow: hidden;
-    border-radius: 2px !important;
-    margin-bottom: 1rem;
+    border-radius: 14px !important;
+    margin-bottom: 0.75rem;
     position: relative;
+    background-color: #f3f4f6;
+}
+
+[data-theme="dark"] .experience-card-img-container {
+    background-color: #27272a;
 }
 
 .experience-card-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: none;
+    transition: transform 0.4s ease;
+}
+
+.experience-card:hover .experience-card-img {
+    transform: scale(1.04);
 }
 
 .experience-card:hover .experience-card-img {
@@ -4019,7 +4000,6 @@ header.header-premium #search-input:focus {
    ---------------------------------------------------- */
 
 #events {
-    background-color: var(--bg-main);
     position: relative;
 }
 
@@ -4052,91 +4032,114 @@ header.header-premium #search-input:focus {
     }
 }
 
-/* Fluid Card Override */
+/* Fluid Card Override & Uniform Dimensions */
 .experience-card {
     width: 100% !important;
     max-width: 100% !important;
     display: flex !important;
     flex-direction: column !important;
-    justify-content: flex-start !important;
-    min-height: 360px !important;
+    justify-content: space-between !important;
+    min-height: 410px !important;
     height: 100% !important;
     background-color: var(--bg-card) !important;
     border: 1px solid var(--border-color) !important;
-    border-radius: 2px !important;
-    padding: 12px !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02) !important;
-    transition: none !important;
+    border-radius: 20px !important;
+    padding: 14px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease !important;
     cursor: pointer !important;
     text-align: left !important;
     position: relative;
     overflow: hidden;
 }
 
+[data-theme="dark"] .experience-card {
+    background-color: #18181B !important;
+    border-color: rgba(255, 255, 255, 0.09) !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35) !important;
+}
+
 .experience-card:hover {
-    transform: none !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="dark"] .experience-card:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
 }
 
 .experience-card.hidden,
 #packages-grid>.experience-card.hidden,
-.experience-card.\!hidden {
+.experience-card.\!hidden,
+.category-package-group.hidden {
     display: none !important;
 }
 
 /* Image Container */
 .experience-card-img-container {
     width: 100% !important;
-    aspect-ratio: 16/10 !important;
+    aspect-ratio: 4/3.1 !important;
     overflow: hidden !important;
-    border-radius: 2px !important;
+    border-radius: 14px !important;
     margin-bottom: 10px !important;
     position: relative !important;
+    background-color: #f3f4f6 !important;
+}
+
+[data-theme="dark"] .experience-card-img-container {
+    background-color: #27272a !important;
 }
 
 .experience-card-img {
     width: 100% !important;
     height: 100% !important;
     object-fit: cover !important;
-    transition: none !important;
+    transition: transform 0.4s ease !important;
 }
 
 .experience-card:hover .experience-card-img {
-    transform: none !important;
+    transform: scale(1.04) !important;
 }
 
 /* Floating Discount or Trust Badge on Card Image */
 .experience-card-badge {
     position: absolute;
-    top: 8px;
-    left: 8px;
+    top: 10px;
+    left: 10px;
     background: rgba(0, 0, 0, 0.65);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     color: #ffffff;
-    padding: 4px 8px;
+    padding: 4px 10px;
     border-radius: 9999px;
-    font-size: 9px;
-    font-weight: 700;
+    font-size: 9.5px;
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     z-index: 10;
     border: 1px solid rgba(255, 255, 255, 0.15);
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 4.5px;
 }
 
 .experience-card-badge.gold {
-    background: var(--accent);
-    color: #ffffff;
-    border-color: var(--accent);
-    box-shadow: 0 4px 10px var(--accent-glow-strong);
+    background: #FFD600 !important;
+    color: #000000 !important;
+    border: none !important;
+    box-shadow: 0 3px 10px rgba(255, 214, 0, 0.35) !important;
+}
+
+.experience-card-badge.luxury {
+    background: #18181B !important;
+    color: #FFD600 !important;
+    border: 1px solid rgba(255, 214, 0, 0.45) !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4) !important;
 }
 
 .experience-card-badge.green {
-    background: #25D366;
-    color: #ffffff;
-    border-color: #25D366;
+    background: #25D366 !important;
+    color: #ffffff !important;
+    border-color: #25D366 !important;
 }
 
 /* Card Header: Metadata */
@@ -4145,12 +4148,8 @@ header.header-premium #search-input:focus {
     justify-content: space-between !important;
     align-items: flex-start !important;
     gap: 8px !important;
-    margin-bottom: 6px !important;
+    margin-bottom: 4px !important;
     width: 100% !important;
-}
-
-.experience-card-count {
-    display: none !important;
 }
 
 /* Rating display */
@@ -4162,51 +4161,37 @@ header.header-premium #search-input:focus {
     font-weight: 700 !important;
     color: var(--text-main) !important;
     flex-shrink: 0 !important;
-    padding-top: 2px !important;
+    padding-top: 1px !important;
 }
 
 .experience-card-rating svg,
 .experience-card-rating i {
-    width: 12px;
-    height: 12px;
-    color: var(--artizen-orange) !important;
-    fill: var(--artizen-orange) !important;
-}
-
-.experience-card-rating span.count {
-    color: var(--text-muted);
-    font-weight: 500;
+    color: #FFD600 !important;
 }
 
 /* Card Title */
 .experience-card-title {
     font-family: var(--font-heading) !important;
-    font-size: 15px !important;
+    font-size: 15.5px !important;
     font-weight: 700 !important;
     color: var(--text-main) !important;
     margin-bottom: 0 !important;
-    transition: color 0.3s ease !important;
-    line-height: 1.35 !important;
+    transition: color 0.2s ease !important;
+    line-height: 1.3 !important;
     flex: 1 !important;
-    display: -webkit-box !important;
-    -webkit-line-clamp: 2 !important;
-    -webkit-box-orient: vertical !important;
+    white-space: nowrap !important;
     overflow: hidden !important;
-    word-break: break-word !important;
+    text-overflow: ellipsis !important;
 }
 
-.experience-card:hover .experience-card-title {
-    color: inherit !important;
-}
-
-/* Description styling */
+/* Description styling with clamped 2-line height */
 .experience-card-desc {
     font-family: var(--font-body) !important;
-    font-size: 12.5px !important;
+    font-size: 12px !important;
     color: var(--text-muted) !important;
     line-height: 1.45 !important;
-    margin-bottom: 12px !important;
-    height: 2.9em !important;
+    margin-bottom: 8px !important;
+    height: 34px !important;
     overflow: hidden !important;
     display: -webkit-box !important;
     -webkit-line-clamp: 2 !important;
@@ -4221,33 +4206,19 @@ header.header-premium #search-input:focus {
 }
 
 .experience-card-price {
-    font-size: 11.5px !important;
-    color: var(--text-muted) !important;
-    font-family: var(--font-body) !important;
-    font-weight: 600 !important;
-    display: flex;
-    align-items: baseline;
-    gap: 4px;
-    flex-wrap: wrap;
-}
-
-.experience-card-price span {
+    font-size: 19px !important;
     color: var(--text-main) !important;
+    font-family: var(--font-heading) !important;
     font-weight: 800 !important;
-    font-size: 18px !important;
+    letter-spacing: -0.02em;
 }
 
 .experience-card-mrp {
-    font-size: 12px;
-    color: var(--text-muted);
-    text-decoration: line-through;
-    font-weight: 500;
-}
-
-.experience-card-discount {
-    font-size: 12px;
-    color: #25D366;
-    font-weight: 700;
+    font-size: 12px !important;
+    color: var(--text-muted) !important;
+    text-decoration: line-through !important;
+    font-weight: 400 !important;
+    margin-left: 2px;
 }
 
 /* Card Footer */
@@ -4256,38 +4227,36 @@ header.header-premium #search-input:focus {
     justify-content: space-between !important;
     align-items: center !important;
     border-top: 1px solid var(--border-color) !important;
-    padding-top: 8px !important;
+    padding-top: 10px !important;
     margin-top: auto !important;
 }
 
 .experience-card-btn {
     font-family: var(--font-heading) !important;
-    font-size: 12px !important;
-    font-weight: 700 !important;
-    color: #ffffff !important;
-    background-color: var(--accent) !important;
+    font-size: 11.5px !important;
+    font-weight: 800 !important;
+    color: #000000 !important;
+    background-color: #FFD600 !important;
     padding: 7px 16px !important;
-    border-radius: 999px !important;
+    border-radius: 9999px !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.05em !important;
+    letter-spacing: 0.04em !important;
     display: inline-flex !important;
     align-items: center !important;
     gap: 4px !important;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 8px rgba(255, 214, 0, 0.25) !important;
+}
+
+.experience-card-btn:hover {
+    background-color: #E6C200 !important;
+    transform: scale(1.02) !important;
 }
 
 [data-theme="dark"] .experience-card-btn,
 html.dark .experience-card-btn {
-    color: #ffffff !important;
-    background-color: var(--accent) !important;
-    box-shadow: 0 2px 8px var(--artizen-orange-glow-strong) !important;
-}
-
-.experience-card-btn:hover {
-    background-color: var(--accent-hover) !important;
-    color: #ffffff !important;
-    transform: none !important;
-    box-shadow: 0 4px 12px var(--artizen-orange-glow-strong) !important;
+    background-color: #FFD600 !important;
+    color: #000000 !important;
 }
 
 [data-theme="dark"] .experience-card-btn:hover,
@@ -6986,7 +6955,6 @@ html.dark .package-detail-page button[onclick="openFullGalleryModal()"] {
    ========================================================================== */
 
 #events {
-    background-color: var(--bg-main);
     position: relative;
 }
 
@@ -7409,16 +7377,16 @@ html.dark .experience-card:hover .experience-card-btn {
 .category-row-scroll .experience-card {
     flex-shrink: 0;
     scroll-snap-align: start;
-    width: 250px !important;
-    max-width: 250px !important;
-    min-height: 380px !important;
-    height: auto !important;
+    width: 280px !important;
+    max-width: 280px !important;
+    min-height: 410px !important;
+    height: 100% !important;
 }
 
 @media (min-width: 480px) {
     .category-row-scroll .experience-card {
-        width: 280px !important;
-        max-width: 280px !important;
+        width: 295px !important;
+        max-width: 295px !important;
     }
 }
 
@@ -7603,6 +7571,13 @@ html.dark .swipe-indicator:hover {
 /* ============================================================
    GLOBAL NO-HOVER OVERRIDE FOR ALL FRONTEND CARDS
    ============================================================ */
+.bestseller-clean-card,
+.bestseller-clean-card *,
+.bestseller-clean-card:hover,
+.bestseller-clean-card:hover *,
+.bestseller-clean-card:focus,
+.bestseller-clean-card:focus-visible,
+.bestseller-clean-card:active,
 .experience-card,
 .experience-card *,
 .experience-card:hover,
@@ -7631,6 +7606,17 @@ html.dark .swipe-indicator:hover {
     animation: none !important;
 }
 
+.bestseller-clean-card,
+.bestseller-clean-card:hover,
+.bestseller-clean-card:focus,
+.bestseller-clean-card:focus-visible,
+.bestseller-clean-card:active {
+    border-color: #E8DFC8 !important;
+    outline: none !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+.bestseller-clean-card:hover,
 .experience-card:hover,
 .package-card:hover,
 .pkg-card:hover,
@@ -7642,6 +7628,7 @@ html.dark .swipe-indicator:hover {
     scale: none !important;
 }
 
+.bestseller-clean-card:hover img,
 .experience-card:hover .experience-card-img,
 .experience-card:hover img,
 .reels-card:hover img,

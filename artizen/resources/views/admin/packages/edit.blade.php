@@ -190,10 +190,16 @@
         <header class="py-5 px-6 md:px-8 border-b border-gray-200 bg-white shrink-0">
             <div class="max-w-[1200px] mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div class="flex flex-col gap-1 text-left">
-                    <a href="/admin/dashboard?tab=packages" class="text-xs font-semibold text-gray-500 hover:text-gray-900 inline-flex items-center gap-1.5 transition-colors mb-1">
+                    <a href="{{ route('admin.packages') }}" class="text-xs font-semibold text-gray-500 hover:text-gray-900 inline-flex items-center gap-1.5 transition-colors mb-1">
                         <i class="fa-solid fa-arrow-left text-[11px]"></i> Back to Packages
                     </a>
                     <div class="flex items-center gap-3">
+                        <button type="button" 
+                                onclick="toggleAdminSidebarMobile()" 
+                                class="md:hidden w-9 h-9 rounded-xl border border-gray-200 bg-white hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors shadow-2xs cursor-pointer shrink-0" 
+                                title="Open Menu">
+                            <i class="fa-solid fa-bars-staggered text-sm"></i>
+                        </button>
                         <h1 class="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">
                             {{ $isEdit ? 'Edit Package' : 'Create New Package' }}
                         </h1>
@@ -981,7 +987,7 @@
                     <span>Changes are saved when you click Save Package.</span>
                 </div>
                 <div class="flex items-center justify-end gap-2.5 sm:gap-3 w-full sm:w-auto">
-                    <a href="/admin/dashboard?tab=packages" class="flex-1 sm:flex-none px-4 py-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold transition-all shadow-sm text-center">
+                    <a href="{{ route('admin.packages') }}" class="flex-1 sm:flex-none px-4 py-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold transition-all shadow-sm text-center">
                         Cancel
                     </a>
                     <button type="submit" form="package-main-form" name="save_draft" value="1" onclick="document.querySelector('select[name=status]').value = 'draft';" class="flex-1 sm:flex-none px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg text-sm font-semibold transition-all border border-gray-300 cursor-pointer text-center">

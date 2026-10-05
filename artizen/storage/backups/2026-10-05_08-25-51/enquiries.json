@@ -1,0 +1,22 @@
+[
+    {
+        "id": "ENQ-6039",
+        "name": "Rahul Sharma",
+        "phone": "9876543210",
+        "email": "rahul@example.com",
+        "subject": "House Party & DJ Rigs",
+        "message": "I need a professional active speaker column setup with a DJ and lighting for a house party of 50 guests on this Saturday.",
+        "status": "Unread",
+        "created_at": "13 Aug 2026, 09:17 PM"
+    },
+    {
+        "id": "ENQ-9222",
+        "name": "Aditya Sharma",
+        "phone": "9826011223",
+        "email": "aditya@example.com",
+        "subject": "Birthday Celebration Setup",
+        "message": "Looking for neon sign and balloon arch in Vijay Nagar Indore.",
+        "status": "Unread",
+        "created_at": "02 Oct 2026, 05:40 PM"
+    }
+]

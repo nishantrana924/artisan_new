@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use App\Services\JsonStorageService;
 
 class DashboardController extends Controller
@@ -17,6 +18,31 @@ class DashboardController extends Controller
         // Purge compiled views cache to ensure latest template edits render instantly
         foreach (glob(storage_path('framework/views/*.php')) as $cachedFile) {
             @unlink($cachedFile);
+        }
+
+        // Redirect legacy tab query params to their dedicated standalone pages
+        if ($request->has('tab')) {
+            $tab = $request->query('tab');
+            $tabRedirects = [
+                'packages'      => 'admin.packages',
+                'categories'    => 'admin.categories',
+                'bookings'      => 'admin.bookings',
+                'customers'     => 'admin.customers',
+                'reviews'       => 'admin.reviews',
+                'testimonials'  => 'admin.faqs',
+                'faqs'          => 'admin.faqs',
+                'hero-manager'  => 'admin.hero',
+                'hero'          => 'admin.hero',
+                'about-manager' => 'admin.about',
+                'about'         => 'admin.about',
+                'legal-manager' => 'admin.legal',
+                'legal'         => 'admin.legal',
+                'settings'      => 'admin.settings',
+            ];
+
+            if (isset($tabRedirects[$tab])) {
+                return redirect()->route($tabRedirects[$tab]);
+            }
         }
 
         $defaultCms = [
@@ -84,16 +110,20 @@ class DashboardController extends Controller
         $faqs = JsonStorageService::read('faqs.json');
         $settings = JsonStorageService::read('settings.json');
 
+        $defaultLegalPages = app(\App\Http\Controllers\LegalController::class)->getDefaultLegalPages();
+        $legalPages = JsonStorageService::read('legal_pages.json', $defaultLegalPages);
+
         // Compute Dynamic Real-Time Analytics & Reporting Metrics
         $analytics = $this->calculateAnalytics($bookings, $request);
 
-        return view('admin.dashboard', compact('cms', 'artists', 'categories', 'packages', 'bookings', 'faqs', 'settings', 'analytics'));
+        return view('admin.dashboard', compact('cms', 'artists', 'categories', 'packages', 'bookings', 'faqs', 'settings', 'legalPages', 'analytics'));
     }
 
     /**
      * Compute dynamic analytics & reporting metrics from real JSON data.
+     * Made public so it can be called from AdminPageController.
      */
-    protected function calculateAnalytics(array $bookings, Request $request): array
+    public function calculateAnalytics(array $bookings, Request $request): array
     {
         $timeFilter = $request->query('time_filter', 'all');
         $startDate = $request->query('start_date');
@@ -324,7 +354,7 @@ class DashboardController extends Controller
         ];
 
         JsonStorageService::write('cms.json', $cms);
-        return redirect()->route('admin.dashboard')->with('success', 'CMS Content saved successfully!');
+        return redirect()->route('admin.hero')->with('success', 'CMS Content saved successfully!');
     }
 
     /**
@@ -398,7 +428,7 @@ class DashboardController extends Controller
 
         File::put($artistsPath, json_encode($artists, JSON_PRETTY_PRINT));
 
-        return redirect()->route('admin.dashboard')->with('success', 'Artist profile successfully saved!');
+        return redirect()->route('admin.testimonials')->with('success', 'Artist profile saved successfully!');
     }
 
     /**
@@ -417,7 +447,7 @@ class DashboardController extends Controller
             File::put($artistsPath, json_encode($filteredArtists, JSON_PRETTY_PRINT));
         }
 
-        return redirect()->route('admin.dashboard')->with('success', 'Artist profile successfully deleted!');
+        return redirect()->route('admin.testimonials')->with('success', 'Artist profile deleted successfully!');
     }
 
     /**
@@ -425,60 +455,192 @@ class DashboardController extends Controller
      */
     public function saveCategory(Request $request)
     {
+        $request->validate([
+            'title'          => 'required|string|max:255',
+            'nav_slug'       => 'nullable|string|max:100',
+            'icon'           => 'nullable|string|max:100',
+            'bg_color'       => 'nullable|string|max:20',
+            'dropdown_badge' => 'nullable|string|max:100',
+            'display_order'  => 'nullable|integer',
+        ]);
+
+        $allowedImageExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+        $id = $request->input('id');
+        $targetOrder = max(1, (int) $request->input('display_order', 1));
+        $dbCat = null;
+
+        // ------------------------------------------------------------------
+        // Shift existing category display orders
+        // ------------------------------------------------------------------
+        if (!$id) {
+            // New category: shift any existing categories at or after $targetOrder by +1
+            \App\Models\Category::where('display_order', '>=', $targetOrder)
+                ->increment('display_order');
+        } else {
+            // Existing category: shift intermediate categories
+            $dbCat = \App\Models\Category::find($id);
+            if ($dbCat) {
+                $oldOrder = (int) $dbCat->display_order;
+                if ($oldOrder !== $targetOrder) {
+                    if ($targetOrder < $oldOrder) {
+                        // Moving up (e.g. from 5 to 1): shift intermediate items down (+1)
+                        \App\Models\Category::where('id', '!=', $dbCat->id)
+                            ->where('display_order', '>=', $targetOrder)
+                            ->where('display_order', '<', $oldOrder)
+                            ->increment('display_order');
+                    } else {
+                        // Moving down (e.g. from 1 to 5): shift intermediate items up (-1)
+                        \App\Models\Category::where('id', '!=', $dbCat->id)
+                            ->where('display_order', '>', $oldOrder)
+                            ->where('display_order', '<=', $targetOrder)
+                            ->decrement('display_order');
+                    }
+                }
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // Build DB payload
+        // ------------------------------------------------------------------
+        $dbPayload = [
+            'title'          => trim($request->input('title')),
+            'icon'           => $request->input('icon', null),
+            'bg_color'       => $request->input('bg_color', '#F6CFB2'),
+            'nav_slug'       => $request->input('nav_slug', null),
+            'dropdown_badge' => $request->input('dropdown_badge', null),
+            'display_order'  => $targetOrder,
+            'active'         => $request->boolean('active', true),
+        ];
+
+        // Slider Image upload or URL
+        if ($request->hasFile('slider_image_file')) {
+            $file = $request->file('slider_image_file');
+            $ext  = strtolower($file->getClientOriginalExtension());
+            if (!in_array($ext, $allowedImageExts)) {
+                return redirect()->back()->with('error', 'Invalid slider image format. Use JPG, PNG, WEBP or GIF.');
+            }
+            if (!File::exists(public_path('uploads/categories'))) {
+                File::makeDirectory(public_path('uploads/categories'), 0755, true);
+            }
+            $fname = 'slider_' . time() . '_' . rand(100, 999) . '.' . $ext;
+            $file->move(public_path('uploads/categories'), $fname);
+            $dbPayload['slider_image'] = '/uploads/categories/' . $fname;
+        } else {
+            $dbPayload['slider_image'] = $request->input('slider_image') ?: null;
+        }
+
+        // Dropdown Image upload or URL
+        if ($request->hasFile('dropdown_image_file')) {
+            $file = $request->file('dropdown_image_file');
+            $ext  = strtolower($file->getClientOriginalExtension());
+            if (!in_array($ext, $allowedImageExts)) {
+                return redirect()->back()->with('error', 'Invalid dropdown image format. Use JPG, PNG, WEBP or GIF.');
+            }
+            if (!File::exists(public_path('uploads/categories'))) {
+                File::makeDirectory(public_path('uploads/categories'), 0755, true);
+            }
+            $fname = 'dropdown_' . time() . '_' . rand(100, 999) . '.' . $ext;
+            $file->move(public_path('uploads/categories'), $fname);
+            $dbPayload['dropdown_image'] = '/uploads/categories/' . $fname;
+        } else {
+            $dbPayload['dropdown_image'] = $request->input('dropdown_image') ?: null;
+        }
+
+        // ------------------------------------------------------------------
+        // Persist to DB
+        // ------------------------------------------------------------------
+        if ($id) {
+            if ($dbCat) {
+                $dbCat->update($dbPayload);
+            } else {
+                $dbCat = \App\Models\Category::find($id);
+                if ($dbCat) $dbCat->update($dbPayload);
+            }
+        } else {
+            $dbPayload['slug'] = \Illuminate\Support\Str::slug($dbPayload['title']) . '-' . time();
+            $dbPayload['count'] = 0;
+            $dbCat = \App\Models\Category::create($dbPayload);
+        }
+
+        // Normalize full sequence to guarantee contiguous 1, 2, 3, ... N
+        $allCategories = \App\Models\Category::orderBy('display_order')->orderBy('updated_at', 'desc')->get();
+        foreach ($allCategories as $index => $catItem) {
+            $expected = $index + 1;
+            if ($catItem->display_order != $expected) {
+                $catItem->update(['display_order' => $expected]);
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // Handle Subcategories JSON (Strictly capped to 18 for mega-menu balance)
+        // ------------------------------------------------------------------
+        $subcatsJson = $request->input('subcategories_json', null);
+        if ($subcatsJson && $dbCat) {
+            $subcats = json_decode($subcatsJson, true);
+            if (is_array($subcats)) {
+                // Strict limit: maximum 18 subcategories (3 columns x 6 links max) to prevent navbar overflow
+                $subcats = array_slice($subcats, 0, 18);
+                $existingIds = [];
+                foreach ($subcats as $idx => $sub) {
+                    $name = trim($sub['name'] ?? '');
+                    if (!$name) continue;
+                    $group = trim($sub['group_name'] ?? '');
+                    if (!$group) {
+                        $group = 'Setup Themes'; // Always guarantee a valid group name
+                    }
+                    $subModel = \App\Models\Subcategory::updateOrCreate(
+                        ['category_id' => $dbCat->id, 'name' => $name],
+                        [
+                            'slug'          => \Illuminate\Support\Str::slug($name),
+                            'group_name'    => $group,
+                            'badge'         => trim($sub['badge'] ?? '') ?: null,
+                            'display_order' => $idx + 1,
+                            'is_active'     => true,
+                        ]
+                    );
+                    $existingIds[] = $subModel->id;
+                }
+                // Remove subcategories not in the updated list
+                if (!empty($existingIds)) {
+                    \App\Models\Subcategory::where('category_id', $dbCat->id)
+                        ->whereNotIn('id', $existingIds)
+                        ->delete();
+                }
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // Also maintain JSON legacy fallback (for JSON storage driver mode)
+        // ------------------------------------------------------------------
         $path = storage_path('app/categories.json');
         $categories = [];
         if (File::exists($path)) {
             $categories = json_decode(File::get($path), true) ?? [];
         }
 
-        $id = $request->input('id');
-        $catData = [];
+        $catData = [
+            'id'     => $dbCat ? $dbCat->id : time(),
+            'title'  => $dbPayload['title'],
+            'active' => $dbPayload['active'],
+            'image'  => $dbPayload['slider_image'] ?? ($categories[0]['image'] ?? ''),
+        ];
 
         $existingIndex = -1;
-        if ($id) {
-            foreach ($categories as $index => $c) {
-                if ($c['id'] == $id) {
-                    $existingIndex = $index;
-                    $catData = $c;
-                    break;
-                }
+        foreach ($categories as $index => $c) {
+            if ((string)($c['id'] ?? '') === (string)($id ?? '')) {
+                $existingIndex = $index;
+                break;
             }
         }
-
-        $catData['title'] = $request->input('title');
-        $catData['active'] = $request->has('active');
-
-        // Handle Category image upload
-        if ($request->hasFile('image_file')) {
-            $file = $request->file('image_file');
-            $ext = strtolower($file->getClientOriginalExtension());
-            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'])) {
-                return redirect()->back()->with('error', 'Unsafe file format rejected. Only JPG, PNG, WEBP, and GIF images are allowed.');
-            }
-            $filename = 'category_' . time() . '_' . rand(100, 999) . '.' . $ext;
-            if (!File::exists(public_path('uploads'))) {
-                File::makeDirectory(public_path('uploads'), 0755, true);
-            }
-            $file->move(public_path('uploads'), $filename);
-            $catData['image'] = '/uploads/' . $filename;
-        } else {
-            $catData['image'] = $request->input('image', $catData['image'] ?? 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?q=80&w=300&auto=format&fit=crop');
-        }
-
         if ($existingIndex !== -1) {
-            $categories[$existingIndex] = $catData;
+            $categories[$existingIndex] = array_merge($categories[$existingIndex], $catData);
         } else {
-            $newId = 1;
-            if (!empty($categories)) {
-                $newId = max(array_column($categories, 'id')) + 1;
-            }
-            $catData['id'] = $newId;
             $catData['count'] = 0;
             $categories[] = $catData;
         }
-
         JsonStorageService::write('categories.json', $categories);
-        return redirect()->route('admin.dashboard')->with('success', 'Category saved successfully!');
+
+        return redirect()->route('admin.categories')->with('success', 'Category saved successfully!');
     }
 
     /**
@@ -593,7 +755,7 @@ class DashboardController extends Controller
         }
 
         if (!$tier) {
-            return redirect()->route('admin.dashboard')->with('error', 'Package tier plan not found!');
+            return redirect()->route('admin.packages')->with('error', 'Package tier plan not found!');
         }
 
         // Apply defaults for Phase 1 basic information fields if not set
@@ -681,260 +843,222 @@ class DashboardController extends Controller
     }
 
     /**
-     * Save/Create a tiered package under a category.
+     * Save/Create a package and its tiers in MySQL database and sync subcategories.
      */
     public function savePackage(Request $request)
     {
-        $path = storage_path('app/packages.json');
-        $packages = [];
-        if (File::exists($path)) {
-            $packages = json_decode(File::get($path), true) ?? [];
-        }
-
-        $catId = $request->input('category_id');
-        
-        if (!isset($packages[$catId])) {
-            $categoriesPath = storage_path('app/categories.json');
-            $categories = json_decode(File::get($categoriesPath), true) ?? [];
-            $catTitle = 'Category';
-            foreach ($categories as $c) {
-                if ($c['id'] == $catId) {
-                    $catTitle = $c['title'];
-                    break;
-                }
-            }
-
-            $packages[$catId] = [
-                'id' => (int)$catId,
-                'title' => $catTitle,
-                'desc' => 'Custom packages for ' . $catTitle,
-                'image' => 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?q=80&w=800&auto=format&fit=crop',
-                'tag' => 'decor',
-                'active' => true,
-                'gallery' => [],
-                'tiers' => []
-            ];
-        }
-
-        $tierIndex = $request->input('tier_index');
-        $name = $request->input('name');
-        $slug = $request->input('slug') ? \Illuminate\Support\Str::slug($request->input('slug')) : \Illuminate\Support\Str::slug($name);
-        
-        $price = (int)$request->input('price', 0);
-        $originalPrice = (int)$request->input('original_price', $price);
-        $discountPct = ($originalPrice > 0 && $price < $originalPrice) ? (int)round((($originalPrice - $price) / $originalPrice) * 100) : 0;
-
-        $existingTier = (is_numeric($tierIndex) && isset($packages[$catId]['tiers'][$tierIndex])) ? $packages[$catId]['tiers'][$tierIndex] : [];
-
-        $highlightsInput = $request->input('highlights', []);
-        $cleanHighlights = array_values(array_filter(array_map('trim', (array)$highlightsInput)));
-        $specsInput = $request->input('specifications', []);
-
-        // Process Addons
-        $addonsRaw = $request->input('addons', []);
-        $cleanAddons = [];
-        if (is_array($addonsRaw)) {
-            foreach ($addonsRaw as $item) {
-                if (!empty($item['title'])) {
-                    $cleanAddons[] = [
-                        'title' => trim($item['title']),
-                        'price' => (int)($item['price'] ?? 0),
-                        'desc' => trim($item['desc'] ?? ''),
-                        'icon' => trim($item['icon'] ?? 'fa-solid fa-fire')
-                    ];
-                }
-            }
-        }
-
-        // Process FAQs
-        $faqsRaw = $request->input('faqs', []);
-        $cleanFaqs = [];
-        if (is_array($faqsRaw)) {
-            foreach ($faqsRaw as $item) {
-                if (!empty($item['question'])) {
-                    $cleanFaqs[] = [
-                        'question' => trim($item['question']),
-                        'answer' => trim($item['answer'] ?? '')
-                    ];
-                }
-            }
-        }
-
-        // Process Exclusions
-        $exclusionsRaw = $request->input('exclusions', '');
-        $cleanExclusions = [];
-        if (is_array($exclusionsRaw)) {
-            $cleanExclusions = array_values(array_filter(array_map('trim', $exclusionsRaw)));
-        } else {
-            if (strpos($exclusionsRaw, '<li') !== false) {
-                preg_match_all('/<li[^>]*>(.*?)<\/li>/is', $exclusionsRaw, $matches);
-                $cleanExclusions = array_values(array_filter(array_map('trim', array_map('strip_tags', $matches[1] ?? []))));
-            } else {
-                $cleanExclusions = array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", "", strip_tags($exclusionsRaw))))));
-            }
-        }
-
-        // Process SEO Input
-        $seoInput = $request->input('seo', []);
-
-        // Process Availability Input
-        $availInput = $request->input('availability', []);
-
-        // Process Service Area Input
-        $areaInput = $request->input('service_area', []);
-
-        // Process PDF Brochure Upload
-        $pdfPath = $request->input('pdf_brochure', $existingTier['pdf_brochure'] ?? '');
-        if ($request->hasFile('pdf_brochure_file')) {
-            $pdfFile = $request->file('pdf_brochure_file');
-            $pdfName = 'brochure_' . time() . '.' . $pdfFile->getClientOriginalExtension();
-            if (!File::exists(public_path('uploads'))) {
-                File::makeDirectory(public_path('uploads'), 0755, true);
-            }
-            $pdfFile->move(public_path('uploads'), $pdfName);
-            $pdfPath = '/uploads/' . $pdfName;
-        }
-
-        $tierData = array_merge($existingTier, [
-            'name' => $name,
-            'slug' => $slug,
-            'badge' => $request->input('badge', 'PREMIUM PACKAGE'),
-            'icon' => $request->input('icon', 'fa-solid fa-crown'),
-            'sub_category' => $request->input('sub_category', 'decor'),
-            'display_order' => (int)$request->input('display_order', 1),
-            'switches' => [
-                'featured' => $request->has('switches.featured'),
-                'recommended' => $request->has('switches.recommended'),
-                'popular' => $request->has('switches.popular'),
-                'best_seller' => $request->has('switches.best_seller'),
-                'trending' => $request->has('switches.trending'),
-            ],
-            'switch_icons' => $request->input('switch_icons', []),
-            'custom_badges' => (function() use ($request) {
-                $customBadgesRaw = $request->input('custom_badges', []);
-                $clean = [];
-                if (is_array($customBadgesRaw)) {
-                    foreach ($customBadgesRaw as $cb) {
-                        if (!empty($cb['label']) && !empty($cb['active'])) {
-                            $clean[] = [
-                                'label' => trim($cb['label']),
-                                'icon' => trim($cb['icon'] ?? 'fa-solid fa-tag'),
-                                'active' => true
-                            ];
-                        }
-                    }
-                }
-                return $clean;
-            })(),
-            'internal_notes' => $request->input('internal_notes', ''),
-            'price' => $price,
-            'original_price' => $originalPrice,
-            'discount_pct' => $discountPct,
-            'advance_deposit' => (int)$request->input('advance_deposit', 0),
-            'setup_charge' => (int)$request->input('setup_charge', 0),
-            'travel_charge' => (int)$request->input('travel_charge', 0),
-            'extra_guest_rate' => (int)$request->input('extra_guest_rate', 0),
-            'gst_pct' => (int)$request->input('gst_pct', 18),
-            'gst_inclusive' => $request->has('gst_inclusive'),
-            'short_desc' => $request->input('short_desc', ''),
-            'detailed_desc' => $request->input('detailed_desc', $request->input('desc', '')),
-            'highlights' => $cleanHighlights,
-            'important_notes' => $request->input('important_notes', ''),
-            'terms' => $request->input('terms', ''),
-            'specifications' => [
-                'guest_capacity' => $specsInput['guest_capacity'] ?? '50 - 100 Guests',
-                'setup_time' => $specsInput['setup_time'] ?? '3-4 Hours',
-                'duration' => $specsInput['duration'] ?? '4-5 Hours',
-                'space_req' => $specsInput['space_req'] ?? '12ft x 8ft Stage',
-                'location_type' => $specsInput['location_type'] ?? 'Indoor & Outdoor',
-                'power_req' => $specsInput['power_req'] ?? '220V 15A Power Socket',
-                'crew_count' => $specsInput['crew_count'] ?? '3 Members'
-            ],
-            'video_url' => $request->input('video_url', ''),
-            'virtual_tour_url' => $request->input('virtual_tour_url', ''),
-            'pdf_brochure' => $pdfPath,
-            'exclusions' => $cleanExclusions,
-            'addons' => $cleanAddons,
-            'faqs' => $cleanFaqs,
-            'seo' => [
-                'meta_title' => $seoInput['meta_title'] ?? $name,
-                'meta_description' => $seoInput['meta_description'] ?? $request->input('short_desc', ''),
-                'meta_keywords' => $seoInput['meta_keywords'] ?? 'event package'
-            ],
-            'availability' => [
-                'lead_time_hours' => (int)($availInput['lead_time_hours'] ?? 24),
-                'max_daily_bookings' => (int)($availInput['max_daily_bookings'] ?? 3)
-            ],
-            'service_area' => [
-                'city' => $areaInput['city'] ?? 'Indore',
-                'outstation_allowed' => isset($areaInput['outstation_allowed']),
-                'outstation_charge' => (int)($areaInput['outstation_charge'] ?? 1500)
-            ],
-            'status' => $request->input('status', 'published'),
-            'vendor_partner' => $request->input('vendor_partner', 'Artizen Internal Team'),
-            'inventory_sku' => $request->input('inventory_sku', 'ART-DEC-01'),
-            'vendor_cost' => (int)$request->input('vendor_cost', 0),
-            'profit_margin_pct' => (int)$request->input('profit_margin_pct', 35),
-            'props_checklist' => $request->input('props_checklist', ''),
-            'featured_rating' => (float)$request->input('featured_rating', 4.9),
-            'seasonal_tag' => $request->input('seasonal_tag', 'TRENDING NOW'),
-            'whatsapp_template' => $request->input('whatsapp_template', 'ARTIZEN_BOOKING_CONFIRM'),
-            'safety_guidelines' => $request->input('safety_guidelines', ''),
-            'inclusions' => (function() use ($request) {
-                $raw = $request->input('inclusions', '');
-                if (strpos($raw, '<li') !== false) {
-                    preg_match_all('/<li>(.*?)<\/li>/i', $raw, $matches);
-                    return array_values(array_filter(array_map(function($val) {
-                        return trim(html_entity_decode(strip_tags($val)));
-                    }, $matches[1])));
-                }
-                return array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", "", $raw)))));
-            })()
+        $request->validate([
+            'title'          => 'required|string|max:255',
+            'category_id'    => 'required|exists:categories,id',
+            'slug'           => 'nullable|string|max:255',
+            'badge'          => 'nullable|string|max:50',
+            'tag'            => 'nullable|string|max:50',
+            'recipients'     => 'nullable',
+            'price'          => 'nullable|numeric|min:0',
+            'original_price' => 'nullable|numeric|min:0',
+            'description'    => 'nullable|string',
+            'image_file'     => 'nullable|file|mimes:jpeg,png,jpg,webp,gif|max:5120',
         ]);
 
-        // Process Main Cover Image
-        if ($request->hasFile('image_file')) {
-            $file = $request->file('image_file');
-            $filename = 'package_tier_' . time() . '.' . $file->getClientOriginalExtension();
-            if (!File::exists(public_path('uploads'))) {
-                File::makeDirectory(public_path('uploads'), 0755, true);
-            }
-            $file->move(public_path('uploads'), $filename);
-            $tierData['image'] = '/uploads/' . $filename;
-        } else {
-            $tierData['image'] = $request->input('image', $existingTier['image'] ?? '/assets/images/hero/1.jpg');
+        $id = $request->input('id') ?: $request->input('package_id');
+        $title = trim($request->input('title'));
+        $slug = $request->input('slug') ? Str::slug($request->input('slug')) : Str::slug($title);
+
+        // Ensure unique slug
+        $existingSlug = \App\Models\Package::where('slug', $slug)
+            ->when($id, fn($q) => $q->where('id', '!=', $id))
+            ->exists();
+        if ($existingSlug) {
+            $slug .= '-' . time();
         }
 
-        // Process 4 Multiple Gallery Banners
+        $package = $id ? \App\Models\Package::findOrFail($id) : new \App\Models\Package();
+
+        // 1. Process Main Cover Image
+        $image = $request->input('image') ?: null;
+        if ($request->hasFile('image_file')) {
+            $file = $request->file('image_file');
+            $ext  = strtolower($file->getClientOriginalExtension());
+            if (!File::exists(public_path('uploads/packages'))) {
+                File::makeDirectory(public_path('uploads/packages'), 0755, true);
+            }
+            $filename = 'pkg_' . time() . '_' . rand(100, 999) . '.' . $ext;
+            $file->move(public_path('uploads/packages'), $filename);
+            $image = '/uploads/packages/' . $filename;
+        }
+
+        // 2. Process Gallery Banners
         $galleryImages = [];
         $galleryInputs = $request->input('gallery', []);
-        $galleryFiles = $request->file('gallery_files', []);
+        $galleryFiles  = $request->file('gallery_files', []);
 
         for ($i = 0; $i < 4; $i++) {
             if (isset($galleryFiles[$i]) && $galleryFiles[$i]->isValid()) {
                 $file = $galleryFiles[$i];
-                $filename = 'package_gal_' . $i . '_' . time() . '.' . $file->getClientOriginalExtension();
-                if (!File::exists(public_path('uploads'))) {
-                    File::makeDirectory(public_path('uploads'), 0755, true);
+                $ext  = strtolower($file->getClientOriginalExtension());
+                if (!File::exists(public_path('uploads/packages'))) {
+                    File::makeDirectory(public_path('uploads/packages'), 0755, true);
                 }
-                $file->move(public_path('uploads'), $filename);
-                $galleryImages[] = '/uploads/' . $filename;
+                $filename = 'pkg_gal_' . $i . '_' . time() . '_' . rand(100, 999) . '.' . $ext;
+                $file->move(public_path('uploads/packages'), $filename);
+                $galleryImages[] = '/uploads/packages/' . $filename;
             } elseif (!empty($galleryInputs[$i])) {
-                $galleryImages[] = $galleryInputs[$i];
-            } else {
-                $galleryImages[] = $tierData['image'];
+                $galleryImages[] = trim($galleryInputs[$i]);
             }
         }
-        $tierData['gallery'] = array_values(array_filter($galleryImages));
+        $galleryImages = array_values(array_filter($galleryImages));
 
-        if (is_numeric($tierIndex) && isset($packages[$catId]['tiers'][$tierIndex])) {
-            $packages[$catId]['tiers'][$tierIndex] = $tierData;
-        } else {
-            $packages[$catId]['tiers'][] = $tierData;
+        // 3. Populate and Save Package
+        $package->category_id    = (int) $request->input('category_id');
+        $package->title          = $title;
+        $package->slug           = $slug;
+        $package->description    = $request->input('description', '');
+        $package->price          = $request->input('price') ? (float)$request->input('price') : null;
+        $package->original_price = $request->input('original_price') ? (float)$request->input('original_price') : null;
+        $package->badge          = $request->input('badge') ?: null;
+        $package->tag            = $request->input('tag', 'decor');
+        $recipientsInput         = $request->input('recipients', []);
+        if (is_string($recipientsInput)) {
+            $recipientsInput = json_decode($recipientsInput, true) ?? [];
+        }
+        $package->recipients     = !empty($recipientsInput) ? array_values(array_filter(array_map('trim', (array)$recipientsInput))) : null;
+        $package->image          = $image;
+        $package->gallery        = !empty($galleryImages) ? $galleryImages : null;
+        $package->active         = $request->boolean('active', true);
+        $package->save();
+
+        // 4. Sync Subcategories Pivot
+        $subcatIds = $request->input('subcategories', []);
+        if (is_string($subcatIds)) {
+            $subcatIds = json_decode($subcatIds, true) ?? [];
+        }
+        $validSubcatIds = \App\Models\Subcategory::whereIn('id', (array)$subcatIds)
+            ->where('category_id', $package->category_id)
+            ->pluck('id')
+            ->toArray();
+        $package->subcategories()->sync($validSubcatIds);
+
+        // 5. Process Tiers
+        $tiersInput = $request->input('tiers', []);
+        if (is_string($tiersInput)) {
+            $tiersInput = json_decode($tiersInput, true) ?? [];
         }
 
-        JsonStorageService::write('packages.json', $packages);
-        return redirect()->route('admin.dashboard')->with('success', 'Package tier saved successfully!');
+        if (!empty($tiersInput) && is_array($tiersInput)) {
+            $existingTierIds = [];
+            foreach ($tiersInput as $idx => $t) {
+                if (empty($t['name'])) continue;
+                $tierSlug = Str::slug($t['name']) . '-' . ($idx + 1);
+                $tierInclusions = [];
+                if (!empty($t['inclusions'])) {
+                    if (is_array($t['inclusions'])) {
+                        $tierInclusions = array_values(array_filter(array_map('trim', $t['inclusions'])));
+                    } else {
+                        $tierInclusions = array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", "", strip_tags($t['inclusions']))))));
+                    }
+                }
+
+                $tierData = [
+                    'package_id'    => $package->id,
+                    'name'          => trim($t['name']),
+                    'slug'          => $tierSlug,
+                    'price'         => (float)($t['price'] ?? 0),
+                    'description'   => trim($t['description'] ?? ''),
+                    'image'         => !empty($t['image']) ? $t['image'] : $package->image,
+                    'inclusions'    => $tierInclusions,
+                    'active'        => true,
+                    'display_order' => $idx,
+                ];
+
+                if (!empty($t['id'])) {
+                    $tierModel = \App\Models\PackageTier::where('id', $t['id'])->where('package_id', $package->id)->first();
+                    if ($tierModel) {
+                        $tierModel->update($tierData);
+                        $existingTierIds[] = $tierModel->id;
+                        continue;
+                    }
+                }
+
+                $newTier = \App\Models\PackageTier::create($tierData);
+                $existingTierIds[] = $newTier->id;
+            }
+
+            // Remove tiers that were removed by user
+            if (!empty($existingTierIds)) {
+                \App\Models\PackageTier::where('package_id', $package->id)->whereNotIn('id', $existingTierIds)->delete();
+            }
+
+            // Update package base price to lowest tier price if not explicitly set
+            $minTierPrice = \App\Models\PackageTier::where('package_id', $package->id)->min('price');
+            if ($minTierPrice > 0 && (!$package->price || $package->price <= 0)) {
+                $package->price = (float)$minTierPrice;
+                $package->save();
+            }
+        } else {
+            // Default Standard tier if no tiers submitted
+            $standardTier = $package->tiers()->first();
+            $tierPrice = $package->price ?: 4999;
+            if (!$standardTier) {
+                \App\Models\PackageTier::create([
+                    'package_id'    => $package->id,
+                    'name'          => 'Standard Setup',
+                    'slug'          => Str::slug($package->title) . '-standard',
+                    'price'         => $tierPrice,
+                    'description'   => $package->description ?: 'Complete setup including on-site decor, lighting, and coordination.',
+                    'image'         => $package->image,
+                    'inclusions'    => ['On-site Setup & Decor', 'LED Ambient Lighting', 'Standard Logistics Fee Included'],
+                    'active'        => true,
+                    'display_order' => 0,
+                ]);
+            } else {
+                $standardTier->update([
+                    'price'       => $tierPrice,
+                    'image'       => $package->image ?: $standardTier->image,
+                    'description' => $package->description ?: $standardTier->description,
+                ]);
+            }
+        }
+
+        // 6. Sync legacy packages.json snapshot (mirror for backwards-compatibility)
+        try {
+            $jsonPath = storage_path('app/packages.json');
+            $packagesJson = [];
+            if (File::exists($jsonPath)) {
+                $packagesJson = json_decode(File::get($jsonPath), true) ?? [];
+            }
+            $catId = $package->category_id;
+            $catTitle = $package->category ? $package->category->title : 'Category';
+
+            $legacyTiers = [];
+            foreach ($package->tiers as $t) {
+                $legacyTiers[] = [
+                    'name'           => $t->name,
+                    'slug'           => $t->slug,
+                    'price'          => (int)$t->price,
+                    'original_price' => (int)($package->original_price ?: round($t->price * 1.2)),
+                    'desc'           => $t->description,
+                    'image'          => $t->image ?: $package->image,
+                    'inclusions'     => $t->inclusions ?: [],
+                    'badge'          => $package->badge ?: 'POPULAR',
+                ];
+            }
+
+            $packagesJson[$catId] = [
+                'id'      => (int)$catId,
+                'title'   => $catTitle,
+                'desc'    => $package->description ?: ('Custom packages for ' . $catTitle),
+                'image'   => $package->image ?: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?q=80&w=800',
+                'tag'     => $package->tag ?: 'decor',
+                'active'  => $package->active,
+                'gallery' => $package->gallery ?: [],
+                'tiers'   => $legacyTiers,
+            ];
+            JsonStorageService::write('packages.json', $packagesJson);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('packages.json sync warning: ' . $e->getMessage());
+        }
+
+        return redirect()->route('admin.packages')->with('success', 'Package saved successfully!');
     }
 
     /**
@@ -942,38 +1066,100 @@ class DashboardController extends Controller
      */
     public function saveFaq(Request $request)
     {
-        $faqs = JsonStorageService::read('faqs.json');
+        $request->validate([
+            'q'                => 'required_without:question|nullable|string',
+            'question'         => 'required_without:q|nullable|string',
+            'a'                => 'required_without:answer|nullable|string',
+            'answer'           => 'required_without:a|nullable|string',
+            'category'         => 'nullable|string',
+            'id'               => 'nullable|integer',
+            'sort_order'       => 'nullable|integer',
+            'display_order'    => 'nullable|integer',
+            'show_on_homepage' => 'nullable',
+            'show_on_home'     => 'nullable',
+            'is_active'        => 'nullable',
+            'active'           => 'nullable',
+        ]);
 
         $id = $request->input('id');
-        $faqData = [
-            'q' => $request->input('q'),
-            'a' => $request->input('a')
+        $q = trim($request->input('q', $request->input('question', '')));
+        $a = trim($request->input('a', $request->input('answer', '')));
+        $category = strtolower(trim($request->input('category', 'general')));
+        if (empty($category)) {
+            $category = 'general';
+        }
+
+        if ($request->has('is_active')) {
+            $isActive = $request->boolean('is_active');
+        } elseif ($request->has('active')) {
+            $isActive = $request->boolean('active');
+        } else {
+            $isActive = true;
+        }
+
+        if ($request->has('show_on_homepage')) {
+            $showOnHomepage = $request->boolean('show_on_homepage');
+        } elseif ($request->has('show_on_home')) {
+            $showOnHomepage = $request->boolean('show_on_home');
+        } else {
+            $showOnHomepage = false;
+        }
+
+        $sortOrder = (int)$request->input('sort_order', $request->input('display_order', 0));
+
+        $data = [
+            'question'         => $q,
+            'answer'           => $a,
+            'category'         => $category,
+            'is_active'        => $isActive,
+            'show_on_homepage' => $showOnHomepage,
+            'sort_order'       => $sortOrder,
         ];
 
-        $existingIndex = -1;
         if ($id) {
-            foreach ($faqs as $index => $f) {
-                if ($f['id'] == $id) {
-                    $existingIndex = $index;
-                    break;
-                }
+            $faq = \App\Models\Faq::find($id);
+            if ($faq) {
+                $faq->update($data);
+            } else {
+                $data['id'] = $id;
+                $faq = \App\Models\Faq::create($data);
             }
-        }
-
-        if ($existingIndex !== -1) {
-            $faqs[$existingIndex]['q'] = $faqData['q'];
-            $faqs[$existingIndex]['a'] = $faqData['a'];
         } else {
-            $newId = 1;
-            if (!empty($faqs)) {
-                $newId = max(array_column($faqs, 'id')) + 1;
+            if ($sortOrder === 0) {
+                $data['sort_order'] = ((\App\Models\Faq::max('sort_order') ?? 0) + 1);
             }
-            $faqData['id'] = $newId;
-            $faqs[] = $faqData;
+            $faq = \App\Models\Faq::create($data);
         }
 
-        JsonStorageService::write('faqs.json', $faqs);
-        return redirect()->route('admin.dashboard')->with('success', 'FAQ saved successfully!');
+        // Re-read and sync faqs.json
+        $allFaqs = \App\Models\Faq::ordered()->get()->map(function($f) {
+            return [
+                'id'               => $f->id,
+                'q'                => $f->question,
+                'question'         => $f->question,
+                'a'                => $f->answer,
+                'answer'           => $f->answer,
+                'category'         => $f->category,
+                'active'           => (bool)$f->is_active,
+                'is_active'        => (bool)$f->is_active,
+                'show_on_home'     => (bool)$f->show_on_homepage,
+                'show_on_homepage' => (bool)$f->show_on_homepage,
+                'sort_order'       => (int)$f->sort_order,
+                'display_order'    => (int)$f->sort_order,
+            ];
+        })->toArray();
+
+        JsonStorageService::write('faqs.json', $allFaqs);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'FAQ saved successfully!',
+                'faq' => $faq,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'FAQ saved successfully!');
     }
 
     /**
@@ -981,12 +1167,27 @@ class DashboardController extends Controller
      */
     public function deleteFaq($id)
     {
-        $faqs = JsonStorageService::read('faqs.json');
-        $faqs = array_values(array_filter($faqs, function($f) use ($id) {
-            return $f['id'] != $id;
-        }));
-        JsonStorageService::write('faqs.json', $faqs);
-        return redirect()->route('admin.dashboard')->with('success', 'FAQ deleted successfully!');
+        \App\Models\Faq::where('id', $id)->delete();
+
+        $allFaqs = \App\Models\Faq::ordered()->get()->map(function($f) {
+            return [
+                'id'               => $f->id,
+                'q'                => $f->question,
+                'question'         => $f->question,
+                'a'                => $f->answer,
+                'answer'           => $f->answer,
+                'category'         => $f->category,
+                'active'           => (bool)$f->is_active,
+                'is_active'        => (bool)$f->is_active,
+                'show_on_home'     => (bool)$f->show_on_homepage,
+                'show_on_homepage' => (bool)$f->show_on_homepage,
+                'sort_order'       => (int)$f->sort_order,
+                'display_order'    => (int)$f->sort_order,
+            ];
+        })->toArray();
+
+        JsonStorageService::write('faqs.json', $allFaqs);
+        return redirect()->back()->with('success', 'FAQ deleted successfully!');
     }
 
     /**
@@ -1107,7 +1308,7 @@ class DashboardController extends Controller
         }
 
         File::put($path, json_encode($settings, JSON_PRETTY_PRINT));
-        return redirect()->route('admin.dashboard')->with('success', 'Settings saved successfully!');
+        return redirect()->route('admin.settings')->with('success', 'Settings saved successfully!');
     }
 
     /**
@@ -1124,7 +1325,7 @@ class DashboardController extends Controller
                 File::put($path, json_encode($packages, JSON_PRETTY_PRINT));
             }
         }
-        return redirect()->route('admin.dashboard')->with('success', 'Package tier plan successfully deleted!');
+        return redirect()->route('admin.packages')->with('success', 'Package tier deleted successfully!');
     }
 
     /**
@@ -1132,11 +1333,26 @@ class DashboardController extends Controller
      */
     public function deleteCategory($id)
     {
+        $dbCat = \App\Models\Category::find($id);
+        if ($dbCat) {
+            \App\Models\Subcategory::where('category_id', $dbCat->id)->delete();
+            $dbCat->delete();
+
+            // Re-normalize display_order sequence after deletion
+            $remaining = \App\Models\Category::orderBy('display_order')->orderBy('id')->get();
+            foreach ($remaining as $idx => $item) {
+                $expected = $idx + 1;
+                if ($item->display_order != $expected) {
+                    $item->update(['display_order' => $expected]);
+                }
+            }
+        }
+
         $cats = JsonStorageService::read('categories.json', []);
         $updatedCats = array_values(array_filter($cats, fn($c) => (string)($c['id'] ?? '') !== (string)$id));
         JsonStorageService::write('categories.json', $updatedCats);
 
-        return redirect()->route('admin.dashboard')->with('success', 'Category successfully deleted!');
+        return redirect()->route('admin.categories')->with('success', 'Category deleted successfully!');
     }
 
     /**
@@ -1184,7 +1400,7 @@ class DashboardController extends Controller
         }
 
         JsonStorageService::write('testimonials.json', $testimonials);
-        return redirect()->route('admin.dashboard')->with('success', 'Testimonial successfully saved!');
+        return redirect()->route('admin.testimonials')->with('success', 'Testimonial saved successfully!');
     }
 
     /**
@@ -1196,7 +1412,7 @@ class DashboardController extends Controller
         $updated = array_values(array_filter($testimonials, fn($t) => ($t['id'] ?? '') !== $id));
         JsonStorageService::write('testimonials.json', $updated);
 
-        return redirect()->route('admin.dashboard')->with('success', 'Testimonial successfully deleted!');
+        return redirect()->route('admin.testimonials')->with('success', 'Testimonial deleted successfully!');
     }
 
     /**
@@ -1247,7 +1463,7 @@ class DashboardController extends Controller
         }
 
         JsonStorageService::write('gallery.json', $gallery);
-        return redirect()->route('admin.dashboard')->with('success', 'Gallery item successfully saved!');
+        return redirect()->route('admin.testimonials')->with('success', 'Gallery item saved successfully!');
     }
 
     /**
@@ -1259,7 +1475,7 @@ class DashboardController extends Controller
         $updated = array_values(array_filter($gallery, fn($g) => ($g['id'] ?? '') !== $id));
         JsonStorageService::write('gallery.json', $updated);
 
-        return redirect()->route('admin.dashboard')->with('success', 'Gallery item successfully deleted!');
+        return redirect()->route('admin.testimonials')->with('success', 'Gallery item deleted successfully!');
     }
 
     /**
@@ -1271,6 +1487,75 @@ class DashboardController extends Controller
         $updated = array_values(array_filter($enquiries, fn($e) => ($e['id'] ?? '') !== $id));
         JsonStorageService::write('enquiries.json', $updated);
 
-        return redirect()->route('admin.dashboard')->with('success', 'Contact enquiry deleted!');
+        return redirect()->route('admin.bookings')->with('success', 'Contact enquiry deleted!');
+    }
+
+    /**
+     * Save dynamic Legal Policy Pages.
+     */
+    public function saveLegalPages(Request $request)
+    {
+        $defaultLegalPages = app(\App\Http\Controllers\LegalController::class)->getDefaultLegalPages();
+
+        $legalPages = [
+            'privacy' => [
+                'title' => $request->input('privacy_title', $defaultLegalPages['privacy']['title']),
+                'subtitle' => $request->input('privacy_subtitle', $defaultLegalPages['privacy']['subtitle']),
+                'content' => $request->input('privacy_content', $defaultLegalPages['privacy']['content']),
+            ],
+            'terms' => [
+                'title' => $request->input('terms_title', $defaultLegalPages['terms']['title']),
+                'subtitle' => $request->input('terms_subtitle', $defaultLegalPages['terms']['subtitle']),
+                'content' => $request->input('terms_content', $defaultLegalPages['terms']['content']),
+            ],
+            'cancellation' => [
+                'title' => $request->input('cancellation_title', $defaultLegalPages['cancellation']['title']),
+                'subtitle' => $request->input('cancellation_subtitle', $defaultLegalPages['cancellation']['subtitle']),
+                'content' => $request->input('cancellation_content', $defaultLegalPages['cancellation']['content']),
+            ],
+            'booking_policy' => [
+                'title' => $request->input('booking_policy_title', $defaultLegalPages['booking_policy']['title']),
+                'subtitle' => $request->input('booking_policy_subtitle', $defaultLegalPages['booking_policy']['subtitle']),
+                'content' => $request->input('booking_policy_content', $defaultLegalPages['booking_policy']['content']),
+            ],
+        ];
+
+        JsonStorageService::write('legal_pages.json', $legalPages);
+
+        return redirect()->route('admin.legal')->with('success', 'Legal Policy pages updated successfully!');
+    }
+
+    /**
+     * Toggle active/draft status of a database package.
+     */
+    public function togglePackageStatus($id)
+    {
+        $package = \App\Models\Package::findOrFail($id);
+        $package->active = !$package->active;
+        $package->save();
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'active'  => $package->active,
+                'message' => 'Package status updated to ' . ($package->active ? 'Published' : 'Draft') . '.'
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Package status updated.');
+    }
+
+    /**
+     * Delete a database package and its tiers.
+     */
+    public function destroyPackage($id)
+    {
+        $package = \App\Models\Package::findOrFail($id);
+        $title = $package->title;
+        $package->tiers()->delete();
+        $package->subcategories()->detach();
+        $package->delete();
+
+        return redirect()->route('admin.packages')->with('success', "Package '{$title}' and its tiers deleted successfully.");
     }
 }

@@ -45,6 +45,8 @@
     <style>
         html {
             background-color: #F9FAFB !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
 
         body {
@@ -53,6 +55,8 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 14.5px;
             overflow-x: hidden;
+            margin: 0 !important;
+            padding: 0 !important;
         }
 
         /* Clean SaaS Typography & Inputs Overrides */
@@ -174,13 +178,63 @@
             border-color: #EA741D !important;
         }
 
-        /* CKEditor Custom Overrides */
+        /* CKEditor Custom Overrides — General */
         .ck-editor__editable {
-            min-height: 80px !important;
-            font-size: 11px !important;
+            min-height: 120px !important;
+            font-size: 13px !important;
             color: #1E1E24 !important;
             background-color: #FFFFFF !important;
             text-align: left !important;
+        }
+
+        /* Legal page editors — taller + live-preview font sizes */
+        #panel-legal-manager .ck-editor__editable {
+            min-height: 420px !important;
+            font-size: 14px !important;
+            line-height: 1.75 !important;
+            padding: 20px 24px !important;
+        }
+
+        /* Legal editor heading styles (mirrors public page exactly) */
+        #panel-legal-manager .ck-editor__editable h2 {
+            font-weight: 800 !important;
+            font-size: 1rem !important;
+            color: #030712 !important;
+            margin-top: 1.4rem !important;
+            margin-bottom: 0.6rem !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+        }
+        #panel-legal-manager .ck-editor__editable h3 {
+            font-weight: 700 !important;
+            font-size: 0.9rem !important;
+            color: #111827 !important;
+            margin-top: 1.1rem !important;
+            margin-bottom: 0.4rem !important;
+        }
+        #panel-legal-manager .ck-editor__editable p {
+            margin-bottom: 0.9rem !important;
+            color: #374151 !important;
+            line-height: 1.75 !important;
+        }
+        #panel-legal-manager .ck-editor__editable ul,
+        #panel-legal-manager .ck-editor__editable ol {
+            padding-left: 1.5rem !important;
+            margin-bottom: 0.9rem !important;
+        }
+        #panel-legal-manager .ck-editor__editable li {
+            margin-bottom: 0.3rem !important;
+            color: #4b5563 !important;
+        }
+        #panel-legal-manager .ck-editor__editable blockquote {
+            border-left: 4px solid #e8dfc8 !important;
+            background-color: #faf7f2 !important;
+            padding: 0.7rem 1rem !important;
+            border-radius: 0.4rem !important;
+            font-style: italic !important;
+            margin-bottom: 0.9rem !important;
+            color: #6b7280 !important;
         }
     </style>
 </head>
@@ -193,35 +247,88 @@
     <!-- ===================== MAIN HEADER & VIEW WRAPPER ===================== -->
     <main class="flex-grow flex flex-col min-w-0 md:h-screen md:overflow-y-auto">
 
-        <!-- Top Navigation / Header Bar -->
-        <header class="py-5 px-6 md:px-8 border-b border-gray-200 bg-white shrink-0">
+        <!-- Top Navigation / Modern Header Bar -->
+        <header class="py-3.5 px-4 md:px-8 border-b border-gray-200/80 bg-white/95 backdrop-blur-sm shrink-0 sticky top-0 z-30">
             <div class="max-w-[1600px] mx-auto flex items-center justify-between">
-                <div>
-                    <h1 class="text-xl md:text-2xl font-bold text-gray-900 tracking-tight" id="current-view-title">Overview</h1>
-                    <p class="text-xs md:text-sm text-gray-500 font-normal mt-0.5" id="current-view-subtitle">Live bookings & performance insights</p>
+                <div class="flex items-center gap-3">
+                    <!-- Mobile-only drawer toggle (hidden on desktop) -->
+                    <button type="button" 
+                            onclick="toggleAdminSidebarMobile()" 
+                            class="md:hidden w-9 h-9 rounded-xl border border-gray-200 bg-white hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors shadow-2xs cursor-pointer shrink-0" 
+                            title="Open Menu">
+                        <i class="fa-solid fa-bars-staggered text-sm"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-xl md:text-2xl font-black text-gray-900 tracking-tight" id="current-view-title">Overview</h1>
+                        <p class="text-xs md:text-sm text-gray-500 font-medium mt-0.5" id="current-view-subtitle">Live bookings & performance insights</p>
+                    </div>
                 </div>
 
-                <!-- Search, Alert, Actions -->
                 <div class="flex items-center gap-3">
-                    <div class="relative hidden sm:block">
-                        <span class="absolute left-3.5 top-2.5 text-gray-400 text-xs">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </span>
-                        <input type="text" placeholder="Search bookings, packages..." class="w-56 bg-white border border-gray-300 pl-10 pr-3 py-2 text-xs rounded-lg font-medium text-gray-900 focus:outline-none focus:border-gray-900 transition-colors">
-                    </div>
-
-                    <div class="w-9 h-9 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors relative cursor-pointer shadow-sm">
+                    <!-- Modern Notification Bell -->
+                    <div class="w-9 h-9 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors relative cursor-pointer shadow-2xs" title="Notifications">
                         <i class="fa-solid fa-bell text-xs"></i>
-                        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500"></span>
+                        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white"></span>
                     </div>
 
-                    <!-- Admin Logout Form Button -->
-                    <form action="{{ route('admin.logout') }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" title="Logout from Admin" class="px-3 py-2 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer">
-                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    <!-- Administrator Avatar & Dropdown Menu -->
+                    <div class="relative pl-1 border-l border-gray-200" id="admin-user-dropdown-container">
+                        <!-- Dropdown Trigger Button -->
+                        <button type="button" 
+                                id="admin-dropdown-trigger" 
+                                onclick="toggleAdminUserDropdown(event)" 
+                                class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl hover:bg-gray-100/70 transition-colors cursor-pointer group border-0 outline-none focus:outline-none ring-0 focus:ring-0 active:outline-none"
+                                aria-expanded="false" 
+                                aria-haspopup="true">
+                            <div class="w-8 h-8 rounded-xl bg-gray-900 text-white flex items-center justify-center text-xs font-black shadow-2xs shrink-0 group-hover:scale-105 transition-transform">
+                                {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
+                            </div>
+                            <div class="hidden md:block text-left select-none">
+                                <span class="block text-xs font-bold text-gray-900 leading-tight group-hover:text-gray-950">{{ Auth::user()->name ?? 'Artizen Admin' }}</span>
+                                <span class="block text-[10px] text-gray-400 font-medium">Administrator</span>
+                            </div>
+                            <i id="admin-dropdown-chevron" class="fa-solid fa-chevron-down text-[10px] text-gray-400 group-hover:text-gray-600 transition-transform duration-200 ml-0.5"></i>
                         </button>
-                    </form>
+
+                        <!-- Dropdown Menu -->
+                        <div id="admin-user-dropdown-menu" 
+                             class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl border border-gray-200 shadow-xl py-1.5 z-50 transition-all duration-150 origin-top-right select-none">
+                            
+                            <!-- User info snippet -->
+                            <div class="px-4 py-2.5 border-b border-gray-100">
+                                <p class="text-xs font-bold text-gray-900 truncate">{{ Auth::user()->name ?? 'Artizen Admin' }}</p>
+                                <p class="text-[11px] text-gray-400 truncate">{{ Auth::user()->email ?? 'admin@artizen.com' }}</p>
+                            </div>
+
+                            <div class="py-1">
+                                <!-- Profile / Settings link -->
+                                <a href="javascript:void(0)" onclick="switchTab('settings')" 
+                                   class="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                                    <i class="fa-solid fa-user-gear text-gray-400 w-4 text-center"></i>
+                                    <span>Profile & Settings</span>
+                                </a>
+
+                                <!-- View Live Site link -->
+                                <a href="/" target="_blank"
+                                   class="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-gray-400 w-4 text-center"></i>
+                                    <span>View Live Site</span>
+                                </a>
+                            </div>
+
+                            <div class="border-t border-gray-100 pt-1">
+                                <!-- Logout Action -->
+                                <form action="{{ route('admin.logout') }}" method="POST" class="m-0">
+                                    @csrf
+                                    <button type="submit" 
+                                            class="flex items-center gap-2.5 w-full text-left px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50/80 transition-colors cursor-pointer">
+                                        <i class="fa-solid fa-right-from-bracket w-4 text-center"></i>
+                                        <span>Logout</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
@@ -712,162 +819,6 @@
                 </div>
             </section>
 
-            <!-- ===================== PANEL 3: PACKAGES ===================== -->
-            <section id="panel-packages" class="tab-panel hidden flex flex-col gap-6 text-left artizen-packages">
-                
-                <!-- 1. Header -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 pb-4">
-                    <div>
-                        <h2 class="text-xl font-bold text-gray-900 tracking-tight">Packages</h2>
-                        <p class="text-xs text-gray-500 font-normal mt-0.5">Manage all Artizen event services and packages category-wise.</p>
-                    </div>
-                    <a href="{{ route('admin.packages.create') }}" class="px-4 py-2.5 bg-gray-900 hover:bg-black text-white text-xs font-bold rounded-lg shadow-sm transition-all flex items-center gap-2 cursor-pointer shrink-0">
-                        <i class="fa-solid fa-plus text-xs"></i>
-                        <span>Add New Service</span>
-                    </a>
-                </div>
-
-                <!-- 2. Summary Metrics Cards (4 Dynamic Cards) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <!-- Total Services -->
-                    <div class="bg-white border border-gray-200 p-4 rounded-xl flex flex-col justify-between shadow-sm">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-xs font-semibold text-gray-500">Total Services</span>
-                                <span class="text-2xl font-bold text-gray-900 block mt-0.5" id="p-metric-total">0</span>
-                            </div>
-                            <div class="w-9 h-9 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-700 text-xs">
-                                <i class="fa-solid fa-box"></i>
-                            </div>
-                        </div>
-                        <span class="text-[11px] text-gray-500 font-medium mt-2">All package options</span>
-                    </div>
-
-                    <!-- Categories Covered -->
-                    <div class="bg-white border border-gray-200 p-4 rounded-xl flex flex-col justify-between shadow-sm">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-xs font-semibold text-gray-500">Categories Covered</span>
-                                <span class="text-2xl font-bold text-gray-900 block mt-0.5" id="p-metric-categories">0</span>
-                            </div>
-                            <div class="w-9 h-9 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 text-xs">
-                                <i class="fa-solid fa-tags"></i>
-                            </div>
-                        </div>
-                        <span class="text-[11px] text-blue-700 font-medium mt-2">Active official categories</span>
-                    </div>
-
-                    <!-- Average Price -->
-                    <div class="bg-white border border-gray-200 p-4 rounded-xl flex flex-col justify-between shadow-sm">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-xs font-semibold text-gray-500">Average Price</span>
-                                <span class="text-2xl font-bold text-gray-900 block mt-0.5" id="p-metric-avg-price">₹0</span>
-                            </div>
-                            <div class="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 text-xs">
-                                <i class="fa-solid fa-indian-rupee-sign"></i>
-                            </div>
-                        </div>
-                        <span class="text-[11px] text-emerald-700 font-medium mt-2">Average selling price</span>
-                    </div>
-
-                    <!-- Published Services -->
-                    <div class="bg-white border border-gray-200 p-4 rounded-xl flex flex-col justify-between shadow-sm">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-xs font-semibold text-gray-500">Published Services</span>
-                                <span class="text-2xl font-bold text-emerald-600 block mt-0.5" id="p-metric-published">0</span>
-                            </div>
-                            <div class="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 text-xs">
-                                <i class="fa-solid fa-circle-check"></i>
-                            </div>
-                        </div>
-                        <span class="text-[11px] text-emerald-700 font-medium mt-2">Currently published</span>
-                    </div>
-                </div>
-
-                <!-- 3. Primary Category Navigation Bar -->
-                <div class="flex flex-col gap-2">
-                    <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Primary Category Filter</span>
-                    <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none max-w-full" id="p-category-tabs-container">
-                        <!-- Rendered dynamically via JS -->
-                    </div>
-                </div>
-
-                <!-- 4. Search, Filter & Sort Toolbar -->
-                <div class="bg-white border border-gray-200 p-4 rounded-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-sm">
-                    <!-- Search Bar -->
-                    <div class="relative flex-1 min-w-[240px]">
-                        <span class="absolute left-3.5 top-2.5 text-xs text-gray-400"><i class="fa-solid fa-magnifying-glass"></i></span>
-                        <input type="text" id="p-search-input" oninput="handlePackageSearch(this.value)" placeholder="Search service name, category, tier, deliverable..." class="w-full bg-white border border-gray-300 pl-10 pr-3 py-2 text-xs font-medium text-gray-900 rounded-lg outline-none focus:border-gray-900">
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-3 shrink-0">
-                        <!-- Status Filter Pills -->
-                        <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-lg border border-gray-200" id="p-status-pills-container">
-                            <!-- Rendered dynamically via JS -->
-                        </div>
-
-                        <!-- Sort Select -->
-                        <div class="flex items-center gap-2">
-                            <label class="text-xs font-semibold text-gray-600 shrink-0">Sort:</label>
-                            <select id="p-sort-select" onchange="handlePackageSortChange(this.value)" class="bg-white border border-gray-300 px-3 py-2 text-xs font-medium text-gray-900 rounded-lg outline-none focus:border-gray-900 cursor-pointer">
-                                <option value="newest">Newest</option>
-                                <option value="oldest">Oldest</option>
-                                <option value="price_low">Price: Low to High</option>
-                                <option value="price_high">Price: High to Low</option>
-                                <option value="name_asc">Name: A–Z</option>
-                                <option value="name_desc">Name: Z–A</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Active Filter Indicator Bar -->
-                <div id="p-active-filters-bar" class="hidden items-center justify-between bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg text-xs text-amber-900">
-                    <div class="flex items-center gap-2 font-medium">
-                        <i class="fa-solid fa-filter text-amber-600"></i>
-                        <span id="p-active-filters-text">Active Filters Applied</span>
-                    </div>
-                    <button type="button" onclick="resetAllPackageFilters()" class="text-xs font-bold text-amber-700 hover:text-amber-900 underline cursor-pointer">
-                        Clear Filters
-                    </button>
-                </div>
-
-                <!-- 5. Category-Wise Sections Container -->
-                <div id="packages-sections-container" class="flex flex-col gap-10">
-                    <!-- Rendered dynamically via JS engine -->
-                </div>
-
-                <!-- 6. Delete Confirmation Modal -->
-                <div id="p-delete-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300 pointer-events-none">
-                    <div class="bg-white border border-gray-200 w-full max-w-md rounded-xl shadow-2xl p-6 flex flex-col gap-4 text-left pointer-events-auto transform scale-95 transition-transform duration-300">
-                        <div class="flex justify-between items-start border-b border-gray-100 pb-3">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 text-lg shrink-0">
-                                    <i class="fa-solid fa-triangle-exclamation"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-base font-bold text-gray-900">Delete Service?</h3>
-                                    <span class="text-xs text-gray-500 block">This action cannot be undone.</span>
-                                </div>
-                            </div>
-                            <button type="button" onclick="closePackageDeleteModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-base"></i></button>
-                        </div>
-
-                        <p class="text-xs text-gray-600 font-normal leading-relaxed">
-                            Are you sure you want to delete service <span class="font-bold text-gray-900" id="p-delete-service-name"></span>?
-                        </p>
-
-                        <form id="p-delete-form" method="POST" class="flex items-center justify-end gap-3 pt-2">
-                            @csrf
-                            <button type="button" onclick="closePackageDeleteModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold rounded-lg">Cancel</button>
-                            <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg shadow-sm">Delete Service</button>
-                        </form>
-                    </div>
-                </div>
-            </section>
-
             <!-- ===================== PANEL 4: CATEGORIES ===================== -->
             <section id="panel-categories" class="tab-panel hidden flex flex-col gap-6 text-left artizen-categories">
                 
@@ -1351,7 +1302,194 @@
                     </div>
 
                 </form>
-            </div>
+            </section>
+
+            <!-- ===================== PANEL 8: LEGAL PAGES MANAGER ===================== -->
+            <section id="panel-legal-manager" class="tab-panel hidden flex flex-col gap-6 text-left">
+                <div class="border-b border-gray-200 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900 tracking-tight">Legal & Policy Pages Manager</h2>
+                        <p class="text-xs text-gray-500 font-normal mt-0.5">Manage Privacy Policy, Terms & Conditions, Cancellation Policy, and Booking Policy with rich text formatting.</p>
+                    </div>
+                    <button type="submit" form="legal-pages-form" class="inline-flex items-center justify-center gap-2 bg-[#1E1E24] hover:bg-black text-white px-5 py-2.5 rounded-lg text-xs font-bold transition-colors shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-floppy-disk text-xs"></i> Save All Legal Pages
+                    </button>
+                </div>
+
+                <form id="legal-pages-form" action="{{ route('admin.legal.save') }}" method="POST" class="flex flex-col gap-8 w-full">
+                    @csrf
+                    
+                    <!-- 1. Privacy Policy -->
+                    <div class="bg-white border border-gray-200 p-6 rounded-xl shadow-sm flex flex-col gap-4 text-left">
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center font-bold text-xs">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-gray-900">1. Privacy Policy</h3>
+                                    <p class="text-xs text-gray-500 font-normal">Customer data collection, usage, and safety terms in Indore</p>
+                                </div>
+                            </div>
+                            <a href="{{ route('legal.privacy') }}" target="_blank" class="text-xs text-amber-600 hover:underline font-bold flex items-center gap-1">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> View Live Page
+                            </a>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs text-gray-600 font-semibold uppercase tracking-wider">Page Title</label>
+                                <input type="text" name="privacy_title" value="{{ $legalPages['privacy']['title'] ?? 'Privacy Policy' }}" class="w-full bg-white border border-gray-300 p-2.5 text-xs font-semibold text-gray-900 rounded-lg outline-none focus:border-gray-900">
+                            </div>
+
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs text-gray-600 font-semibold uppercase tracking-wider">Page Subtitle / Last Updated</label>
+                                <input type="text" name="privacy_subtitle" value="{{ $legalPages['privacy']['subtitle'] ?? 'Last updated: October 2, 2026 • ARTIZEN Event Booking Platform (Indore, MP)' }}" class="w-full bg-white border border-gray-300 p-2.5 text-xs font-semibold text-gray-900 rounded-lg outline-none focus:border-gray-900">
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-1.5 text-left">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs text-gray-700 font-bold uppercase tracking-wider">Policy Content</label>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[10px] font-bold text-amber-700">
+                                    <i class="fa-solid fa-eye text-[9px]"></i> Live Preview — styled like public page
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-gray-400 font-normal -mt-0.5">Use <strong class="text-gray-600">Section Heading (H2)</strong> for main sections, <strong class="text-gray-600">Sub Heading (H3)</strong> for sub-sections, and <strong class="text-gray-600">Paragraph</strong> for body text.</p>
+                            <textarea id="privacy-content-editor" name="privacy_content" class="ck-editor-textarea" style="min-height:420px">{!! $legalPages['privacy']['content'] ?? '' !!}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- 2. Terms & Conditions -->
+                    <div class="bg-white border border-gray-200 p-6 rounded-xl shadow-sm flex flex-col gap-4 text-left">
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 flex items-center justify-center font-bold text-xs">
+                                    <i class="fa-solid fa-file-contract"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-gray-900">2. Terms & Conditions</h3>
+                                    <p class="text-xs text-gray-500 font-normal">Platform service agreement, venue requirements & rental care terms</p>
+                                </div>
+                            </div>
+                            <a href="{{ route('legal.terms') }}" target="_blank" class="text-xs text-indigo-600 hover:underline font-bold flex items-center gap-1">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> View Live Page
+                            </a>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs text-gray-600 font-semibold uppercase tracking-wider">Page Title</label>
+                                <input type="text" name="terms_title" value="{{ $legalPages['terms']['title'] ?? 'Terms & Conditions' }}" class="w-full bg-white border border-gray-300 p-2.5 text-xs font-semibold text-gray-900 rounded-lg outline-none focus:border-gray-900">
+                            </div>
+
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs text-gray-600 font-semibold uppercase tracking-wider">Page Subtitle / Last Updated</label>
+                                <input type="text" name="terms_subtitle" value="{{ $legalPages['terms']['subtitle'] ?? 'Effective Date: October 2, 2026 • ARTIZEN Event Booking Platform (Indore, MP)' }}" class="w-full bg-white border border-gray-300 p-2.5 text-xs font-semibold text-gray-900 rounded-lg outline-none focus:border-gray-900">
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-1.5 text-left">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs text-gray-700 font-bold uppercase tracking-wider">Policy Content</label>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-[10px] font-bold text-indigo-700">
+                                    <i class="fa-solid fa-eye text-[9px]"></i> Live Preview — styled like public page
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-gray-400 font-normal -mt-0.5">Use <strong class="text-gray-600">Section Heading (H2)</strong> for main sections, <strong class="text-gray-600">Sub Heading (H3)</strong> for sub-sections, and <strong class="text-gray-600">Paragraph</strong> for body text.</p>
+                            <textarea id="terms-content-editor" name="terms_content" class="ck-editor-textarea" style="min-height:420px">{!! $legalPages['terms']['content'] ?? '' !!}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- 3. Refund & Cancellation Policy -->
+                    <div class="bg-white border border-gray-200 p-6 rounded-xl shadow-sm flex flex-col gap-4 text-left">
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center font-bold text-xs">
+                                    <i class="fa-solid fa-arrow-rotate-left"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-gray-900">3. Refund & Cancellation Policy</h3>
+                                    <p class="text-xs text-gray-500 font-normal">Cancellation timeframes, zero-advance model, and weather policies</p>
+                                </div>
+                            </div>
+                            <a href="{{ route('legal.cancellation') }}" target="_blank" class="text-xs text-emerald-600 hover:underline font-bold flex items-center gap-1">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> View Live Page
+                            </a>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs text-gray-600 font-semibold uppercase tracking-wider">Page Title</label>
+                                <input type="text" name="cancellation_title" value="{{ $legalPages['cancellation']['title'] ?? 'Refund & Cancellation Policy' }}" class="w-full bg-white border border-gray-300 p-2.5 text-xs font-semibold text-gray-900 rounded-lg outline-none focus:border-gray-900">
+                            </div>
+
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs text-gray-600 font-semibold uppercase tracking-wider">Page Subtitle / Last Updated</label>
+                                <input type="text" name="cancellation_subtitle" value="{{ $legalPages['cancellation']['subtitle'] ?? 'Effective Date: October 2, 2026 • ARTIZEN Event Booking Platform (Indore, MP)' }}" class="w-full bg-white border border-gray-300 p-2.5 text-xs font-semibold text-gray-900 rounded-lg outline-none focus:border-gray-900">
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-1.5 text-left">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs text-gray-700 font-bold uppercase tracking-wider">Policy Content</label>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] font-bold text-emerald-700">
+                                    <i class="fa-solid fa-eye text-[9px]"></i> Live Preview — styled like public page
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-gray-400 font-normal -mt-0.5">Use <strong class="text-gray-600">Section Heading (H2)</strong> for main sections, <strong class="text-gray-600">Sub Heading (H3)</strong> for sub-sections, and <strong class="text-gray-600">Paragraph</strong> for body text.</p>
+                            <textarea id="cancellation-content-editor" name="cancellation_content" class="ck-editor-textarea" style="min-height:420px">{!! $legalPages['cancellation']['content'] ?? '' !!}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- 4. Booking & Payment Policy -->
+                    <div class="bg-white border border-gray-200 p-6 rounded-xl shadow-sm flex flex-col gap-4 text-left">
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center font-bold text-xs">
+                                    <i class="fa-solid fa-calendar-check"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-gray-900">4. Booking & Payment Policy</h3>
+                                    <p class="text-xs text-gray-500 font-normal">Offline payment collection (Cash, UPI, NEFT) and delivery zone terms</p>
+                                </div>
+                            </div>
+                            <a href="{{ route('legal.booking-policy') }}" target="_blank" class="text-xs text-rose-600 hover:underline font-bold flex items-center gap-1">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> View Live Page
+                            </a>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs text-gray-600 font-semibold uppercase tracking-wider">Page Title</label>
+                                <input type="text" name="booking_policy_title" value="{{ $legalPages['booking_policy']['title'] ?? 'Booking & Payment Policy' }}" class="w-full bg-white border border-gray-300 p-2.5 text-xs font-semibold text-gray-900 rounded-lg outline-none focus:border-gray-900">
+                            </div>
+
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs text-gray-600 font-semibold uppercase tracking-wider">Page Subtitle / Last Updated</label>
+                                <input type="text" name="booking_policy_subtitle" value="{{ $legalPages['booking_policy']['subtitle'] ?? 'Effective Date: October 2, 2026 • ARTIZEN Event Booking Platform (Indore, MP)' }}" class="w-full bg-white border border-gray-300 p-2.5 text-xs font-semibold text-gray-900 rounded-lg outline-none focus:border-gray-900">
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-1.5 text-left">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs text-gray-700 font-bold uppercase tracking-wider">Policy Content</label>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-[10px] font-bold text-rose-700">
+                                    <i class="fa-solid fa-eye text-[9px]"></i> Live Preview — styled like public page
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-gray-400 font-normal -mt-0.5">Use <strong class="text-gray-600">Section Heading (H2)</strong> for main sections, <strong class="text-gray-600">Sub Heading (H3)</strong> for sub-sections, and <strong class="text-gray-600">Paragraph</strong> for body text.</p>
+                            <textarea id="booking-policy-content-editor" name="booking_policy_content" class="ck-editor-textarea" style="min-height:420px">{!! $legalPages['booking_policy']['content'] ?? '' !!}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <button type="submit" class="inline-flex items-center justify-center gap-2 bg-[#1E1E24] hover:bg-black text-white px-8 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-colors shadow-md cursor-pointer">
+                            <i class="fa-solid fa-floppy-disk text-xs"></i> Save All Legal Pages
+                        </button>
+                    </div>
+                </form>
+            </section>
 
     </main>
 
@@ -1436,6 +1574,16 @@
     <script>
         // 1. Sidebar tab switching engine
         function switchTab(tabId) {
+            // Dedicated standalone modules redirect directly
+            if (tabId === 'packages') {
+                window.location.href = "{{ route('admin.packages') }}";
+                return;
+            }
+            if (tabId === 'categories') {
+                window.location.href = "{{ route('admin.categories') }}";
+                return;
+            }
+
             // Update browser URL query parameter without full reload
             if (window.history && window.history.pushState) {
                 const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?tab=' + tabId;
@@ -1488,6 +1636,7 @@
                 testimonials: { title: "FAQs & Testimonials Manager", desc: "Edit guest reviews & common portal help articles" },
                 'hero-manager': { title: "Hero Slider Manager", desc: "Manage Hero background slider images and headings" },
                 'about-manager': { title: "About Page Manager", desc: "Manage About page story, stats and photo gallery" },
+                'legal-manager': { title: "Legal Pages Manager", desc: "Manage Privacy Policy, Terms & Conditions, Cancellation Policy, and Booking Policy" },
                 cms: { title: "CMS Layout Editor", desc: "Manage Hero background slider and About copy" },
                 settings: { title: "Hub Settings", desc: "Maintain Indore area surcharges, SEO title, meta configs" }
             };
@@ -1575,12 +1724,7 @@
         }
 
         function viewCategoryServices(slug) {
-            switchTab('packages');
-            setTimeout(() => {
-                if (typeof handlePackageCategorySelect === 'function') {
-                    handlePackageCategorySelect(slug);
-                }
-            }, 50);
+            window.location.href = "{{ route('admin.packages') }}";
         }
         let faqDB = @json($faqs);
 
@@ -3007,7 +3151,7 @@
             // Initialize CKEditor on the new description textarea
             ClassicEditor
                 .create(document.getElementById(`slide-desc-${idx}`), {
-                    toolbar: [ 'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote' ]
+                    toolbar: [ 'undo', 'redo', '|', 'bold', 'italic', '|', 'link', 'bulletedList', 'numberedList', '|', 'blockQuote' ]
                 })
                 .catch(error => {
                     console.error(error);
@@ -3378,6 +3522,15 @@
 
         // Dynamic Tab Switching Handler for Sidebar Navigation
         window.switchTab = function (tabId) {
+            if (tabId === 'packages') {
+                window.location.href = "{{ route('admin.packages') }}";
+                return;
+            }
+            if (tabId === 'categories') {
+                window.location.href = "{{ route('admin.categories') }}";
+                return;
+            }
+
             if (!tabId) tabId = 'overview';
 
             // Hide all tab panels
@@ -3627,6 +3780,14 @@
             // Read tab query parameter from URL
             const urlParams = new URLSearchParams(window.location.search);
             const activeTabParam = urlParams.get('tab');
+            if (activeTabParam === 'packages') {
+                window.location.href = "{{ route('admin.packages') }}";
+                return;
+            }
+            if (activeTabParam === 'categories') {
+                window.location.href = "{{ route('admin.categories') }}";
+                return;
+            }
             if (activeTabParam) {
                 switchTab(activeTabParam);
             }
@@ -3640,7 +3801,6 @@
 
             updateOverviewMetrics();
             renderBookingsTables();
-            renderPackages();
             renderCategories();
             renderCustomers();
             renderFAQs();
@@ -3649,22 +3809,33 @@
             initAspectRatios();
             initAboutGalleryAspectRatios();
 
-            // Initialize classic editors
+            // Initialize classic editors with live-preview CSS matching the public legal pages
             window.ckEditors = {};
+
             document.querySelectorAll('.ck-editor-textarea').forEach(textarea => {
                 ClassicEditor
                     .create(textarea, {
-                        toolbar: [ 'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote' ]
+                        toolbar: [
+                            'undo', 'redo', '|',
+                            'heading', '|',
+                            'bold', 'italic', '|',
+                            'link', '|',
+                            'bulletedList', 'numberedList', '|',
+                            'blockQuote'
+                        ],
+                        heading: {
+                            options: [
+                                { model: 'paragraph',  title: 'Paragraph',  class: 'ck-heading_paragraph' },
+                                { model: 'heading2',   view: 'h2', title: 'Section Heading (H2)', class: 'ck-heading_heading2' },
+                                { model: 'heading3',   view: 'h3', title: 'Sub Heading (H3)',     class: 'ck-heading_heading3' }
+                            ]
+                        }
                     })
                     .then(editor => {
                         const id = textarea.id;
-                        if (id) {
-                            window.ckEditors[id] = editor;
-                        }
+                        if (id) { window.ckEditors[id] = editor; }
                     })
-                    .catch(error => {
-                        console.error(error);
-                    });
+                    .catch(error => { console.error(error); });
             });
 
             // Initialize Real-Time Dynamic Chart.js Analytics Graphs

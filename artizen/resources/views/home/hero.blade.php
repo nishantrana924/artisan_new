@@ -1,5 +1,9 @@
 <style>
     /* CSS slide spacing fallback: eliminates 0px gap flash (FOUC) on page refresh */
+    .occasion-swiper {
+        min-height: 145px;
+        contain: layout;
+    }
     .occasion-swiper .swiper-wrapper {
         display: flex;
     }
@@ -12,6 +16,10 @@
         margin-right: 0;
     }
 
+    .hero-banner-swiper {
+        min-height: 165px;
+        contain: layout;
+    }
     .hero-banner-swiper .swiper-wrapper {
         display: flex;
     }
@@ -20,11 +28,22 @@
         margin-right: 16px;
     }
     @media (min-width: 640px) {
+        .hero-banner-swiper {
+            min-height: 185px;
+        }
         .hero-banner-swiper .swiper-slide {
             margin-right: 20px;
         }
     }
+    @media (min-width: 768px) {
+        .hero-banner-swiper {
+            min-height: 205px;
+        }
+    }
     @media (min-width: 1024px) {
+        .hero-banner-swiper {
+            min-height: 215px;
+        }
         .hero-banner-swiper .swiper-slide {
             margin-right: 24px;
         }
@@ -50,7 +69,7 @@
 
     <!-- ==========================================
          TIER 2: "SETUPS FOR EVERY OCCASION"
-         (Clean Pastel Occasion Capsules with Integrated Objects & Horizontal Carousel)
+         (Dynamic Pastel Occasion Capsules — Powered by Admin Categories)
          ========================================== -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-3">
         <div class="flex items-center justify-between mb-4">
@@ -63,165 +82,43 @@
             </a>
         </div>
 
-        <!-- Swiper.js Occasion Rail (Smooth freeMode dragging without native ghost image drag) -->
+        <!-- Swiper.js Occasion Rail -->
         <div class="swiper occasion-swiper overflow-hidden cursor-grab active:cursor-grabbing select-none">
             <div class="swiper-wrapper py-1">
 
-                <!-- 1. Birthday (Peach/Apricot Pastel) -->
+                @foreach($navCategories as $ocasionCat)
+                @php
+                    $navSlug   = $ocasionCat->nav_slug ?? ('cat-' . \Illuminate\Support\Str::slug($ocasionCat->title));
+                    $bgColor   = $ocasionCat->bg_color ?? '#F6CFB2';
+                    $sliderImg = $ocasionCat->slider_image ?? null;
+                    $altText   = $ocasionCat->title . ' Events';
+                @endphp
                 <div class="swiper-slide !w-auto">
-                    <a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" 
+                    <a href="{{ route('events.index', ['category' => $navSlug]) }}"
                        draggable="false"
-                       class="relative shrink-0 w-[220px] sm:w-[255px] h-[135px] sm:h-[145px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs select-none block bg-[#F6CFB2]">
-                        <img src="{{ asset('images/occasions/birthday.webp') }}" 
-                             alt="Birthday Celebrations" 
+                       class="relative shrink-0 w-[220px] sm:w-[255px] h-[135px] sm:h-[145px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs select-none block"
+                       style="background: {{ $bgColor }};">
+                        @if($sliderImg)
+                        <img src="{{ $sliderImg }}"
+                             alt="{{ $altText }}"
                              draggable="false"
-                             class="w-full h-full object-cover object-right block select-none pointer-events-none" 
+                             class="w-full h-full object-cover object-right block select-none pointer-events-none"
                              style="user-select: none; -webkit-user-drag: none;"
-                             loading="lazy">
+                             loading="eager" decoding="async">
+                        @endif
                         <div class="absolute top-3.5 left-4 z-10 pointer-events-none select-none">
-                            <span class="text-[14px] sm:text-[15px] font-heading font-extrabold text-[#2F1607] flex items-center gap-1">
-                                Birthday <i class="fa-solid fa-angle-right text-[11px] opacity-75"></i>
+                            <span class="text-[14px] sm:text-[15px] font-heading font-extrabold text-gray-900 dark:text-white flex items-center gap-1 drop-shadow-sm">
+                                {{ $ocasionCat->title }} <i class="fa-solid fa-angle-right text-[11px] opacity-75"></i>
                             </span>
                         </div>
                     </a>
                 </div>
-
-                <!-- 2. Proposals / Romance (Blush Pink Pastel) -->
-                <div class="swiper-slide !w-auto">
-                    <a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" 
-                       draggable="false"
-                       class="relative shrink-0 w-[220px] sm:w-[255px] h-[135px] sm:h-[145px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs select-none block bg-[#F8C6CF]">
-                        <img src="{{ asset('images/occasions/proposals.webp') }}" 
-                             alt="Proposals & Romance" 
-                             draggable="false"
-                             class="w-full h-full object-cover object-right block select-none pointer-events-none" 
-                             style="user-select: none; -webkit-user-drag: none;"
-                             loading="lazy">
-                        <div class="absolute top-3.5 left-4 z-10 pointer-events-none select-none">
-                            <span class="text-[14px] sm:text-[15px] font-heading font-extrabold text-[#2F0B15] flex items-center gap-1">
-                                Proposals <i class="fa-solid fa-angle-right text-[11px] opacity-75"></i>
-                            </span>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- 3. Corporate & Galas (Soft Powder Blue Pastel) -->
-                <div class="swiper-slide !w-auto">
-                    <a href="{{ route('events.index', ['category' => 'cat-baby-corporate']) }}" 
-                       draggable="false"
-                       class="relative shrink-0 w-[220px] sm:w-[255px] h-[135px] sm:h-[145px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs select-none block bg-[#A5C8E4]">
-                        <img src="{{ asset('images/occasions/corporate.webp') }}" 
-                             alt="Corporate Events & Galas" 
-                             draggable="false"
-                             class="w-full h-full object-cover object-right block select-none pointer-events-none" 
-                             style="user-select: none; -webkit-user-drag: none;"
-                             loading="lazy">
-                        <div class="absolute top-3.5 left-4 z-10 pointer-events-none select-none">
-                            <span class="text-[14px] sm:text-[15px] font-heading font-extrabold text-[#092233] flex items-center gap-1">
-                                Corporate <i class="fa-solid fa-angle-right text-[11px] opacity-75"></i>
-                            </span>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- 4. Anniversary (Pastel Dusty Rose) -->
-                <div class="swiper-slide !w-auto">
-                    <a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" 
-                       draggable="false"
-                       class="relative shrink-0 w-[220px] sm:w-[255px] h-[135px] sm:h-[145px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs select-none block bg-[#F6B6C1]">
-                        <img src="{{ asset('images/occasions/anniversary.webp') }}" 
-                             alt="Anniversary Celebrations" 
-                             draggable="false"
-                             class="w-full h-full object-cover object-right block select-none pointer-events-none" 
-                             style="user-select: none; -webkit-user-drag: none;"
-                             loading="lazy">
-                        <div class="absolute top-3.5 left-4 z-10 pointer-events-none select-none">
-                            <span class="text-[14px] sm:text-[15px] font-heading font-extrabold text-[#2E0911] flex items-center gap-1">
-                                Anniversary <i class="fa-solid fa-angle-right text-[11px] opacity-75"></i>
-                            </span>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- 5. House Party & DJ (Warm Sand Caramel) -->
-                <div class="swiper-slide !w-auto">
-                    <a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" 
-                       draggable="false"
-                       class="relative shrink-0 w-[220px] sm:w-[255px] h-[135px] sm:h-[145px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs select-none block bg-[#F4D2B3]">
-                        <img src="{{ asset('images/occasions/house-party.webp') }}" 
-                             alt="House Party & DJ" 
-                             draggable="false"
-                             class="w-full h-full object-cover object-right block select-none pointer-events-none" 
-                             style="user-select: none; -webkit-user-drag: none;"
-                             loading="lazy">
-                        <div class="absolute top-3.5 left-4 z-10 pointer-events-none select-none">
-                            <span class="text-[14px] sm:text-[15px] font-heading font-extrabold text-[#2C1608] flex items-center gap-1">
-                                House Party & DJ <i class="fa-solid fa-angle-right text-[11px] opacity-75"></i>
-                            </span>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- 6. Baby Shower & Kids (Soft Mint Pastel) -->
-                <div class="swiper-slide !w-auto">
-                    <a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" 
-                       draggable="false"
-                       class="relative shrink-0 w-[220px] sm:w-[255px] h-[135px] sm:h-[145px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs select-none block bg-[#C4E7D7]">
-                        <img src="{{ asset('images/occasions/baby-shower.webp') }}" 
-                             alt="Baby Shower & Kids" 
-                             draggable="false"
-                             class="w-full h-full object-cover object-right block select-none pointer-events-none" 
-                             style="user-select: none; -webkit-user-drag: none;"
-                             loading="lazy">
-                        <div class="absolute top-3.5 left-4 z-10 pointer-events-none select-none">
-                            <span class="text-[14px] sm:text-[15px] font-heading font-extrabold text-[#0B2519] flex items-center gap-1">
-                                Baby Shower <i class="fa-solid fa-angle-right text-[11px] opacity-75"></i>
-                            </span>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- 7. Weddings & Haldi (Soft Golden Marigold) -->
-                <div class="swiper-slide !w-auto">
-                    <a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" 
-                       draggable="false"
-                       class="relative shrink-0 w-[220px] sm:w-[255px] h-[135px] sm:h-[145px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs select-none block bg-[#FEE08B]">
-                        <img src="{{ asset('images/occasions/weddings.webp') }}" 
-                             alt="Weddings & Haldi Decor" 
-                             draggable="false"
-                             class="w-full h-full object-cover object-right block select-none pointer-events-none" 
-                             style="user-select: none; -webkit-user-drag: none;"
-                             loading="lazy">
-                        <div class="absolute top-3.5 left-4 z-10 pointer-events-none select-none">
-                            <span class="text-[14px] sm:text-[15px] font-heading font-extrabold text-[#2F2101] flex items-center gap-1">
-                                Weddings & Haldi <i class="fa-solid fa-angle-right text-[11px] opacity-75"></i>
-                            </span>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- 8. Live Artists & Acoustic (Pastel Lavender) -->
-                <div class="swiper-slide !w-auto">
-                    <a href="{{ route('events.index', ['category' => 'cat-dj-acoustic']) }}" 
-                       draggable="false"
-                       class="relative shrink-0 w-[220px] sm:w-[255px] h-[135px] sm:h-[145px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xs select-none block bg-[#D8C9F3]">
-                        <img src="{{ asset('images/occasions/live-music.webp') }}" 
-                             alt="Live Artists & DJ" 
-                             draggable="false"
-                             class="w-full h-full object-cover object-right block select-none pointer-events-none" 
-                             style="user-select: none; -webkit-user-drag: none;"
-                             loading="lazy">
-                        <div class="absolute top-3.5 left-4 z-10 pointer-events-none select-none">
-                            <span class="text-[14px] sm:text-[15px] font-heading font-extrabold text-[#1A0B30] flex items-center gap-1">
-                                Live Artists <i class="fa-solid fa-angle-right text-[11px] opacity-75"></i>
-                            </span>
-                        </div>
-                    </a>
-                </div>
+                @endforeach
 
             </div>
         </div>
     </div>
+
 
     <!-- ==========================================
          TIER 3: PANORAMIC PROMOTIONAL HERO BANNER CAROUSEL
@@ -280,7 +177,7 @@
                                  draggable="false"
                                  class="absolute inset-0 w-full h-full object-cover object-right pointer-events-none select-none" 
                                  style="user-select: none; -webkit-user-drag: none;"
-                                 loading="lazy">
+                                 loading="eager" decoding="async">
                             
                             <!-- Left Gradient Wash -->
                             <div class="absolute inset-0 bg-gradient-to-r from-[#0a291e]/95 via-[#0a291e]/75 to-transparent pointer-events-none"></div>
@@ -313,7 +210,7 @@
                                  draggable="false"
                                  class="absolute inset-0 w-full h-full object-cover object-right pointer-events-none select-none" 
                                  style="user-select: none; -webkit-user-drag: none;"
-                                 loading="lazy">
+                                 loading="eager" decoding="async">
                             
                             <!-- Left Gradient Wash -->
                             <div class="absolute inset-0 bg-gradient-to-r from-[#d4a373]/95 via-[#d4a373]/75 to-transparent pointer-events-none"></div>
@@ -346,7 +243,7 @@
                                  draggable="false"
                                  class="absolute inset-0 w-full h-full object-cover object-right pointer-events-none select-none" 
                                  style="user-select: none; -webkit-user-drag: none;"
-                                 loading="lazy">
+                                 loading="eager" decoding="async">
                             
                             <!-- Left Gradient Wash -->
                             <div class="absolute inset-0 bg-gradient-to-r from-[#E8DDD1]/95 via-[#E8DDD1]/75 to-transparent pointer-events-none"></div>
@@ -382,66 +279,78 @@
 
                 // 1. Occasion Horizontal Rail
                 var occEl = document.querySelector('.occasion-swiper');
-                if (occEl && !occEl.swiper) {
-                    new Swiper('.occasion-swiper', {
-                        slidesPerView: 'auto',
-                        spaceBetween: 14,
-                        observer: true,
-                        observeParents: true,
-                        freeMode: {
-                            enabled: true,
-                            momentum: true,
-                            momentumRatio: 0.8,
-                            momentumVelocityRatio: 0.8,
-                        },
-                        grabCursor: true,
-                        simulateTouch: true,
-                        touchStartPreventDefault: true,
-                        preventClicks: true,
-                        preventClicksPropagation: true,
-                        resistance: true,
-                        resistanceRatio: 0.85,
-                        mousewheel: {
-                            forceToAxis: true,
-                        },
-                    });
+                if (occEl) {
+                    if (occEl.swiper) {
+                        occEl.swiper.update();
+                    } else {
+                        new Swiper('.occasion-swiper', {
+                            slidesPerView: 'auto',
+                            spaceBetween: 14,
+                            observer: true,
+                            observeParents: true,
+                            resizeObserver: true,
+                            freeMode: {
+                                enabled: true,
+                                momentum: true,
+                                momentumRatio: 0.8,
+                                momentumVelocityRatio: 0.8,
+                            },
+                            grabCursor: true,
+                            simulateTouch: true,
+                            touchStartPreventDefault: true,
+                            preventClicks: true,
+                            preventClicksPropagation: true,
+                            resistance: true,
+                            resistanceRatio: 0.85,
+                            mousewheel: {
+                                forceToAxis: true,
+                            },
+                        });
+                    }
                 }
 
                 // 2. Hero Panoramic Banner Swiper
                 var bannerEl = document.querySelector('.hero-banner-swiper');
-                if (bannerEl && !bannerEl.swiper) {
-                    new Swiper('.hero-banner-swiper', {
-                        slidesPerView: 'auto',
-                        centeredSlides: true,
-                        loop: true,
-                        spaceBetween: 16,
-                        speed: 600,
-                        observer: true,
-                        observeParents: true,
-                        autoplay: {
-                            delay: 4500,
-                            disableOnInteraction: false,
-                            pauseOnMouseEnter: true,
-                        },
-                        grabCursor: true,
-                        breakpoints: {
-                            640: {
-                                spaceBetween: 20,
+                if (bannerEl) {
+                    if (bannerEl.swiper) {
+                        bannerEl.swiper.update();
+                    } else {
+                        new Swiper('.hero-banner-swiper', {
+                            slidesPerView: 'auto',
+                            centeredSlides: true,
+                            loop: true,
+                            loopedSlides: 4,
+                            spaceBetween: 16,
+                            speed: 600,
+                            observer: true,
+                            observeParents: true,
+                            resizeObserver: true,
+                            autoplay: {
+                                delay: 4500,
+                                disableOnInteraction: false,
+                                pauseOnMouseEnter: true,
                             },
-                            1024: {
-                                spaceBetween: 24,
+                            grabCursor: true,
+                            breakpoints: {
+                                640: {
+                                    spaceBetween: 20,
+                                },
+                                1024: {
+                                    spaceBetween: 24,
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
                 return true;
             }
 
-            // Run synchronously immediately so there is zero render delay or flicker
-            if (!initHeroSwipers()) {
+            if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', initHeroSwipers);
-                window.addEventListener('load', initHeroSwipers);
+            } else {
+                initHeroSwipers();
             }
+            window.addEventListener('load', initHeroSwipers);
         })();
     </script>
 

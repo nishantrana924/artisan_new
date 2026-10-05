@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @php
         $settings = \App\Services\JsonStorageService::read('settings.json');
@@ -112,95 +113,38 @@
     ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) !!}
     </script>
 
-    <!-- Tailwind CSS v3 Play CDN suppressor -->
-    <script>
-        (function () {
-            const origWarn = console.warn;
-            console.warn = function (...args) {
-                if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
-                origWarn.apply(console, args);
-            };
-        })();
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Production Compiled Tailwind CSS & App Bundle via Vite -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <!-- Google Fonts: Plus Jakarta Sans (600, 700, 800) & Inter (400, 500, 600) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Swiper JS & CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/swiper@8/swiper-bundle.min.css" />
-    <script src="https://unpkg.com/swiper@8/swiper-bundle.min.js"></script>
-
-    <!-- Lenis Smooth Scroll CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/lenis@1.1.18/dist/lenis.css" />
+    <!-- Swiper JS & CSS (Locally hosted for instantaneous load without CDN latency) -->
+    <link rel="stylesheet" href="{{ asset('vendor/swiper/swiper-bundle.min.css') }}" />
+    <script src="{{ asset('vendor/swiper/swiper-bundle.min.js') }}"></script>
 
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 
-    <!-- GSAP & Lenis Smooth Scroll JS -->
+    <!-- GSAP for Dropdowns & Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
 
     <!-- Custom Stylesheet with CSS Custom Variables -->
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}?v={{ time() }}">
-    <script>
-        // Bind Tailwind custom utilities to our Black + Gold + Warm White Design System
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        'primary': '#FFD600',
-                        'primary-hover': '#E6C200',
-                        'primary-soft': '#FFF4B8',
-                        'brand-gold': '#FFD600',
-                        'brand-gold-hover': '#E6C200',
-                        'brand-gold-soft': '#FFF4B8',
-                        'brand-dark': '#171719',
-                        'brand-dark-deep': '#080808',
-                        'brand-dark-soft': '#292929',
-                        'brand-bg': '#FAF9F6',
-                        'brand-surface': '#FFFFFF',
-                        'brand-surface-soft': '#F1EEE7',
-                        'brand-border': '#E6E2D8',
-                        'gold': '#FFD600',
-                        'gold-hover': '#E6C200',
-                        'gold-soft': '#FFF4B8',
-                        'artizen-orange': '#FFD600',
-                        'artizen-orange-hover': '#E6C200',
-                        'artizen-orange-soft': '#FFF4B8',
-                        'artizen-black': '#171719',
-                        'main-bg': 'var(--bg-main)',
-                        'surface-bg': 'var(--bg-surface)',
-                        'card-bg': 'var(--bg-card)',
-                        'main-text': 'var(--text-main)',
-                        'muted-text': 'var(--text-muted)',
-                        'primary-border': 'var(--border-color)',
-                        'hover-border': 'var(--border-hover)',
-                        'accent-bg': 'var(--accent)',
-                        'accent-fg': 'var(--accent-text)',
-                    },
-                    fontFamily: {
-                        heading: 'var(--font-heading)',
-                        body: 'var(--font-body)',
-                    }
-                }
-            }
-        }
-    </script>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}?v={{ filemtime(public_path('css/style.css')) }}">
 
     <!-- Category icons and other inline scripts moved to ./js/main.js -->
 
-    <!-- Swiper JS -->
-    <script src="https://unpkg.com/swiper@8/swiper-bundle.min.js"></script>
     <!-- Main site JS -->
     <script src="{{ asset('js/main.js') }}"></script>
-    <!-- Reels JS -->
-    <script src="{{ asset('js/reels.js') }}"></script>
 
     <style>
+        /* Smooth native scrolling without jump on refresh */
+        html {
+            scroll-behavior: smooth;
+        }
+
         /* Direct adjustments allowed by editing the variables in :root inside style.css */
         /* CRT Scanlines / Noise Overlay for concert vibes */
         .noise-overlay {
@@ -217,14 +161,60 @@
         }
     </style>
     <script>
-        // Set default theme to dark mode (black) unless user has explicitly saved light mode
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        if (savedTheme === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
+        window.applyTheme = function(theme) {
+            const isDark = theme === 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            try { localStorage.setItem('theme', theme); } catch(e){}
+
+            // Update single icon on desktop
+            const headerIcon = document.getElementById('theme-toggle-icon');
+            if (headerIcon) {
+                headerIcon.className = isDark 
+                    ? 'fa-solid fa-sun text-xs text-amber-400 transition-all duration-300 group-hover:scale-110'
+                    : 'fa-solid fa-moon text-xs text-gray-700 transition-all duration-300 group-hover:scale-110';
+            }
+
+            // Update single icon on mobile
+            const mobileIcon = document.getElementById('mobile-theme-icon');
+            if (mobileIcon) {
+                mobileIcon.className = isDark 
+                    ? 'fa-solid fa-sun text-xs text-amber-400'
+                    : 'fa-solid fa-moon text-xs text-gray-400';
+            }
+            const mobileText = document.getElementById('mobile-theme-text');
+            if (mobileText) {
+                mobileText.textContent = isDark ? 'Switch to Light' : 'Switch to Dark';
+            }
+        };
+
+        window.toggleTheme = function() {
+            const isDark = document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-theme') === 'dark';
+            window.applyTheme(isDark ? 'light' : 'dark');
+        };
+
+        // Immediately set HTML theme attribute & class to prevent flicker
+        (function() {
+            try {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                if (savedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch(e){}
+        })();
+
+        // Synchronize icon as soon as DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            window.applyTheme(savedTheme);
+        });
     </script>
 
     <script>

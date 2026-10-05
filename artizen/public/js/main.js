@@ -542,37 +542,68 @@ if (!window.eventDatabase || Object.keys(window.eventDatabase).length === 0) {
     };
 }
 
-// 2. Navigation Handler (Redirect to detail page)
+// 2. Navigation Handler (Redirect to detail page using clean SEO slug)
 window.openEventLightbox = function (eventId, tierIndex) {
-    window.location.href = `/event/${eventId}?tier=${tierIndex || 0}`;
+    const slugMap = {
+        1: '1st-birthday-wonderland',
+        2: 'rooftop-neon-dj-rig',
+        3: 'marry-me-proposal',
+        4: 'sangeet-dance-stage',
+        5: 'live-acoustic-guitarist',
+        6: 'sweet-16-club-bash',
+        7: 'fairy-light-cabana',
+        8: 'cozy-teepee-tent-village',
+        9: 'corporate-gala-stage',
+        10: 'haldi-brass-urli',
+        11: 'punjabi-dhol-players',
+        12: 'high-bass-speakers-mics',
+        14: 'oh-baby-neon-throne',
+        15: 'neon-sign-ring-arch'
+    };
+    const slug = slugMap[eventId] || eventId;
+    window.location.href = `/event/${slug}?tier=${tierIndex || 0}`;
 };
 
-// 3. Theme Management
+// 3. Theme Management (Dark / Light Theme Toggle)
+window.updateThemeToggleIcons = function () {
+    const isDark = document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-theme') === 'dark';
+    const icon = document.getElementById('theme-toggle-icon');
+    if (icon) {
+        if (isDark) {
+            icon.className = 'fa-solid fa-sun text-xs text-amber-400 transition-all duration-300 group-hover:scale-110';
+        } else {
+            icon.className = 'fa-solid fa-moon text-xs text-gray-700 transition-all duration-300 group-hover:scale-110';
+        }
+    }
+    const sunEl = document.getElementById('theme-toggle-sun');
+    const moonEl = document.getElementById('theme-toggle-moon');
+    if (sunEl && moonEl) {
+        if (isDark) {
+            sunEl.classList.remove('hidden');
+            moonEl.classList.add('hidden');
+        } else {
+            sunEl.classList.add('hidden');
+            moonEl.classList.remove('hidden');
+        }
+    }
+};
+
 window.toggleTheme = function () {
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', newTheme);
-    if (newTheme === 'dark') {
-        document.documentElement.classList.add('dark');
+    const isDark = document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-theme') === 'dark';
+    const nextTheme = isDark ? 'light' : 'dark';
+    if (typeof window.applyTheme === 'function') {
+        window.applyTheme(nextTheme);
     } else {
-        document.documentElement.classList.remove('dark');
+        document.documentElement.setAttribute('data-theme', nextTheme);
+        if (nextTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        localStorage.setItem('theme', nextTheme);
     }
-    localStorage.setItem('theme', newTheme);
-    updateThemeToggleIcons();
+    window.updateThemeToggleIcons();
 };
-
-function updateThemeToggleIcons() {
-    const theme = document.documentElement.getAttribute('data-theme') || 'dark';
-    const sunIcon = document.getElementById('theme-toggle-sun');
-    const moonIcon = document.getElementById('theme-toggle-moon');
-    if (theme === 'dark') {
-        if (sunIcon) sunIcon.classList.remove('hidden');
-        if (moonIcon) moonIcon.classList.add('hidden');
-    } else {
-        if (sunIcon) sunIcon.classList.add('hidden');
-        if (moonIcon) moonIcon.classList.remove('hidden');
-    }
-}
 
 // 4. Mobile Drawer Slide-in Navigation Menu
 window.toggleMobileNav = function () {
@@ -581,23 +612,33 @@ window.toggleMobileNav = function () {
     const waWidget = document.getElementById('whatsapp-floating-widget');
     if (!mobileNav) return;
 
-    const isOpen = !mobileNav.classList.contains('translate-x-full');
-    if (isOpen) {
-        mobileNav.classList.add('translate-x-full');
-        document.body.classList.remove('overflow-hidden');
-        if (overlay) {
-            overlay.classList.add('hidden', 'opacity-0', 'pointer-events-none');
-            overlay.classList.remove('block', 'opacity-100');
-        }
-        if (waWidget) waWidget.classList.remove('hidden');
-    } else {
-        mobileNav.classList.remove('translate-x-full');
+    const isClosed = mobileNav.classList.contains('hidden') || mobileNav.classList.contains('translate-x-full');
+    if (isClosed) {
+        mobileNav.classList.remove('hidden');
+        requestAnimationFrame(() => {
+            mobileNav.classList.remove('translate-x-full', 'invisible', 'pointer-events-none');
+            mobileNav.classList.add('shadow-2xl');
+        });
         document.body.classList.add('overflow-hidden');
         if (overlay) {
             overlay.classList.remove('hidden', 'pointer-events-none');
             setTimeout(() => overlay.classList.add('block', 'opacity-100'), 10);
         }
         if (waWidget) waWidget.classList.add('hidden');
+    } else {
+        mobileNav.classList.remove('shadow-2xl');
+        mobileNav.classList.add('translate-x-full', 'invisible', 'pointer-events-none');
+        setTimeout(() => {
+            if (mobileNav.classList.contains('translate-x-full')) {
+                mobileNav.classList.add('hidden');
+            }
+        }, 320);
+        document.body.classList.remove('overflow-hidden');
+        if (overlay) {
+            overlay.classList.add('hidden', 'opacity-0', 'pointer-events-none');
+            overlay.classList.remove('block', 'opacity-100');
+        }
+        if (waWidget) waWidget.classList.remove('hidden');
     }
 };
 
@@ -936,12 +977,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentImageIndex = 0;
 
     const categoryMapping = {
-        'acoustic': { eventId: 5, badges: [{ text: 'Live Sound', type: 'gold' }, { text: 'Guitarist', type: 'white' }], tags: ['Unplugged', 'Private Terrace', 'Warm Fairy Lights'] },
-        'birthday': { eventId: 1, badges: [{ text: 'Premium Decor', type: 'gold' }, { text: 'Fun Vibe', type: 'white' }], tags: ['Balloon Arch', 'Cake Table Styling', 'LED Board'] },
-        'proposal': { eventId: 3, badges: [{ text: 'Romantic', type: 'gold' }, { text: 'Best Seller', type: 'white' }], tags: ['Rose Petals', 'Candlelit Pathway', 'Violinist'] },
-        'party': { eventId: 2, badges: [{ text: 'High Bass', type: 'gold' }, { text: 'Club Vibe', type: 'white' }], tags: ['DJ Included', 'Fog Machine', 'Strobe Lights'] },
-        'wedding': { eventId: 10, badges: [{ text: 'Grand Styling', type: 'gold' }, { text: 'Traditional', type: 'white' }], tags: ['Mandap Decor', 'Stage panelling', 'Royal Sofa'] },
-        'corporate': { eventId: 9, badges: [{ text: 'AV Professional', type: 'gold' }, { text: 'Clean Look', type: 'white' }], tags: ['PA Column Speakers', 'Branding Panel', 'Technical Lead'] }
+        'acoustic': { eventId: 'live-acoustic-guitarist', badges: [{ text: 'Live Sound', type: 'gold' }, { text: 'Guitarist', type: 'white' }], tags: ['Unplugged', 'Private Terrace', 'Warm Fairy Lights'] },
+        'birthday': { eventId: '1st-birthday-wonderland', badges: [{ text: 'Premium Decor', type: 'gold' }, { text: 'Fun Vibe', type: 'white' }], tags: ['Balloon Arch', 'Cake Table Styling', 'LED Board'] },
+        'proposal': { eventId: 'marry-me-proposal', badges: [{ text: 'Romantic', type: 'gold' }, { text: 'Best Seller', type: 'white' }], tags: ['Rose Petals', 'Candlelit Pathway', 'Violinist'] },
+        'party': { eventId: 'rooftop-neon-dj-rig', badges: [{ text: 'High Bass', type: 'gold' }, { text: 'Club Vibe', type: 'white' }], tags: ['DJ Included', 'Fog Machine', 'Strobe Lights'] },
+        'wedding': { eventId: 'sangeet-dance-stage', badges: [{ text: 'Grand Styling', type: 'gold' }, { text: 'Traditional', type: 'white' }], tags: ['Mandap Decor', 'Stage panelling', 'Royal Sofa'] },
+        'corporate': { eventId: 'corporate-gala-stage', badges: [{ text: 'AV Professional', type: 'gold' }, { text: 'Clean Look', type: 'white' }], tags: ['PA Column Speakers', 'Branding Panel', 'Technical Lead'] }
     };
 
     window.switchAboutShowcase = function (category, btnEl) {
@@ -1263,44 +1304,12 @@ window.initCardImageScrubbers = function () {
 
 document.addEventListener('DOMContentLoaded', () => {
     window.initCardImageScrubbers();
-    if (window.initLenisSmoothScroll) window.initLenisSmoothScroll();
     if (window.initMegaMenuAnimations) window.initMegaMenuAnimations();
 });
 
-// ==========================================
-// LENIS SMOOTH SCROLL INITIALIZATION
-// ==========================================
-window.initLenisSmoothScroll = function () {
-    if (typeof Lenis === 'undefined') return;
-    try {
-        const lenis = new Lenis({
-            duration: 1.2,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-            orientation: 'vertical',
-            gestureOrientation: 'vertical',
-            smoothWheel: true,
-            wheelMultiplier: 1.0,
-            touchMultiplier: 1.5,
-        });
-        window.lenis = lenis;
-
-        function raf(time) {
-            lenis.raf(time);
-            requestAnimationFrame(raf);
-        }
-        requestAnimationFrame(raf);
-
-        // Override scrollToTop with Lenis
-        window.scrollToTop = function () {
-            if (window.lenis) {
-                window.lenis.scrollTo(0, { duration: 1.2 });
-            } else {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        };
-    } catch (e) {
-        console.warn('Lenis scroll init notice:', e);
-    }
+// Standard Native Scroll To Top
+window.scrollToTop = function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 // ==========================================
