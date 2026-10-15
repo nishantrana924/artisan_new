@@ -266,15 +266,17 @@ class MigrateJsonToDbCommand extends Command
             $migratedSlides++;
         }
 
-        $settingsJson = JsonStorageService::read('settings.json', []);
-        foreach ($settingsJson as $key => $val) {
-            Setting::updateOrCreate(
-                ['key' => $key],
-                [
-                    'value' => is_array($val) ? json_encode($val) : (string)$val,
-                    'group' => 'general',
-                ]
-            );
+        if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
+            $settingsJson = JsonStorageService::read('settings.json', []);
+            foreach ($settingsJson as $key => $val) {
+                Setting::updateOrCreate(
+                    ['key' => $key],
+                    [
+                        'value' => is_array($val) ? json_encode($val) : (string)$val,
+                        'group' => 'general',
+                    ]
+                );
+            }
         }
         // 12. Seed Master Admin User into users table
         $hasIsAdminColumn = \Illuminate\Support\Facades\Schema::hasColumn('users', 'is_admin');

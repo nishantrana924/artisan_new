@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Services\CelebrationCatalogService;
 use App\Services\JsonStorageService;
 use Illuminate\Support\Str;
 
@@ -13,87 +14,53 @@ class GalleryController extends Controller
      */
     public function index()
     {
-        // 1. Fetch categories for filter pills
-        $categoriesList = JsonStorageService::read('categories.json');
-
-        // 2. Fetch custom admin gallery items & packages to compile gallery
+        // 1. Fetch custom admin gallery items (if any uploaded by admin)
         $customGallery = JsonStorageService::read('gallery.json', []);
-        $packagesDb = JsonStorageService::read('packages.json', []);
+        
+        // 2. Fetch all real celebration packages from catalog service
+        $allPackages = CelebrationCatalogService::getAllPackages();
 
         $galleryItems = [];
 
+        // Add custom gallery items from admin
         foreach ($customGallery as $cg) {
             if (!empty($cg['image']) && ($cg['active'] ?? true)) {
                 $galleryItems[] = [
                     'id' => 'custom-' . ($cg['id'] ?? rand(100, 999)),
                     'title' => $cg['title'] ?? 'Artizen Setup',
-                    'category' => $cg['category'] ?? 'Event Setup',
-                    'category_slug' => Str::slug($cg['category'] ?? 'decor'),
+                    'category' => $cg['category'] ?? 'Celebration Setup',
                     'image' => $cg['image'],
-                    'package_slug' => Str::slug($cg['category'] ?? 'decor')
+                    'package_slug' => Str::slug($cg['package_slug'] ?? ($cg['category'] ?? ''))
                 ];
             }
         }
 
-        foreach ($packagesDb as $catId => $catData) {
-            if (!($catData['active'] ?? true)) continue;
+        // Add all high-res photos from real packages
+        foreach ($allPackages as $p) {
+            $pkgSlug = $p['slug'] ?? Str::slug($p['title']);
+            $catName = $p['category_name'] ?? 'Celebration Setup';
 
-            $catTitle = $catData['title'] ?? 'Event Setup';
-            $catSlug = Str::slug($catTitle);
-            if ($catSlug === 'adult-birthdays') $catSlug = 'birthdays';
-
-            // Add main category cover image
-            if (!empty($catData['image'])) {
+            // Primary Cover Photo
+            if (!empty($p['image'])) {
                 $galleryItems[] = [
-                    'id' => 'cat-' . $catId,
-                    'title' => $catTitle . ' Setup',
-                    'category' => $catTitle,
-                    'category_slug' => $catSlug,
-                    'image' => $catData['image'],
-                    'package_slug' => $catSlug
+                    'id' => 'pkg-main-' . $p['id'],
+                    'title' => $p['title'],
+                    'category' => $catName,
+                    'image' => $p['image'],
+                    'package_slug' => $pkgSlug
                 ];
             }
 
-            // Add images from gallery array
-            foreach ($catData['gallery'] ?? [] as $gIdx => $gImg) {
-                if (empty($gImg)) continue;
+            // Additional Gallery Photos for this package
+            foreach ($p['gallery'] ?? [] as $gIdx => $gImg) {
+                if (empty($gImg) || $gImg === $p['image']) continue;
                 $galleryItems[] = [
-                    'id' => 'cat-g-' . $catId . '-' . $gIdx,
-                    'title' => $catTitle . ' Celebration Highlight ' . ($gIdx + 1),
-                    'category' => $catTitle,
-                    'category_slug' => $catSlug,
+                    'id' => 'pkg-gal-' . $p['id'] . '-' . $gIdx,
+                    'title' => $p['title'],
+                    'category' => $catName,
                     'image' => $gImg,
-                    'package_slug' => $catSlug
+                    'package_slug' => $pkgSlug
                 ];
-            }
-
-            // Add images from package tiers
-            foreach ($catData['tiers'] ?? [] as $tIdx => $tier) {
-                if (!empty($tier['image'])) {
-                    $galleryItems[] = [
-                        'id' => 'tier-' . $catId . '-' . $tIdx,
-                        'title' => $tier['name'] ?? ($catTitle . ' Setup'),
-                        'category' => $catTitle,
-                        'category_slug' => $catSlug,
-                        'image' => $tier['image'],
-                        'price' => $tier['price'] ?? 0,
-                        'package_slug' => $catSlug
-                    ];
-                }
-
-                // Tier gallery array
-                foreach ($tier['gallery'] ?? [] as $tgIdx => $tgImg) {
-                    if (empty($tgImg)) continue;
-                    $galleryItems[] = [
-                        'id' => 'tier-g-' . $catId . '-' . $tIdx . '-' . $tgIdx,
-                        'title' => ($tier['name'] ?? $catTitle) . ' Photo ' . ($tgIdx + 1),
-                        'category' => $catTitle,
-                        'category_slug' => $catSlug,
-                        'image' => $tgImg,
-                        'price' => $tier['price'] ?? 0,
-                        'package_slug' => $catSlug
-                    ];
-                }
             }
         }
 
@@ -108,8 +75,7 @@ class GalleryController extends Controller
         }
 
         return view('gallery.index', [
-            'galleryItems' => $uniqueGallery,
-            'categoriesList' => $categoriesList
+            'galleryItems' => $uniqueGallery
         ]);
     }
 }

@@ -898,4 +898,62 @@ class CelebrationCatalogService
             ],
         ];
     }
+
+    /**
+     * Master Add-ons catalog for event setups in Indore
+     */
+    public static function getMasterAddons(): array
+    {
+        return [
+            [
+                'id' => 'extra_balloons',
+                'aliases' => ['addon-balloons', 'extra-balloons', 'balloons'],
+                'name' => 'Extra Balloons Garland (50 Pcs)',
+                'price' => 499,
+                'desc' => 'Additional color-matched organic latex balloons for fuller venue coverage.'
+            ],
+            [
+                'id' => 'led_numbers',
+                'aliases' => ['addon-led-num', 'led-numbers', 'led_number', 'led-num'],
+                'name' => '3ft Light-Up LED Number',
+                'price' => 799,
+                'desc' => 'Warm golden LED milestone number for memorable photographs.'
+            ],
+            [
+                'id' => 'photographer',
+                'aliases' => ['addon-photo', 'event-photographer', 'photo', 'photography'],
+                'name' => 'Professional Event Photographer (2 Hrs)',
+                'price' => 1999,
+                'desc' => 'Candid and family high-resolution edited shots delivered in 48 hrs.'
+            ],
+            [
+                'id' => 'cake',
+                'aliases' => ['addon-cake', 'celebration-cake', 'custom-cake'],
+                'name' => 'Themed Celebration Cake (1 Kg)',
+                'price' => 999,
+                'desc' => 'Fresh eggless designer cake matched to your event theme.'
+            ],
+            [
+                'id' => 'cold_pyro',
+                'aliases' => ['addon-pyro', 'cold-pyro-entry', 'pyro', 'sparklers'],
+                'name' => 'Cold Pyro Sparkle Shots (Set of 4)',
+                'price' => 1200,
+                'desc' => 'Smoke-free, cold-touch sparklers for celebration climax.'
+            ],
+            [
+                'id' => 'addon-fog',
+                'aliases' => ['fog_machine', 'fog-machine', 'smoke_machine'],
+                'name' => 'Stage Fog Machine (Low Smoke)',
+                'price' => 1500,
+                'desc' => 'Adds dramatic ethereal effect for cake cutting & entrances.'
+            ],
+            [
+                'id' => 'addon-sound',
+                'aliases' => ['sound_system', 'sound-system', 'jbl-partybox', 'speaker'],
+                'name' => 'Extended JBL PartyBox Sound & Mic',
+                'price' => 1999,
+                'desc' => 'High-bass Bluetooth setup with wireless microphones for announcements.'
+            ],
+        ];
+    }
 }

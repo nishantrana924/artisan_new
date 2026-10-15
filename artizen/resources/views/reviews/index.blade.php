@@ -103,11 +103,35 @@
                 </a>
             </div>
         @else
-            <!-- Standard Category Filter Pills -->
+            @php
+                $starCounts = [
+                    5 => collect($reviewList)->filter(fn($r) => ($r['rating'] ?? 5) == 5)->count(),
+                    4 => collect($reviewList)->filter(fn($r) => ($r['rating'] ?? 5) == 4)->count(),
+                    3 => collect($reviewList)->filter(fn($r) => ($r['rating'] ?? 5) == 3)->count(),
+                    2 => collect($reviewList)->filter(fn($r) => ($r['rating'] ?? 5) == 2)->count(),
+                    1 => collect($reviewList)->filter(fn($r) => ($r['rating'] ?? 5) == 1)->count(),
+                ];
+            @endphp
+            <!-- Category and Star Rating Filter Pills -->
             <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-hide">
                 <button onclick="filterReviews('all', this)" class="review-filter-btn active px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition-all bg-black text-white dark:bg-white dark:text-black shadow-sm cursor-pointer">
                     All Reviews ({{ count($reviewList) }})
                 </button>
+                @if(($starCounts[5] ?? 0) > 0)
+                    <button onclick="filterReviews('star-5', this)" class="review-filter-btn px-4 py-2 rounded-xl text-xs font-medium shrink-0 transition-all bg-gray-100 dark:bg-[#15151A] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 cursor-pointer">
+                        5 Stars ({{ $starCounts[5] }})
+                    </button>
+                @endif
+                @if(($starCounts[4] ?? 0) > 0)
+                    <button onclick="filterReviews('star-4', this)" class="review-filter-btn px-4 py-2 rounded-xl text-xs font-medium shrink-0 transition-all bg-gray-100 dark:bg-[#15151A] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 cursor-pointer">
+                        4 Stars ({{ $starCounts[4] }})
+                    </button>
+                @endif
+                @if(($starCounts[3] ?? 0) > 0)
+                    <button onclick="filterReviews('star-3', this)" class="review-filter-btn px-4 py-2 rounded-xl text-xs font-medium shrink-0 transition-all bg-gray-100 dark:bg-[#15151A] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 cursor-pointer">
+                        3 Stars ({{ $starCounts[3] }})
+                    </button>
+                @endif
                 <button onclick="filterReviews('birthdays', this)" class="review-filter-btn px-4 py-2 rounded-xl text-xs font-medium shrink-0 transition-all bg-gray-100 dark:bg-[#15151A] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 cursor-pointer">
                     Birthdays
                 </button>
@@ -132,7 +156,7 @@
         <!-- Reviews Grid -->
         <div id="reviews-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($reviewList as $index => $review)
-                <div class="review-card-item" data-category="{{ $review['category'] ?? 'general' }}">
+                <div class="review-card-item" data-category="{{ $review['category'] ?? 'general' }}" data-rating="{{ $review['rating'] ?? 5 }}">
                     <div onclick="openReviewModal({{ $index }})" 
                          class="w-full h-[220px] sm:h-[230px] bg-white dark:bg-[#121217] border border-gray-200/90 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-2xs flex flex-col justify-between text-left cursor-pointer select-none focus:outline-none focus:ring-0 outline-none"
                          role="button"
@@ -278,7 +302,7 @@
 <script>
     const artizenReviewsList = @json($reviewList);
 
-    function filterReviews(category, btn) {
+    function filterReviews(filter, btn) {
         document.querySelectorAll('.review-filter-btn').forEach(b => {
             b.classList.remove('active', 'bg-black', 'text-white', 'dark:bg-white', 'dark:text-black', 'shadow-sm');
             b.classList.add('bg-gray-100', 'dark:bg-[#15151A]', 'text-gray-700', 'dark:text-gray-300');
@@ -290,7 +314,19 @@
         const items = document.querySelectorAll('.review-card-item');
         items.forEach(item => {
             const itemCat = item.getAttribute('data-category');
-            if (category === 'all' || itemCat === category) {
+            const itemRating = item.getAttribute('data-rating');
+            let isMatch = false;
+
+            if (filter === 'all') {
+                isMatch = true;
+            } else if (filter.startsWith('star-')) {
+                const targetRating = filter.replace('star-', '');
+                isMatch = (itemRating === targetRating);
+            } else {
+                isMatch = (itemCat === filter);
+            }
+
+            if (isMatch) {
                 item.style.display = '';
             } else {
                 item.style.display = 'none';

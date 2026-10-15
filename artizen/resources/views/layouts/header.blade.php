@@ -140,9 +140,16 @@
     <script src="{{ asset('js/main.js') }}"></script>
 
     <style>
-        /* Smooth native scrolling without jump on refresh */
+        /* Smooth native scrolling without jump on refresh & prevent mobile horizontal overflow */
         html {
             scroll-behavior: smooth;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            max-width: 100%;
+            overflow-x: hidden;
         }
 
         /* Direct adjustments allowed by editing the variables in :root inside style.css */

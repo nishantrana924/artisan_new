@@ -12,7 +12,6 @@ use App\Models\GalleryItem;
 use App\Models\Package;
 use App\Models\PackageTier;
 use App\Models\Reel;
-use App\Models\Setting;
 use App\Models\Testimonial;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -162,6 +161,7 @@ class JsonStorageService
                 'state' => $b->state,
                 'pincode' => $b->pincode,
                 'notes' => $b->notes,
+                'addons' => $b->addons ?? [],
                 'package_price' => (int)$b->package_price,
                 'surcharge' => (int)$b->surcharge_amount,
                 'total' => (int)$b->total_amount,
@@ -277,31 +277,54 @@ class JsonStorageService
             ];
         })->toArray();
 
-        $aboutSetting = Setting::where('key', 'about')->first();
-        $about = $aboutSetting && $aboutSetting->value ? json_decode($aboutSetting->value, true) : null;
+        $defaultHero = [
+            [
+                'image' => '/assets/images/hero/1.jpg',
+                'badge' => 'PLAN, BOOK & RELAX',
+                'title' => 'ELEVATE YOUR CELEBRATIONS',
+                'desc' => 'Book complete premium decor, sound, and lighting setups instantly for birthdays, house parties, and sangeet.',
+                'link1' => '/events',
+                'btn1Text' => 'Explore Packages',
+                'link2' => 'https://wa.me/919131668156',
+                'btn2Text' => 'WhatsApp Inquiry'
+            ],
+            [
+                'image' => '/assets/images/hero/2.jpg',
+                'badge' => 'SOUNDS OF ARTIZEN',
+                'title' => 'HIGH-BASS PARTY RIGS',
+                'desc' => 'Professional active speaker columns, live DJs, strobes, and concert fog delivered directly to your venue.',
+                'link1' => '/events',
+                'btn1Text' => 'View DJ Setups',
+                'link2' => 'https://wa.me/919131668156',
+                'btn2Text' => 'Book Instant'
+            ],
+            [
+                'image' => '/assets/images/hero/3.jpg',
+                'badge' => 'ROMANTIC MEMORIES',
+                'title' => 'ROYAL STAGES & DECORS',
+                'desc' => 'Exquisite wedding mandaps, traditional haldi Urli setups, and premium anniversary flower panels.',
+                'link1' => '/events',
+                'btn1Text' => 'View Weddings',
+                'link2' => 'https://wa.me/919131668156',
+                'btn2Text' => 'Contact Planner'
+            ]
+        ];
 
-        if (empty($heroSlides) && empty($about)) {
-            return self::readJsonFile('cms.json', $default);
+        if (empty($heroSlides)) {
+            $fromFile = self::readJsonFile('cms.json', $default);
+            if (!empty($fromFile) && isset($fromFile['hero_slides'])) {
+                return $fromFile;
+            }
         }
 
         return [
-            'hero_slides' => !empty($heroSlides) ? $heroSlides : ($default['hero_slides'] ?? []),
-            'about' => $about ?? ($default['about'] ?? [])
+            'hero_slides' => !empty($heroSlides) ? $heroSlides : ($default['hero_slides'] ?? $defaultHero),
         ];
     }
 
     protected static function readSettingsFromDb(array $default): array
     {
-        $settings = Setting::all();
-        if ($settings->isEmpty()) return self::readJsonFile('settings.json', $default);
-
-        $result = [];
-        foreach ($settings as $s) {
-            $decoded = json_decode($s->value, true);
-            $result[$s->key] = is_array($decoded) ? $decoded : $s->value;
-        }
-
-        return !empty($result) ? $result : self::readJsonFile('settings.json', $default);
+        return self::readJsonFile('settings.json', $default);
     }
 
     protected static function readReelsFromDb(array $default): array
@@ -428,6 +451,7 @@ class JsonStorageService
                     'state' => $b['state'] ?? 'Madhya Pradesh',
                     'pincode' => $b['pincode'] ?? '452010',
                     'notes' => $b['notes'] ?? null,
+                    'addons' => $b['addons'] ?? [],
                     'package_price' => (float)($b['package_price'] ?? 0),
                     'surcharge_amount' => (float)($b['surcharge'] ?? 0),
                     'total_amount' => (float)($b['total'] ?? $b['package_price'] ?? 0),
@@ -555,29 +579,11 @@ class JsonStorageService
                 ]
             );
         }
-
-        if (isset($data['about'])) {
-            Setting::updateOrCreate(
-                ['key' => 'about'],
-                [
-                    'value' => json_encode($data['about']),
-                    'group' => 'cms',
-                ]
-            );
-        }
     }
 
     protected static function writeSettingsToDb(array $data): void
     {
-        foreach ($data as $key => $val) {
-            Setting::updateOrCreate(
-                ['key' => $key],
-                [
-                    'value' => is_array($val) ? json_encode($val) : (string)$val,
-                    'group' => 'general',
-                ]
-            );
-        }
+        self::writeJsonFile('settings.json', $data);
     }
 
     protected static function writeReelsToDb(array $data): void

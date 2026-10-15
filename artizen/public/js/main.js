@@ -575,6 +575,14 @@ window.updateThemeToggleIcons = function () {
             icon.className = 'fa-solid fa-moon text-xs text-gray-700 transition-all duration-300 group-hover:scale-110';
         }
     }
+    const mobileThemeIcon = document.getElementById('mobile-theme-icon');
+    if (mobileThemeIcon) {
+        if (isDark) {
+            mobileThemeIcon.className = 'fa-solid fa-sun text-xs text-amber-400';
+        } else {
+            mobileThemeIcon.className = 'fa-solid fa-moon text-xs text-gray-700 dark:text-gray-300';
+        }
+    }
     const sunEl = document.getElementById('theme-toggle-sun');
     const moonEl = document.getElementById('theme-toggle-moon');
     if (sunEl && moonEl) {
@@ -612,6 +620,14 @@ window.toggleMobileNav = function () {
     const waWidget = document.getElementById('whatsapp-floating-widget');
     if (!mobileNav) return;
 
+    // Attach passive:false touchmove prevention on overlay once
+    if (overlay && !overlay.dataset.scrollLockInit) {
+        overlay.dataset.scrollLockInit = 'true';
+        overlay.addEventListener('touchmove', function (e) {
+            e.preventDefault();
+        }, { passive: false });
+    }
+
     const isClosed = mobileNav.classList.contains('hidden') || mobileNav.classList.contains('translate-x-full');
     if (isClosed) {
         mobileNav.classList.remove('hidden');
@@ -619,6 +635,7 @@ window.toggleMobileNav = function () {
             mobileNav.classList.remove('translate-x-full', 'invisible', 'pointer-events-none');
             mobileNav.classList.add('shadow-2xl');
         });
+        document.documentElement.classList.add('overflow-hidden');
         document.body.classList.add('overflow-hidden');
         if (overlay) {
             overlay.classList.remove('hidden', 'pointer-events-none');
@@ -633,6 +650,7 @@ window.toggleMobileNav = function () {
                 mobileNav.classList.add('hidden');
             }
         }, 320);
+        document.documentElement.classList.remove('overflow-hidden');
         document.body.classList.remove('overflow-hidden');
         if (overlay) {
             overlay.classList.add('hidden', 'opacity-0', 'pointer-events-none');

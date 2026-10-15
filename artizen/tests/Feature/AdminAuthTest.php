@@ -9,23 +9,28 @@ use Tests\TestCase;
 
 class AdminAuthTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
-     * Test admin login view is accessible.
+     * Test admin login route redirects to unified /login page.
      */
     public function test_login_page_can_be_rendered(): void
     {
         $response = $this->get('/admin/login');
-        $response->assertStatus(200);
-        $response->assertSee('Admin Sign In');
+        $response->assertRedirect('/login');
+
+        $unifiedLogin = $this->get('/login');
+        $unifiedLogin->assertStatus(200);
+        $unifiedLogin->assertSee('Sign In');
     }
 
     /**
-     * Test unauthenticated guest cannot access admin dashboard.
+     * Test unauthenticated guest cannot access admin dashboard and is redirected to /login.
      */
     public function test_guest_cannot_access_admin_dashboard(): void
     {
         $response = $this->get('/admin/dashboard');
-        $response->assertRedirect('/admin/login');
+        $response->assertRedirect(route('login', ['redirect' => url('/admin/dashboard')]));
     }
 
     /**
@@ -33,7 +38,7 @@ class AdminAuthTest extends TestCase
      */
     public function test_validation_errors_for_empty_login_request(): void
     {
-        $response = $this->post('/admin/login', [
+        $response = $this->post('/login', [
             'email' => '',
             'password' => '',
         ]);
@@ -46,7 +51,7 @@ class AdminAuthTest extends TestCase
      */
     public function test_invalid_email_format_validation(): void
     {
-        $response = $this->post('/admin/login', [
+        $response = $this->post('/login', [
             'email' => 'invalid-email-string',
             'password' => 'somepassword',
         ]);
@@ -65,7 +70,7 @@ class AdminAuthTest extends TestCase
             'is_admin' => true,
         ]);
 
-        $response = $this->post('/admin/login', [
+        $response = $this->post('/login', [
             'email' => 'testadmin@artizen.com',
             'password' => 'WrongPassword123!',
         ]);
@@ -86,11 +91,11 @@ class AdminAuthTest extends TestCase
         ]);
 
         $response = $this->actingAs($regularUser)->get('/admin/dashboard');
-        $response->assertRedirect('/admin/login');
+        $response->assertRedirect(route('login', ['redirect' => url('/admin/dashboard')]));
     }
 
     /**
-     * Test admin can authenticate with valid credentials and session is regenerated.
+     * Test admin can authenticate via unified login and is redirected to /admin/dashboard.
      */
     public function test_admin_can_authenticate_with_valid_credentials(): void
     {
@@ -100,13 +105,35 @@ class AdminAuthTest extends TestCase
             'is_admin' => true,
         ]);
 
-        $response = $this->post('/admin/login', [
+        $response = $this->post('/login', [
             'email' => 'authadmin@artizen.com',
             'password' => 'ValidPassword123!',
         ]);
 
         $this->assertAuthenticatedAs($admin);
+        $this->assertTrue(session('admin_logged_in'));
         $response->assertRedirect('/admin/dashboard');
+    }
+
+    /**
+     * Test regular customer user authenticating via unified login is redirected to home.
+     */
+    public function test_customer_authenticating_is_redirected_to_home(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'customer@example.com',
+            'password' => Hash::make('CustomerPass123!'),
+            'is_admin' => false,
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => 'customer@example.com',
+            'password' => 'CustomerPass123!',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $this->assertNull(session('admin_logged_in'));
+        $response->assertRedirect(route('home'));
     }
 
     /**
@@ -125,6 +152,6 @@ class AdminAuthTest extends TestCase
         $response = $this->post('/admin/logout');
 
         $this->assertGuest();
-        $response->assertRedirect('/admin/login');
+        $response->assertRedirect(route('home'));
     }
 }

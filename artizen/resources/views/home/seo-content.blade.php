@@ -2,37 +2,43 @@
 <section class="w-full bg-[#FAF9F6] dark:bg-[#0A0A0D] border-t border-gray-200/80 dark:border-white/10 py-8 sm:py-10 transition-colors">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
 
-        <!-- Top Title & Subheading -->
-        <div class="mb-5 sm:mb-6">
+        <!-- Top Title -->
+        <div class="mb-2 sm:mb-6">
             <h2 class="text-base sm:text-lg md:text-xl font-heading font-extrabold text-gray-950 dark:text-white tracking-tight">
                 Celebrate Occasions with Indore's #1 Event Booking Platform
             </h2>
-            <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 font-normal">
-                Thoughtfully Curated Celebration Packages, High-Bass Sound Systems & Luxury Decor. Guaranteed On-Time Doorstep Setup Across Indore.
-            </p>
         </div>
 
-        <!-- Secondary Title -->
-        <h3 class="text-sm sm:text-base font-heading font-bold text-gray-950 dark:text-white mb-2.5 tracking-tight">
-            ARTIZEN: No. 1 Event Decor, Sound Rig & Celebration Setup Platform in Indore
-        </h3>
-
-        <!-- Main Body Text with Contextual Internal Links for SEO -->
-        <div class="text-xs sm:text-[13px] text-gray-600 dark:text-gray-300 leading-relaxed font-normal">
-            <p>
-                ARTIZEN is Indore's top celebration and event setup platform, dedicated to helping you celebrate life's most cherished moments with flawless on-site execution. You can find complete, ready-to-book packages for all special days like 
-                <a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">Birthdays</a>, 
-                <a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">Anniversaries & Proposals</a>, 
-                <a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">House Parties</a>, 
-                <a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">Baby Showers & Kids Parties</a>, and festivals & weddings like 
-                <a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">Haldi, Mehendi & Sangeet</a>. 
-                Our platform offers a comprehensive catalog of celebration setups including 
-                <a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">balloon garlands & neon backdrops</a>, 
-                <a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">romantic cabana dining setups</a>, 
-                <a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">high-bass party speaker systems</a>, 
-                <a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">traditional marigold Urli decor</a>, and verified local artists which our setup crew installs at your home, hotel, terrace, or banquet hall across all major locations in Indore within hours.
+        <!-- Mobile Collapsible Content (Subtitle + Secondary Title + Main Body Text) -->
+        <div id="seo-mobile-preview" class="hidden sm:block">
+            <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 font-normal">
+                Thoughtfully Curated Celebration Packages, High-Bass Sound Systems & Luxury Decor. Guaranteed On-Time Doorstep Setup Across Indore.
             </p>
 
+            <!-- Secondary Title -->
+            <h3 class="text-sm sm:text-base font-heading font-bold text-gray-950 dark:text-white mb-2.5 tracking-tight">
+                ARTIZEN: No. 1 Event Decor, Sound Rig & Celebration Setup Platform in Indore
+            </h3>
+
+            <!-- Main Body Text with Contextual Internal Links for SEO -->
+            <div class="text-xs sm:text-[13px] text-gray-600 dark:text-gray-300 leading-relaxed font-normal">
+                <p>
+                    ARTIZEN is Indore's top celebration and event setup platform, dedicated to helping you celebrate life's most cherished moments with flawless on-site execution. You can find complete, ready-to-book packages for all special days like 
+                    <a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">Birthdays</a>, 
+                    <a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">Anniversaries & Proposals</a>, 
+                    <a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">House Parties</a>, 
+                    <a href="{{ route('events.index', ['category' => 'cat-kids-cozy']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">Baby Showers & Kids Parties</a>, and festivals & weddings like 
+                    <a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">Haldi, Mehendi & Sangeet</a>. 
+                    Our platform offers a comprehensive catalog of celebration setups including 
+                    <a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">balloon garlands & neon backdrops</a>, 
+                    <a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">romantic cabana dining setups</a>, 
+                    <a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">high-bass party speaker systems</a>, 
+                    <a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">traditional marigold Urli decor</a>, and verified local artists which our setup crew installs at your home, hotel, terrace, or banquet hall across all major locations in Indore within hours.
+                </p>
+            </div>
+        </div>
+
+        <div class="text-xs sm:text-[13px] text-gray-600 dark:text-gray-300 leading-relaxed font-normal">
             <!-- Expandable Comprehensive Geo SEO Content (Toggled via Read More) -->
             <div id="seo-geo-expanded" class="hidden mt-4 space-y-4 pt-3 border-t border-gray-200/60 dark:border-white/5">
 
@@ -211,24 +217,47 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const toggleBtn = document.getElementById('seo-geo-toggle-btn');
+        const mobilePreview = document.getElementById('seo-mobile-preview');
         const contentBlock = document.getElementById('seo-geo-expanded');
         const toggleText = document.getElementById('seo-toggle-text');
         const toggleIcon = document.getElementById('seo-toggle-icon');
 
         if (toggleBtn && contentBlock && toggleText && toggleIcon) {
             toggleBtn.addEventListener('click', function () {
+                const isMobile = window.innerWidth < 640;
                 const isHidden = contentBlock.classList.contains('hidden');
 
                 if (isHidden) {
                     contentBlock.classList.remove('hidden');
+                    if (mobilePreview && isMobile) {
+                        mobilePreview.classList.remove('hidden');
+                    }
                     toggleText.textContent = 'Read Less...';
                     toggleIcon.classList.add('rotate-180');
                     toggleBtn.setAttribute('aria-expanded', 'true');
                 } else {
                     contentBlock.classList.add('hidden');
+                    if (mobilePreview && isMobile) {
+                        mobilePreview.classList.add('hidden');
+                    }
                     toggleText.textContent = 'Read More...';
                     toggleIcon.classList.remove('rotate-180');
                     toggleBtn.setAttribute('aria-expanded', 'false');
+
+                    if (isMobile) {
+                        const sec = toggleBtn.closest('section');
+                        if (sec) {
+                            sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                }
+            });
+
+            window.addEventListener('resize', function () {
+                if (window.innerWidth >= 640 && mobilePreview) {
+                    mobilePreview.classList.remove('hidden');
+                } else if (window.innerWidth < 640 && mobilePreview && contentBlock.classList.contains('hidden')) {
+                    mobilePreview.classList.add('hidden');
                 }
             });
         }

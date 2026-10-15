@@ -30,6 +30,7 @@ class Testimonial extends Model
         'show_on_reviews_page',
         'show_on_event_details',
         'sort_order',
+        'created_at',
     ];
 
     protected $casts = [
@@ -79,11 +80,13 @@ class Testimonial extends Model
     }
 
     /**
-     * Scope: Display order sorting.
+     * Scope: Display order sorting (5-star first down to 1-star, and newly added on top).
      */
     public function scopeOrdered(Builder $query): Builder
     {
-        return $query->orderBy('sort_order', 'asc')->orderBy('created_at', 'desc');
+        return $query->orderBy('rating', 'desc')
+                     ->orderBy('created_at', 'desc')
+                     ->orderBy('id', 'desc');
     }
 
     /**

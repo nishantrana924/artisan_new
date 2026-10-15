@@ -7,6 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('page_title', 'Admin') | Artizen Admin Panel</title>
 
+    <!-- Favicons & App Icons (Matching Public Site) -->
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/images/logo/artizen.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/images/logo/artizen.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/images/logo/artizen.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+
     <!-- Tailwind Play CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -75,8 +82,9 @@
             outline: none !important;
             box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08) !important;
         }
-        input.pl-10, input[class*="pl-10"] { padding-left: 2.5rem !important; }
+        input.pl-10, input[class*="pl-10"], input.admin-input-icon { padding-left: 2.6rem !important; }
         input.pl-8,  input[class*="pl-8"]  { padding-left: 2.25rem !important; }
+        input.pr-10, input[class*="pr-10"], input.admin-input-eye { padding-right: 2.6rem !important; }
         table th {
             font-size: 12px !important;
             font-weight: 600 !important;
@@ -191,8 +199,12 @@
                                 class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl hover:bg-gray-100/70 transition-colors cursor-pointer group border-0 outline-none focus:outline-none ring-0 focus:ring-0 active:outline-none"
                                 aria-expanded="false" 
                                 aria-haspopup="true">
-                            <div class="w-8 h-8 rounded-xl bg-gray-900 text-white flex items-center justify-center text-xs font-black shadow-2xs shrink-0 group-hover:scale-105 transition-transform">
-                                {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
+                            <div class="w-8 h-8 rounded-xl bg-gray-900 text-white flex items-center justify-center text-xs font-black shadow-2xs shrink-0 group-hover:scale-105 transition-transform overflow-hidden">
+                                @if(!empty(Auth::user()->avatar))
+                                    <img src="{{ Auth::user()->avatar }}" alt="Admin" class="w-full h-full object-cover">
+                                @else
+                                    {{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 1)) }}
+                                @endif
                             </div>
                             <div class="hidden md:block text-left select-none">
                                 <span class="block text-xs font-bold text-gray-900 leading-tight group-hover:text-gray-950">{{ Auth::user()->name ?? 'Artizen Admin' }}</span>

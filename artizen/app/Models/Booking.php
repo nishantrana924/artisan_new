@@ -34,6 +34,7 @@ class Booking extends Model
         'state',
         'pincode',
         'notes',
+        'addons',
         'package_price',
         'surcharge_amount',
         'total_amount',
@@ -43,6 +44,7 @@ class Booking extends Model
 
     protected $casts = [
         'notifications_sent' => 'array',
+        'addons' => 'array',
         'guest_count' => 'integer',
         'package_price' => 'decimal:2',
         'surcharge_amount' => 'decimal:2',

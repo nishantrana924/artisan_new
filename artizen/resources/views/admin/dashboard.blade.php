@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Artizen Admin Portal - Event Management Dashboard</title>
 
+    <!-- Favicons & App Icons (Matching Public Site) -->
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/images/logo/artizen.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/images/logo/artizen.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/images/logo/artizen.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+
     <!-- Tailwind Play CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -1111,137 +1118,6 @@
                 </form>
             </section>
 
-            <!-- ===================== PANEL 9: ABOUT PAGE MANAGER ===================== -->
-            <section id="panel-about-manager" class="tab-panel hidden flex flex-col gap-6 text-left">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 pb-4">
-                    <div>
-                        <h2 class="text-xl font-bold text-gray-900 tracking-tight">About Page Settings</h2>
-                        <p class="text-xs text-gray-500 font-normal mt-0.5">Customize About section copy, headers, and dynamic grids</p>
-                    </div>
-                    <button type="button" onclick="addNewAboutCard()" class="px-4 py-2.5 bg-gray-900 hover:bg-black text-white text-xs font-bold rounded-lg shadow-sm transition-all flex items-center gap-2 cursor-pointer shrink-0">
-                        <i class="fa-solid fa-plus text-xs"></i> Add Value Card
-                    </button>
-                </div>
-
-                <form action="{{ route('admin.cms.save') }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-6">
-                    @csrf
-                    
-                    <!-- Form parameters to retain hero slider config when saving about section -->
-                    @foreach ($cms['hero_slides'] as $idx => $slide)
-                        <input type="hidden" name="hero_slides[{{ $idx }}][image]" value="{{ $slide['image'] }}">
-                        <input type="hidden" name="hero_slides[{{ $idx }}][badge]" value="{{ $slide['badge'] }}">
-                        <input type="hidden" name="hero_slides[{{ $idx }}][title]" value="{{ $slide['title'] }}">
-                        <input type="hidden" name="hero_slides[{{ $idx }}][desc]" value="{{ $slide['desc'] }}">
-                        <input type="hidden" name="hero_slides[{{ $idx }}][btn1Text]" value="{{ $slide['btn1Text'] }}">
-                        <input type="hidden" name="hero_slides[{{ $idx }}][link1]" value="{{ $slide['link1'] }}">
-                        <input type="hidden" name="hero_slides[{{ $idx }}][btn2Text]" value="{{ $slide['btn2Text'] }}">
-                        <input type="hidden" name="hero_slides[{{ $idx }}][link2]" value="{{ $slide['link2'] }}">
-                    @endforeach
-
-                    <!-- ABOUT US SECTION COPY -->
-                    <div class="bg-white border border-gray-200 p-6 rounded-xl shadow-sm flex flex-col gap-5">
-                        <h3 class="text-base font-bold text-gray-900 border-b border-gray-100 pb-3 mb-2 flex items-center gap-2">
-                            <i class="fa-solid fa-circle-info text-gray-500"></i> About Section & Grid Cards
-                        </h3>
-                        
-                        <!-- Row 1: Main Copy Settings -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-gray-100 pb-6 mb-2 text-left">
-                            <div class="flex flex-col gap-1.5 md:col-span-2">
-                                <label class="text-xs text-gray-600 font-bold uppercase tracking-wider">Section Badge Text</label>
-                                <input type="text" name="about[badge]" value="{{ $cms['about']['badge'] }}" class="w-full bg-white border border-gray-300 p-2.5 text-xs font-semibold text-gray-900 rounded-lg outline-none focus:border-gray-900">
-                            </div>
-                            <div class="flex flex-col gap-1.5 md:col-span-2">
-                                <label class="text-xs text-gray-600 font-bold uppercase tracking-wider">Section Title Text</label>
-                                <input type="text" name="about[title]" value="{{ $cms['about']['title'] }}" class="w-full bg-white border border-gray-300 p-2.5 text-xs font-semibold text-gray-900 rounded-lg outline-none focus:border-gray-900">
-                            </div>
-                            <div class="flex flex-col gap-1.5 md:col-span-2 text-left">
-                                <label class="text-xs text-gray-600 font-bold uppercase tracking-wider">Section Description Body</label>
-                                <textarea name="about[desc]" class="ck-editor-textarea">{{ $cms['about']['desc'] }}</textarea>
-                            </div>
-                        </div>
-
-                        <!-- Row 2: About Section Images Gallery (Dynamic Multi-Image Drag-Uploads Grid) -->
-                        <div class="flex flex-col gap-3 border-b border-gray-100 pb-6 mb-2">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <label class="text-xs text-gray-900 font-bold uppercase tracking-wider">About Page Images Gallery (Recommended 4:3)</label>
-                                    <span class="text-xs text-gray-500 mt-0.5 block">Admins can upload multiple images to loop inside the dynamic slideshow gallery</span>
-                                </div>
-                                <button type="button" onclick="addNewAboutImage()" class="px-3.5 py-1.5 bg-gray-900 hover:bg-black text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer inline-flex items-center gap-1">
-                                    <i class="fa-solid fa-plus text-xs"></i> Add Image
-                                </button>
-                            </div>
-                            
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="about-images-grid">
-                                @foreach ($cms['about']['images'] ?? [ $cms['about']['image'] ?? '/assets/images/hero/1.jpg' ] as $idx => $imgUrl)
-                                    <div class="about-image-wrapper border border-gray-200 rounded-xl p-3 bg-gray-50/50 flex flex-col gap-3 relative">
-                                        <button type="button" onclick="removeAboutImage(this)" class="absolute top-2 right-2 bg-red-600 text-white w-6 h-6 rounded-lg flex items-center justify-center transition-all z-20 shadow-md border border-white/10" title="Delete Image">
-                                            <i class="fa-solid fa-trash-can text-[10px]"></i>
-                                        </button>
-                                        
-                                        <div class="relative group aspect-[4/3] rounded-lg overflow-hidden border border-gray-200 hover:border-gray-900 transition-all bg-gray-100 flex flex-col items-center justify-center cursor-pointer shadow-sm" onclick="document.getElementById('about-img-input-{{ $idx }}').click()">
-                                            <!-- Current image preview -->
-                                            <img id="about-img-preview-{{ $idx }}" src="{{ $imgUrl }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-102 transition-all">
-                                            <!-- Upload Overlay -->
-                                            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-xs font-bold gap-1 z-10">
-                                                <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
-                                                <span>Click to Change</span>
-                                            </div>
-                                            <!-- Aspect Ratio Display overlay -->
-                                            <span id="about-img-ratio-badge-{{ $idx }}" class="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/75 text-[10px] text-white font-bold uppercase border border-white/10 font-mono shadow-md z-20">Detecting Ratio...</span>
-                                        </div>
-                                        <input type="file" id="about-img-input-{{ $idx }}" name="about[images][{{ $idx }}][image_file]" class="hidden" accept="image/*" onchange="previewAboutGalleryImage(this, {{ $idx }})">
-                                        <!-- Hidden input to keep current url path if no new file is uploaded -->
-                                        <input type="hidden" name="about[images][{{ $idx }}][image]" value="{{ $imgUrl }}">
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-
-                        <!-- Dynamic About Grid Cards List -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="about-cards-grid">
-                            @foreach ($cms['about']['cards'] as $idx => $card)
-                                <div class="about-card-wrapper border border-gray-200 rounded-xl p-4 bg-gray-50/50 flex flex-col gap-4">
-                                    <div class="flex justify-between items-center border-b border-gray-200 pb-2">
-                                        <span class="text-xs text-gray-900 font-bold uppercase">Grid Card #{{ $idx + 1 }}</span>
-                                        <button type="button" onclick="removeAboutCard(this)" class="text-red-600 hover:text-red-700 text-xs font-semibold uppercase tracking-wider transition-colors"><i class="fa-solid fa-trash-can mr-1"></i> Delete</button>
-                                    </div>
-                                    
-                                    <div class="flex flex-col gap-1.5">
-                                        <label class="text-xs text-gray-600 font-bold uppercase tracking-wider">Card Icon</label>
-                                        <div class="flex items-center gap-3">
-                                            <!-- Visual Icon Preview -->
-                                            <div class="w-10 h-10 rounded-xl bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-900 text-lg shrink-0">
-                                                <i id="card-icon-preview-{{ $idx }}" class="{{ $card['icon'] ?? 'fa-solid fa-star' }}"></i>
-                                            </div>
-                                            <!-- Choose Button -->
-                                            <button type="button" onclick="openIconPicker('card-icon-preview-{{ $idx }}', 'card-icon-input-{{ $idx }}')" class="border border-gray-300 text-gray-800 hover:bg-gray-100 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer bg-white">
-                                                Choose Icon
-                                            </button>
-                                            <input type="hidden" id="card-icon-input-{{ $idx }}" name="about[cards][{{ $idx }}][icon]" value="{{ $card['icon'] ?? 'fa-solid fa-star' }}">
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="flex flex-col gap-1.5">
-                                        <label class="text-xs text-gray-600 font-bold uppercase tracking-wider">Card Title</label>
-                                        <input type="text" name="about[cards][{{ $idx }}][title]" value="{{ $card['title'] }}" class="w-full bg-white border border-gray-300 p-2 text-xs font-semibold text-gray-900 rounded-lg outline-none focus:border-gray-900">
-                                    </div>
-
-                                    <div class="flex flex-col gap-1.5 text-left">
-                                        <label class="text-xs text-gray-600 font-bold uppercase tracking-wider">Card Description</label>
-                                        <textarea name="about[cards][{{ $idx }}][desc]" class="ck-editor-textarea">{{ $card['desc'] }}</textarea>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <!-- SUBMIT BUTTON -->
-                    <button type="submit" class="px-6 py-3 bg-gray-900 hover:bg-black text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-colors self-end cursor-pointer shadow-sm">
-                        Save About Page Config
-                    </button>
-                </form>
-            </section>
 
             <!-- ===================== PANEL 7: HUB SETTINGS ===================== -->
             <section id="panel-settings" class="tab-panel hidden flex flex-col gap-6 text-left">
@@ -1635,7 +1511,6 @@
                 customers: { title: "Customer Database", desc: "View contact history & bookings records" },
                 testimonials: { title: "FAQs & Testimonials Manager", desc: "Edit guest reviews & common portal help articles" },
                 'hero-manager': { title: "Hero Slider Manager", desc: "Manage Hero background slider images and headings" },
-                'about-manager': { title: "About Page Manager", desc: "Manage About page story, stats and photo gallery" },
                 'legal-manager': { title: "Legal Pages Manager", desc: "Manage Privacy Policy, Terms & Conditions, Cancellation Policy, and Booking Policy" },
                 cms: { title: "CMS Layout Editor", desc: "Manage Hero background slider and About copy" },
                 settings: { title: "Hub Settings", desc: "Maintain Indore area surcharges, SEO title, meta configs" }
@@ -3174,166 +3049,6 @@
         function removeSlide(btn) {
             if (confirm('Are you sure you want to remove this slide?')) {
                 const card = btn.closest('.slide-card-wrapper');
-                if (card) {
-                    card.remove();
-                }
-            }
-        }
-
-        // About Images Gallery upload and aspect ratio calculators
-        let aboutImageCount = {{ count($cms['about']['images'] ?? [ $cms['about']['image'] ?? '/assets/images/hero/1.jpg' ]) }};
-
-        function previewAboutGalleryImage(input, index) {
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
-                const objectUrl = URL.createObjectURL(file);
-                
-                // Update preview image src
-                const previewImg = document.getElementById(`about-img-preview-${index}`);
-                previewImg.src = objectUrl;
-
-                // Load image to read dimensions
-                const img = new Image();
-                img.src = objectUrl;
-                img.onload = function() {
-                    const width = img.naturalWidth;
-                    const height = img.naturalHeight;
-                    const ratio = getAspectRatioLabel(width, height);
-                    document.getElementById(`about-img-ratio-badge-${index}`).textContent = `${width}x${height} (${ratio})`;
-                };
-            }
-        }
-
-        function initAboutGalleryAspectRatios() {
-            document.querySelectorAll('[id^="about-img-preview-"]').forEach(previewImg => {
-                const index = previewImg.id.replace('about-img-preview-', '');
-                if (previewImg && previewImg.src) {
-                    const img = new Image();
-                    img.src = previewImg.src;
-                    img.onload = function() {
-                        const width = img.naturalWidth;
-                        const height = img.naturalHeight;
-                        const ratio = getAspectRatioLabel(width, height);
-                        const badge = document.getElementById(`about-img-ratio-badge-${index}`);
-                        if (badge) {
-                            badge.textContent = `${width}x${height} (${ratio})`;
-                        }
-                    };
-                    if (previewImg.complete) {
-                        img.onload();
-                    }
-                }
-            });
-        }
-
-        function addNewAboutImage() {
-            const container = document.getElementById('about-images-grid');
-            if (!container) return;
-
-            const idx = aboutImageCount;
-            aboutImageCount++;
-
-            const card = document.createElement('div');
-            card.className = "about-image-wrapper border border-border-color/60 rounded-xl p-3 bg-main-bg/30 flex flex-col gap-3 relative";
-            card.innerHTML = `
-                <button type="button" onclick="removeAboutImage(this)" class="absolute top-2 right-2 bg-red-500/80 hover:bg-red-500 text-white w-6 h-6 rounded-lg flex items-center justify-center transition-all z-20 shadow-md border border-white/10" title="Delete Image">
-                    <i class="fa-solid fa-trash-can text-[10px]"></i>
-                </button>
-                
-                <div class="relative group aspect-[4/3] rounded-lg overflow-hidden border border-border-color hover:border-gold transition-all bg-main-bg flex flex-col items-center justify-center cursor-pointer shadow-sm" onclick="document.getElementById('about-img-input-${idx}').click()">
-                    <img id="about-img-preview-${idx}" src="/assets/images/hero/1.jpg" class="absolute inset-0 w-full h-full object-cover group-hover:scale-102 transition-all">
-                    <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[9px] font-bold gap-1 z-10">
-                        <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
-                        <span>Click to Change</span>
-                    </div>
-                    <span id="about-img-ratio-badge-${idx}" class="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/75 text-[7px] text-gold font-bold uppercase border border-white/5 font-mono shadow-md z-20">Detecting Ratio...</span>
-                </div>
-                <input type="file" id="about-img-input-${idx}" name="about[images][${idx}][image_file]" class="hidden" accept="image/*" onchange="previewAboutGalleryImage(this, ${idx})">
-                <input type="hidden" name="about[images][${idx}][image]" value="/assets/images/hero/1.jpg">
-            `;
-
-            container.appendChild(card);
-
-            // Initialize ratio loader
-            const previewImg = document.getElementById(`about-img-preview-${idx}`);
-            if (previewImg) {
-                const img = new Image();
-                img.src = previewImg.src;
-                img.onload = function() {
-                    const width = img.naturalWidth;
-                    const height = img.naturalHeight;
-                    const ratio = getAspectRatioLabel(width, height);
-                    document.getElementById(`about-img-ratio-badge-${idx}`).textContent = `${width}x${height} (${ratio})`;
-                };
-            }
-        }
-
-        function removeAboutImage(btn) {
-            if (confirm('Are you sure you want to remove this image from the gallery?')) {
-                const wrapper = btn.closest('.about-image-wrapper');
-                if (wrapper) {
-                    wrapper.remove();
-                }
-            }
-        }
-
-        // Dynamic About Cards management
-        let aboutCardCount = {{ count($cms['about']['cards']) }};
-
-        function addNewAboutCard() {
-            const container = document.getElementById('about-cards-grid');
-            if (!container) return;
-
-            const idx = aboutCardCount;
-            aboutCardCount++;
-
-            const card = document.createElement('div');
-            card.className = "about-card-wrapper border border-border-color/60 rounded-xl p-4 bg-main-bg/30 flex flex-col gap-4";
-            card.innerHTML = `
-                <div class="flex justify-between items-center border-b border-border-color pb-2">
-                    <span class="text-[10px] text-gold font-bold uppercase font-heading font-semibold">Grid Card</span>
-                    <button type="button" onclick="removeAboutCard(this)" class="text-red-400 hover:text-red-500 text-[10px] font-bold uppercase tracking-wider transition-colors"><i class="fa-solid fa-trash-can mr-1"></i> Delete</button>
-                </div>
-                
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-[9px] text-muted-text font-bold uppercase tracking-wider font-heading">Card Icon</label>
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-gold/10 border border-gold/30 flex items-center justify-center text-gold text-lg shrink-0">
-                            <i id="card-icon-preview-${idx}" class="fa-solid fa-star"></i>
-                        </div>
-                        <button type="button" onclick="openIconPicker('card-icon-preview-${idx}', 'card-icon-input-${idx}')" class="border border-border-color text-main-text hover:border-gold hover:text-gold px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer bg-white">
-                            Choose Icon
-                        </button>
-                        <input type="hidden" id="card-icon-input-${idx}" name="about[cards][${idx}][icon]" value="fa-solid fa-star">
-                    </div>
-                </div>
-
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-[9px] text-muted-text font-bold uppercase tracking-wider font-heading">Card Title</label>
-                    <input type="text" name="about[cards][${idx}][title]" value="PREMIUM SERVICES" class="w-full bg-white border border-border-color p-2 text-xs font-semibold text-main-text rounded-lg outline-none focus:border-gold">
-                </div>
-
-                <div class="flex flex-col gap-1.5 text-left">
-                    <label class="text-[9px] text-muted-text font-bold uppercase tracking-wider font-heading">Card Description</label>
-                    <textarea id="about-card-desc-${idx}" name="about[cards][${idx}][desc]" class="ck-editor-textarea">Enter card features and logistics detail.</textarea>
-                </div>
-            `;
-
-            container.appendChild(card);
-
-            // Initialize CKEditor on the new description textarea
-            ClassicEditor
-                .create(document.getElementById(`about-card-desc-${idx}`), {
-                    toolbar: [ 'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote' ]
-                })
-                .catch(error => {
-                    console.error(error);
-                });
-        }
-
-        function removeAboutCard(btn) {
-            if (confirm('Are you sure you want to remove this about page card?')) {
-                const card = btn.closest('.about-card-wrapper');
                 if (card) {
                     card.remove();
                 }

@@ -1,5 +1,5 @@
 <!-- ARTIZEN — Premium Event Platform Footer (Modern, Minimal & High-Conversion) -->
-<footer class="w-full bg-[#FAF9F6] dark:bg-[#0A0A0D] border-t border-[#E5E7EB] dark:border-[#1F1F24] text-[#1F2937] dark:text-[#F3F4F6] pt-14 pb-8 transition-colors select-none">
+<footer class="w-full bg-[#FAF9F6] dark:bg-[#0A0A0D] border-t border-[#E5E7EB] dark:border-[#1F1F24] text-[#1F2937] dark:text-[#F3F4F6] pt-14 pb-28 md:pb-10 transition-colors select-none">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <!-- Main Footer Grid: 4 Clean, Focused Columns -->
@@ -88,8 +88,8 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('booking.index') }}" class="hover:text-[#111827] dark:hover:text-[#FFD600] transition-colors inline-flex items-center gap-1.5">
-                            <span>Book Setup</span>
+                        <a href="{{ route('reviews.index') }}" class="hover:text-[#111827] dark:hover:text-[#FFD600] transition-colors inline-flex items-center gap-1.5">
+                            <span>Customer Reviews</span>
                         </a>
                     </li>
                     <li>

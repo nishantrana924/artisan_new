@@ -49,6 +49,7 @@ class ReviewController extends Controller
                     'event_type' => $s->event_type ?? ($s['event_type'] ?? ''),
                     'badge' => $s->event_type ?? ($s['event_type'] ?? 'Celebration Setup'),
                     'date' => ($s->created_at ? $s->created_at->format('d M Y') : null) ?? ($s['date'] ?? ($s['created_at'] ?? 'Verified Customer')),
+                    'created_at_ts' => $s->created_at ? $s->created_at->timestamp : 0,
                     'text' => $s->review ?? ($s['review'] ?? ($s['content'] ?? ($s['text'] ?? ''))),
                 ];
             }
@@ -132,6 +133,26 @@ class ReviewController extends Controller
             ];
         }
 
+        // Sort reviews: 5-star first then 4 then 3 then 2 then 1; and within same rating, newest on top
+        $allReviewList = collect($allReviewList)
+            ->sort(function ($a, $b) {
+                $rA = (int)($a['rating'] ?? 5);
+                $rB = (int)($b['rating'] ?? 5);
+                if ($rA !== $rB) {
+                    return $rB <=> $rA; // 5, 4, 3, 2, 1
+                }
+
+                $tA = (int)($a['created_at_ts'] ?? 0);
+                $tB = (int)($b['created_at_ts'] ?? 0);
+                if ($tA !== $tB) {
+                    return $tB <=> $tA; // Newest first
+                }
+
+                return strcmp((string)($b['id'] ?? ''), (string)($a['id'] ?? ''));
+            })
+            ->values()
+            ->all();
+
         $allReviewsCount = count($allReviewList);
 
         // If filtering by a specific celebration package, retrieve particular reviews
@@ -214,6 +235,111 @@ class ReviewController extends Controller
         $body = trim($validated['review']);
         $pSlug = trim($validated['package_slug'] ?? '');
         $eTitle = trim($validated['event_title'] ?? '') ?: 'Celebration Setup';
+        $reviewId = $request->input('review_id');
+
+        // Check if user already reviewed this package (one review per user per package rule)
+        $existingReview = null;
+        if (!empty($reviewId)) {
+            $existingReview = Testimonial::where('id', $reviewId)
+                ->where(function($q) use ($userEmail, $userName) {
+                    if (!empty($userEmail)) $q->where('email', $userEmail);
+                    if (!empty($userName)) $q->orWhere('author', $userName);
+                })
+                ->first();
+        }
+
+        if (!$existingReview && !empty($pSlug)) {
+            $existingReview = Testimonial::where('package_slug', $pSlug)
+                ->where(function($q) use ($userEmail, $userName) {
+                    if (!empty($userEmail)) $q->where('email', $userEmail);
+                    if (!empty($userName)) $q->orWhere('author', $userName);
+                })
+                ->first();
+        }
+
+        // If not in DB, check JSON storage as well
+        if (!$existingReview && !empty($pSlug)) {
+            $storedReviews = JsonStorageService::read('testimonials.json', []);
+            foreach ($storedReviews as $sr) {
+                $srSlug = strtolower(trim($sr['package_slug'] ?? ''));
+                $srEmail = trim($sr['email'] ?? '');
+                $srAuthor = trim($sr['author'] ?? ($sr['name'] ?? ''));
+                if ($srSlug === strtolower($pSlug) && (
+                    (!empty($userEmail) && strcasecmp($srEmail, $userEmail) === 0) ||
+                    (!empty($userName) && strcasecmp($srAuthor, $userName) === 0)
+                )) {
+                    $existingReview = Testimonial::find($sr['id'] ?? '') ?: new Testimonial();
+                    $existingReview->id = $sr['id'] ?? ('TST-' . time() . rand(10, 99));
+                    $existingReview->author = $userName ?: ($sr['author'] ?? 'Verified Customer');
+                    $existingReview->email = $userEmail ?: ($sr['email'] ?? '');
+                    $existingReview->location = $sr['location'] ?? 'Indore, MP';
+                    $existingReview->package_slug = $pSlug;
+                    $existingReview->event_type = $eTitle;
+                    $existingReview->review = $body;
+                    $existingReview->rating = (int)$validated['rating'];
+                    $existingReview->is_verified = true;
+                    $existingReview->is_active = true;
+                    $existingReview->show_on_home = false;
+                    $existingReview->show_on_reviews_page = true;
+                    $existingReview->show_on_event_details = true;
+                    $existingReview->sort_order = (Testimonial::max('sort_order') ?? 0) + 1;
+                    $existingReview->save();
+                    break;
+                }
+            }
+        }
+
+        // If existing review found, update it in-place instead of creating a duplicate
+        if ($existingReview) {
+            $existingReview->rating = (int)$validated['rating'];
+            $existingReview->review = $body;
+            $existingReview->event_type = $eTitle;
+            $existingReview->save();
+
+            $updatedReview = [
+                'id'           => $existingReview->id,
+                'author'       => $existingReview->author,
+                'email'        => $existingReview->email,
+                'location'     => $existingReview->location ?: 'Indore, MP',
+                'package_slug' => $existingReview->package_slug,
+                'event_type'   => $existingReview->event_type,
+                'review'       => $existingReview->review,
+                'rating'       => (int)$existingReview->rating,
+                'created_at'   => $existingReview->updated_at ? $existingReview->updated_at->format('d M Y') : date('d M Y'),
+                'avatar'       => '',
+                'is_verified'  => true,
+            ];
+
+            // Sync update in testimonials.json
+            $storedReviews = JsonStorageService::read('testimonials.json', []);
+            $foundInJson = false;
+            foreach ($storedReviews as &$sr) {
+                if (($sr['id'] ?? '') === $existingReview->id || 
+                    (($sr['email'] ?? '') === $userEmail && ($sr['package_slug'] ?? '') === $pSlug)) {
+                    $sr['rating'] = (int)$existingReview->rating;
+                    $sr['review'] = $existingReview->review;
+                    $sr['content'] = $existingReview->review;
+                    $sr['event_type'] = $existingReview->event_type;
+                    $foundInJson = true;
+                    break;
+                }
+            }
+            if (!$foundInJson) {
+                array_unshift($storedReviews, $updatedReview);
+            }
+            JsonStorageService::write('testimonials.json', $storedReviews);
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'is_edit' => true,
+                    'message' => 'Your review for ' . $eTitle . ' has been updated successfully.',
+                    'review' => $updatedReview
+                ]);
+            }
+
+            return redirect()->back()->with('review_success', 'Your review has been updated successfully.');
+        }
 
         $newReviewModel = Testimonial::create([
             'id'                    => 'TST-' . time() . rand(10, 99),
@@ -230,7 +356,7 @@ class ReviewController extends Controller
             'show_on_home'          => false,
             'show_on_reviews_page'  => true,
             'show_on_event_details' => true,
-            'sort_order'            => (Testimonial::max('sort_order') ?? 0) + 1,
+            'sort_order'            => 1,
         ]);
 
         $newReview = [
@@ -255,6 +381,7 @@ class ReviewController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
+                'is_edit' => false,
                 'message' => 'Thank you! Your review for ' . ($newReview['event_type']) . ' has been published successfully.',
                 'review' => $newReview
             ]);
@@ -316,6 +443,7 @@ class ReviewController extends Controller
                 'avatar_bg'   => 'bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-white/10',
                 'rating'      => max(1, min(5, (int)$s->rating)),
                 'date'        => $s->created_at ? $s->created_at->format('d M Y') : 'Recently Verified',
+                'created_at_ts' => $s->created_at ? $s->created_at->timestamp : 0,
                 'title'       => $s->event_type ?: 'Verified Customer Experience',
                 'text'        => $s->review,
                 'is_verified' => (bool)$s->is_verified,
@@ -343,6 +471,7 @@ class ReviewController extends Controller
                         'avatar_bg'   => 'bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-white/10',
                         'rating'      => max(1, min(5, (int)($s['rating'] ?? 5))),
                         'date'        => $s['created_at'] ?? ($s['date'] ?? 'Recently Verified'),
+                        'created_at_ts' => isset($s['created_at']) ? strtotime($s['created_at']) : 0,
                         'title'       => $s['title'] ?? ($s['event_type'] ?? 'Verified Customer Experience'),
                         'text'        => $s['review'] ?? ($s['content'] ?? ''),
                         'is_verified' => true,
@@ -357,6 +486,113 @@ class ReviewController extends Controller
             $allPackageReviews = $curatedReviews;
         } else {
             $allPackageReviews = $matchedReviews;
+        }
+
+        // Sort reviews: 5-star first then 4 then 3 then 2 then 1; and within same rating, newest on top
+        $allPackageReviews = collect($allPackageReviews)
+            ->sort(function ($a, $b) {
+                $rA = (int)($a['rating'] ?? 5);
+                $rB = (int)($b['rating'] ?? 5);
+                if ($rA !== $rB) {
+                    return $rB <=> $rA; // 5, 4, 3, 2, 1
+                }
+
+                $tA = (int)($a['created_at_ts'] ?? 0);
+                $tB = (int)($b['created_at_ts'] ?? 0);
+                if ($tA !== $tB) {
+                    return $tB <=> $tA; // Newest on top
+                }
+
+                return strcmp((string)($b['id'] ?? ''), (string)($a['id'] ?? ''));
+            })
+            ->values()
+            ->all();
+
+        // Check if currently authenticated or session user has already written a review for this package
+        $userReview = null;
+        $user = Auth::user();
+        $userEmail = $user ? $user->email : session('user_email');
+        $userName = $user ? $user->name : session('user_name');
+
+        if (!empty($userEmail) || !empty($userName)) {
+            $userReviewRecord = Testimonial::where('package_slug', $cleanSlug)
+                ->where(function($q) use ($userEmail, $userName) {
+                    if (!empty($userEmail)) $q->where('email', $userEmail);
+                    if (!empty($userName)) $q->orWhere('author', $userName);
+                })
+                ->latest()
+                ->first();
+
+            if ($userReviewRecord) {
+                $userReview = [
+                    'id'          => $userReviewRecord->id,
+                    'name'        => $userReviewRecord->author,
+                    'author'      => $userReviewRecord->author,
+                    'email'       => $userReviewRecord->email,
+                    'location'    => $userReviewRecord->location ?: 'Indore, MP',
+                    'rating'      => (int)$userReviewRecord->rating,
+                    'review'      => $userReviewRecord->review,
+                    'text'        => $userReviewRecord->review,
+                    'event_type'  => $userReviewRecord->event_type,
+                    'date'        => $userReviewRecord->updated_at ? $userReviewRecord->updated_at->format('d M Y') : ($userReviewRecord->created_at ? $userReviewRecord->created_at->format('d M Y') : 'Recently Verified'),
+                ];
+            } else {
+                $storedReviews = JsonStorageService::read('testimonials.json', []);
+                foreach ($storedReviews as $sr) {
+                    $srSlug = strtolower(trim($sr['package_slug'] ?? ''));
+                    $srEmail = trim($sr['email'] ?? '');
+                    $srAuthor = trim($sr['author'] ?? ($sr['name'] ?? ''));
+                    if ($srSlug === $cleanSlug && (
+                        (!empty($userEmail) && strcasecmp($srEmail, $userEmail) === 0) ||
+                        (!empty($userName) && strcasecmp($srAuthor, $userName) === 0)
+                    )) {
+                        $userReview = [
+                            'id'          => $sr['id'] ?? null,
+                            'name'        => $srAuthor,
+                            'author'      => $srAuthor,
+                            'email'       => $srEmail,
+                            'location'    => $sr['location'] ?? 'Indore, MP',
+                            'rating'      => (int)($sr['rating'] ?? 5),
+                            'review'      => $sr['review'] ?? ($sr['content'] ?? ($sr['text'] ?? '')),
+                            'text'        => $sr['review'] ?? ($sr['content'] ?? ($sr['text'] ?? '')),
+                            'event_type'  => $sr['event_type'] ?? '',
+                            'date'        => $sr['created_at'] ?? 'Recently Verified',
+                        ];
+                        break;
+                    }
+                }
+            }
+        }
+
+        // If user already reviewed, ensure their review is prioritized at the top of the displayed reviews
+        if ($userReview) {
+            $userFoundIdx = null;
+            foreach ($allPackageReviews as $k => $revItem) {
+                if (($userReview['id'] && ($revItem['id'] ?? null) === $userReview['id']) ||
+                    (!empty($userReview['author']) && strcasecmp($revItem['name'] ?? '', $userReview['author']) === 0)) {
+                    $userFoundIdx = $k;
+                    break;
+                }
+            }
+            if ($userFoundIdx !== null) {
+                $userItem = $allPackageReviews[$userFoundIdx];
+                unset($allPackageReviews[$userFoundIdx]);
+                array_unshift($allPackageReviews, $userItem);
+            } else {
+                array_unshift($allPackageReviews, [
+                    'id'          => $userReview['id'],
+                    'name'        => $userReview['name'],
+                    'location'    => $userReview['location'],
+                    'initial'     => strtoupper(substr($userReview['name'], 0, 1)),
+                    'avatar_bg'   => 'bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-white/10',
+                    'rating'      => $userReview['rating'],
+                    'date'        => $userReview['date'],
+                    'title'       => $userReview['event_type'] ?: 'Verified Customer Experience',
+                    'text'        => $userReview['review'],
+                    'is_verified' => true,
+                ]);
+            }
+            $allPackageReviews = array_values($allPackageReviews);
         }
 
         // Calculate dynamic metrics
@@ -380,11 +616,13 @@ class ReviewController extends Controller
         ];
 
         return [
-            'reviews' => $allPackageReviews,
-            'total_count' => $totalReviewsCount,
-            'avg_rating' => number_format($avgRating, 1),
+            'reviews'           => $allPackageReviews,
+            'total_count'       => $totalReviewsCount,
+            'avg_rating'        => number_format($avgRating, 1),
             'recommend_percent' => $recommendedPercent,
-            'rating_breakdown' => $breakdown,
+            'rating_breakdown'  => $breakdown,
+            'user_review'       => $userReview,
+            'has_user_reviewed' => !empty($userReview),
         ];
     }
 

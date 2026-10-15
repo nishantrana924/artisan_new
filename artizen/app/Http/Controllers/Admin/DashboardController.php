@@ -33,8 +33,6 @@ class DashboardController extends Controller
                 'faqs'          => 'admin.faqs',
                 'hero-manager'  => 'admin.hero',
                 'hero'          => 'admin.hero',
-                'about-manager' => 'admin.about',
-                'about'         => 'admin.about',
                 'legal-manager' => 'admin.legal',
                 'legal'         => 'admin.legal',
                 'settings'      => 'admin.settings',
@@ -301,60 +299,12 @@ class DashboardController extends Controller
             $heroSlides[] = $slideData;
         }
 
-        $aboutInput = $request->input('about', []);
-        
-        // Handle About Gallery Images uploads
-        $aboutImagesInput = $request->input('about.images', []);
-        $aboutImages = [];
-
-        foreach ($aboutImagesInput as $idx => $imgData) {
-            // Check if file upload is present for this gallery item
-            if ($request->hasFile("about.images.{$idx}.image_file")) {
-                $file = $request->file("about.images.{$idx}.image_file");
-                $filename = 'about_gallery_' . $idx . '_' . time() . '.' . $file->getClientOriginalExtension();
-                
-                if (!File::exists(public_path('uploads'))) {
-                    File::makeDirectory(public_path('uploads'), 0755, true);
-                }
-                
-                $file->move(public_path('uploads'), $filename);
-                $imgData['image'] = '/uploads/' . $filename;
-            } else {
-                // Keep the current hidden input image path
-                $imgData['image'] = $imgData['image'] ?? ($currentCms['about']['images'][$idx] ?? '/assets/images/hero/1.jpg');
-            }
-            $aboutImages[] = $imgData['image'];
-        }
-
-        // If no images uploaded, fallback to current or default
-        if (empty($aboutImages)) {
-            $aboutImages = $currentCms['about']['images'] ?? [ $currentCms['about']['image'] ?? '/assets/images/hero/1.jpg' ];
-        }
-
-        // Re-index cards array to remove any deleted card index gaps
-        $aboutCards = [];
-        if (isset($aboutInput['cards']) && is_array($aboutInput['cards'])) {
-            $aboutCards = array_values($aboutInput['cards']);
-        } else {
-            $aboutCards = $currentCms['about']['cards'] ?? [];
-        }
-        
-        $about = [
-            'badge' => $aboutInput['badge'] ?? ($currentCms['about']['badge'] ?? 'INSTANT BOOKING GUARANTEE'),
-            'title' => $aboutInput['title'] ?? ($currentCms['about']['title'] ?? 'BOOKING CONFIRMED IN SECONDS'),
-            'desc' => $aboutInput['desc'] ?? ($currentCms['about']['desc'] ?? ''),
-            'image' => $aboutImages[0] ?? '/assets/images/hero/1.jpg', // Keep for backward compatibility
-            'images' => $aboutImages,
-            'cards' => $aboutCards
-        ];
-
         $cms = [
             'hero_slides' => $heroSlides,
-            'about' => $about
         ];
 
         JsonStorageService::write('cms.json', $cms);
-        return redirect()->route('admin.hero')->with('success', 'CMS Content saved successfully!');
+        return redirect()->route('admin.hero')->with('success', 'Hero slides updated successfully!');
     }
 
     /**
@@ -1288,27 +1238,15 @@ class DashboardController extends Controller
     }
 
     /**
-     * Save dynamic meta and delivery settings.
+     * Save admin settings or delegate to profile update.
      */
     public function saveSettings(Request $request)
     {
-        $path = storage_path('app/settings.json');
-        $settings = [];
-        if (File::exists($path)) {
-            $settings = json_decode(File::get($path), true) ?? [];
+        if ($request->has('name') || $request->has('email')) {
+            return app(AdminPageController::class)->updateProfile($request);
         }
 
-        $settings['meta_title'] = $request->input('meta_title');
-        $settings['meta_description'] = $request->input('meta_description');
-        $settings['meta_keywords'] = $request->input('meta_keywords');
-
-        $surcharges = $request->input('surcharges', []);
-        foreach ($surcharges as $zone => $val) {
-            $settings['surcharges'][$zone] = (int)str_replace('₹', '', $val);
-        }
-
-        File::put($path, json_encode($settings, JSON_PRETTY_PRINT));
-        return redirect()->route('admin.settings')->with('success', 'Settings saved successfully!');
+        return redirect()->route('admin.settings')->with('success', 'Settings updated successfully!');
     }
 
     /**

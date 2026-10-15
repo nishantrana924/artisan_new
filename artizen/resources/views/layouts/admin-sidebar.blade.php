@@ -200,9 +200,8 @@
                 ],
                 'Website CMS' => [
                     ['id' => 'hero-manager',   'label' => 'Hero Slider',   'icon' => 'fa-solid fa-images',          'route' => 'admin.hero'],
-                    ['id' => 'about-manager',  'label' => 'About Page',    'icon' => 'fa-solid fa-address-card',    'route' => 'admin.about'],
                     ['id' => 'legal-manager',  'label' => 'Legal Pages',   'icon' => 'fa-solid fa-scale-balanced',  'route' => 'admin.legal'],
-                    ['id' => 'settings',       'label' => 'Settings',      'icon' => 'fa-solid fa-sliders',         'route' => 'admin.settings'],
+                    ['id' => 'settings',       'label' => 'Settings',      'icon' => 'fa-solid fa-user-gear',       'route' => 'admin.settings'],
                 ]
             ];
 

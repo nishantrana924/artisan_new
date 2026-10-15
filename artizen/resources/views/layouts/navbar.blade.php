@@ -39,9 +39,8 @@
                             <span class="h-[16px] leading-[16px] whitespace-nowrap font-semibold text-gray-800 dark:text-gray-200">Rau & Bypass</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-down text-[7px] text-gray-400 ml-0.5"></i>
                 </div>
-                <span class="text-gray-300 dark:text-white/20">|</span>
+                <span class="hidden sm:inline text-gray-300 dark:text-white/20">|</span>
                 <div class="hidden sm:inline-flex items-center gap-1.5 text-gray-600 dark:text-gray-300">
                     <i id="header-feature-icon" class="fa-solid fa-bolt text-gray-600 dark:text-gray-400 text-[10px] shrink-0 transition-all duration-300"></i>
                     <div class="relative h-[16px] overflow-hidden min-w-[190px] text-left">
@@ -71,14 +70,14 @@
 
             <!-- Right: Quick Utility Links -->
             <div class="flex items-center gap-2.5 sm:gap-3.5 text-[11px] font-medium text-gray-600 dark:text-gray-300">
-                <a href="{{ route('booking.track') }}" class="group hover:text-[#171719] dark:hover:text-white transition-colors flex items-center gap-1.5">
+                <a href="{{ route('booking.track') }}" class="group hover:text-[#171719] dark:hover:text-white transition-colors flex items-center gap-1.5" title="Track Booking" aria-label="Track Booking">
                     <i class="fa-solid fa-truck-fast text-gray-500 dark:text-gray-400 group-hover:text-[#171719] dark:group-hover:text-white transition-colors text-xs"></i>
-                    <span>Track Booking</span>
+                    <span class="hidden sm:inline">Track Booking</span>
                 </a>
                 <span class="text-gray-300 dark:text-white/20">|</span>
-                <a href="{{ route('contact.index') }}" class="group hover:text-[#171719] dark:hover:text-white transition-colors flex items-center gap-1.5">
+                <a href="{{ route('contact.index') }}" class="group hover:text-[#171719] dark:hover:text-white transition-colors flex items-center gap-1.5" title="Help & Inquire" aria-label="Help & Inquire">
                     <i class="fa-solid fa-headset text-gray-500 dark:text-gray-400 group-hover:text-[#171719] dark:group-hover:text-white transition-colors text-xs"></i>
-                    <span>Help & Inquire</span>
+                    <span class="hidden sm:inline">Help & Inquire</span>
                 </a>
             </div>
         </div>
@@ -129,7 +128,8 @@
             <!-- Right Controls: Theme Toggle + Wishlist + Booking Cart + Login (Icon-only) + Book Setup CTA + Mobile Menu -->
             <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
 
-                <!-- Theme Switcher Button (Single Icon: Moon in Light, Sun in Dark) -->
+                <!-- Theme Switcher Button (Single Icon: Moon in Light, Sun in Dark) - Commented out -->
+                {{-- 
                 <button type="button"
                         id="theme-toggle-btn"
                         onclick="toggleTheme()" 
@@ -138,28 +138,150 @@
                         aria-label="Toggle Dark/Light Mode">
                     <i id="theme-toggle-icon" class="fa-solid fa-moon text-xs text-gray-700 transition-all duration-300 group-hover:scale-110"></i>
                 </button>
+                --}}
 
-                <!-- 3. Booking Cart / Inquiries Icon -->
-                <a href="{{ route('booking.index') }}" 
+                <!-- 2. Mobile Search Trigger Button (Icon-Only on Mobile < md) -->
+                <button type="button" 
+                        id="mobile-search-trigger-btn"
+                        onclick="toggleMobileSearchModal()"
+                        class="md:hidden w-9 h-9 sm:w-9.5 sm:h-9.5 rounded-full border border-[#E6E2D8] dark:border-[#2E2E33] hover:border-gray-400 dark:hover:border-gray-500 bg-[#FAF9F6] dark:bg-[#202024] hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-2xs group"
+                        title="Search Celebrations"
+                        aria-label="Open Search">
+                    <i class="fa-solid fa-magnifying-glass text-xs text-gray-700 dark:text-gray-300 group-hover:scale-110 transition-transform"></i>
+                </button>
+
+                <!-- 3. Order History & Booking Details Icon -->
+                <a href="{{ route('orders.index') }}" 
                    class="w-9 h-9 sm:w-9.5 sm:h-9.5 rounded-full border border-[#E6E2D8] dark:border-[#2E2E33] hover:border-gray-400 dark:hover:border-gray-500 bg-[#FAF9F6] dark:bg-[#202024] hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-2xs group relative"
-                   title="Booking Cart & Request"
-                   aria-label="Booking Cart">
-                    <i class="fa-solid fa-bag-shopping text-xs text-gray-700 dark:text-gray-300 group-hover:text-amber-500 group-hover:scale-110 transition-all duration-200"></i>
+                   title="My Bookings & Orders"
+                   aria-label="My Bookings & Orders">
+                    <i class="fa-solid fa-bag-shopping text-xs text-gray-700 dark:text-gray-300 group-hover:text-black dark:group-hover:text-white group-hover:scale-110 transition-all duration-200"></i>
                 </a>
 
-                <!-- 4. Account / Login Button (Icon-Only, No Text) -->
-                <a href="{{ route('admin.login') }}" 
+                <!-- 4. Account / Avatar Button -->
+                @if(Auth::check())
+                <div class="relative" id="user-avatar-dropdown-container">
+                    <button type="button" 
+                            id="user-avatar-btn"
+                            onclick="toggleUserAvatarDropdown(event)"
+                            class="w-9 h-9 sm:w-9.5 sm:h-9.5 rounded-full border border-[#E6E2D8] dark:border-[#2E2E33] hover:border-[#FFD600] dark:hover:border-[#FFD600] bg-white dark:bg-[#18181B] transition-all flex items-center justify-center cursor-pointer shadow-2xs hover:shadow-xs p-0.5 relative group"
+                            title="{{ Auth::user()->name }} (Account & Bookings)"
+                            aria-expanded="false"
+                            aria-haspopup="true">
+                        @if(Auth::user()->avatar)
+                            <img src="{{ Auth::user()->avatar }}" 
+                                 alt="{{ Auth::user()->name }}" 
+                                 class="w-full h-full object-cover rounded-full" 
+                                 referrerpolicy="no-referrer"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <span class="w-full h-full rounded-full hidden items-center justify-center font-heading font-black text-xs shadow-inner" style="background: linear-gradient(135deg, #18181B 0%, #2A2A2E 100%) !important; color: #FFD600 !important; border: 1.5px solid rgba(255, 214, 0, 0.45);">
+                                {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
+                            </span>
+                            @if(Auth::user()->google_id)
+                                <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-white dark:bg-[#18181B] border border-gray-200 dark:border-gray-700 flex items-center justify-center shadow-xs" title="Google Connected">
+                                    <svg class="w-2 h-2" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.87c2.27-2.09 3.67-5.17 3.67-9.15z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.87-3.05c-1.08.72-2.45 1.16-4.06 1.16-3.13 0-5.78-2.11-6.73-4.96H1.25v3.15C3.25 21.36 7.35 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.39-1.5-.39-2.24s.14-1.52.39-2.24V6.61H1.25C.45 8.2 0 10.04 0 12s.45 3.8 1.25 5.39l4.02-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.25 2.64 1.25 6.61l4.02 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
+                                </span>
+                            @else
+                                <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#18181B] shadow-xs"></span>
+                            @endif
+                        @else
+                            <span class="w-full h-full rounded-full flex items-center justify-center font-heading font-black text-xs shadow-inner" style="background: linear-gradient(135deg, #18181B 0%, #2A2A2E 100%) !important; color: #FFD600 !important; border: 1.5px solid rgba(255, 214, 0, 0.45);">
+                                {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
+                            </span>
+                            <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#18181B] shadow-xs"></span>
+                        @endif
+                    </button>
+
+                    <!-- Luxury User Account Dropdown -->
+                    <div id="user-avatar-menu" 
+                         class="hidden absolute right-0 top-full mt-2 w-64 bg-white dark:bg-[#18181B] border border-[#E6E2D8] dark:border-[#2E2E33] rounded-2xl shadow-2xl p-2.5 z-50 text-left transition-all origin-top-right">
+                        <!-- Profile Card Header -->
+                        <div class="p-3 rounded-xl bg-[#FAF9F6] dark:bg-white/5 border border-black/5 dark:border-white/5 flex items-center gap-3 mb-2">
+                            @if(Auth::user()->avatar)
+                                <img src="{{ Auth::user()->avatar }}" alt="{{ Auth::user()->name }}" class="w-10 h-10 rounded-full object-cover shrink-0 ring-1 ring-black/10" referrerpolicy="no-referrer">
+                            @else
+                                <span class="w-10 h-10 rounded-full flex items-center justify-center font-heading font-black text-sm shrink-0 shadow-inner" style="background: linear-gradient(135deg, #18181B 0%, #2A2A2E 100%) !important; color: #FFD600 !important; border: 1.5px solid rgba(255, 214, 0, 0.45);">
+                                    {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
+                                </span>
+                            @endif
+                            <div class="min-w-0 flex-1">
+                                <div class="font-heading font-bold text-xs text-[#171719] dark:text-white truncate">
+                                    {{ Auth::user()->name }}
+                                </div>
+                                <div class="text-[10px] text-gray-500 dark:text-gray-400 truncate">
+                                    {{ Auth::user()->email }}
+                                </div>
+                                @if(Auth::user()->google_id)
+                                    <div class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white dark:bg-black/40 border border-gray-200 dark:border-gray-700 text-[9px] font-semibold text-gray-700 dark:text-gray-300">
+                                        <svg class="w-2.5 h-2.5" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.87c2.27-2.09 3.67-5.17 3.67-9.15z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.87-3.05c-1.08.72-2.45 1.16-4.06 1.16-3.13 0-5.78-2.11-6.73-4.96H1.25v3.15C3.25 21.36 7.35 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.39-1.5-.39-2.24s.14-1.52.39-2.24V6.61H1.25C.45 8.2 0 10.04 0 12s.45 3.8 1.25 5.39l4.02-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.25 2.64 1.25 6.61l4.02 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
+                                        <span>Google Account</span>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Menu Links -->
+                        <div class="space-y-1">
+                            <a href="{{ route('orders.index') }}" 
+                               class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-black dark:hover:text-white transition-colors group">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-bag-shopping text-xs text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors"></i>
+                                    <span>My Bookings &amp; Orders</span>
+                                </span>
+                                <i class="fa-solid fa-chevron-right text-[9px] text-gray-300 dark:text-gray-600"></i>
+                            </a>
+
+                            <a href="{{ route('booking.track') }}" 
+                               class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-black dark:hover:text-white transition-colors group">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-magnifying-glass-location text-xs text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors"></i>
+                                    <span>Track by Reference ID</span>
+                                </span>
+                                <i class="fa-solid fa-chevron-right text-[9px] text-gray-300 dark:text-gray-600"></i>
+                            </a>
+
+                            @if(Auth::user()->isAdmin())
+                            <a href="{{ route('admin.dashboard') }}" 
+                               class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors group">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-shield-halved text-xs text-amber-500"></i>
+                                    <span>Admin Panel</span>
+                                </span>
+                                <i class="fa-solid fa-chevron-right text-[9px] text-amber-300"></i>
+                            </a>
+                            @endif
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="my-1.5 border-t border-[#E6E2D8] dark:border-white/10"></div>
+
+                        <!-- Logout Form -->
+                        <form action="{{ route('logout') }}" method="POST" class="m-0">
+                            @csrf
+                            <button type="submit" 
+                                    class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer text-left">
+                                <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+                                <span>Sign Out</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @else
+                <a href="{{ route('login') }}" 
                    class="w-9 h-9 sm:w-9.5 sm:h-9.5 rounded-full border border-[#E6E2D8] dark:border-[#2E2E33] hover:border-gray-400 dark:hover:border-gray-500 bg-[#FAF9F6] dark:bg-[#202024] hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-2xs group"
-                   title="Account & Admin Login"
-                   aria-label="Account Login">
+                   title="Login"
+                   aria-label="Login">
                     <i class="fa-solid fa-user text-xs text-gray-700 dark:text-gray-300 group-hover:text-black dark:group-hover:text-white group-hover:scale-110 transition-all duration-200"></i>
                 </a>
+                @endif
 
-                <!-- 5. Primary CTA: Book Setup Button (Compact Yellow Pill) -->
-                <a href="{{ route('booking.index') }}" 
-                   class="inline-flex items-center justify-center gap-1.5 h-9 px-4 sm:px-5 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] text-[11.5px] font-heading font-extrabold uppercase tracking-wider rounded-full shadow-2xs transition-transform hover:scale-[1.02] whitespace-nowrap ml-1">
+                <!-- 5. Primary CTA: Book Setup Button (Directs to Packages Catalog) -->
+                <a href="{{ route('events.index') }}" 
+                   class="w-9 h-9 sm:w-auto sm:h-9 sm:px-4 md:px-5 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] text-[11.5px] font-heading font-extrabold uppercase tracking-wider rounded-full shadow-2xs transition-transform hover:scale-[1.02] whitespace-nowrap ml-1 inline-flex items-center justify-center sm:gap-1.5 shrink-0"
+                   title="Book Setup"
+                   aria-label="Book Setup">
                     <i class="fa-solid fa-calendar-check text-xs"></i>
-                    <span>Book Setup</span>
+                    <span class="hidden sm:inline">Book Setup</span>
                 </a>
 
                 <!-- 6. Mobile Hamburger Button -->
@@ -271,131 +393,256 @@
 
 <!-- Mobile Drawer Slide-in Navigation Menu -->
 <div id="mobile-nav"
-    class="fixed inset-y-0 right-0 z-[100] w-full max-w-[320px] bg-white dark:bg-[#171719] text-[#171719] dark:text-white p-6 flex flex-col justify-between transform translate-x-full transition-all duration-300 lg:hidden border-l border-[#E6E2D8] dark:border-[#292929] invisible pointer-events-none hidden">
-    <div>
-        <!-- Drawer Header -->
-        <div class="flex items-center justify-between pb-4 border-b border-[#E6E2D8] dark:border-[#292929]">
-            <a href="{{ route('home') }}" class="flex items-center">
-                <img src="{{ asset('assets/images/logo/artizen.png') }}" alt="Artizen Logo" class="h-11 w-auto object-contain rounded-md">
-            </a>
-            <button onclick="toggleMobileNav()"
-                class="w-8 h-8 border border-[#E6E2D8] dark:border-[#292929] rounded-full hover:border-gray-400 flex items-center justify-center transition-colors cursor-pointer text-[#171719] dark:text-white" aria-label="Close menu">
+    class="fixed inset-y-0 right-0 z-[1000] w-full max-w-[320px] sm:max-w-[340px] bg-white dark:bg-[#171719] text-[#171719] dark:text-white flex flex-col h-full h-[100dvh] max-h-screen overflow-hidden transform translate-x-full transition-all duration-300 lg:hidden border-l border-[#E6E2D8] dark:border-[#292929] invisible pointer-events-none hidden shadow-2xl overscroll-contain select-none">
+    
+    <!-- 1. Drawer Header (Pinned at Top) -->
+    <div class="shrink-0 px-5 py-3.5 border-b border-[#E6E2D8] dark:border-[#292929] flex items-center justify-between bg-white dark:bg-[#171719]">
+        <a href="{{ route('home') }}" class="flex items-center">
+            <img src="{{ asset('assets/images/logo/artizen.png') }}" alt="Artizen Logo" class="h-10 w-auto object-contain rounded-md">
+        </a>
+        <div class="flex items-center gap-2">
+            <!-- Quick Theme Switch -->
+            <button type="button" onclick="toggleTheme()"
+                class="w-8.5 h-8.5 rounded-full border border-[#E6E2D8] dark:border-[#2E2E33] bg-[#FAF9F6] dark:bg-[#202024] hover:border-gray-400 dark:hover:border-gray-500 flex items-center justify-center transition-colors cursor-pointer text-[#171719] dark:text-white"
+                aria-label="Toggle Theme" title="Toggle Theme">
+                <i id="mobile-theme-icon" class="fa-solid fa-moon text-xs text-gray-700 dark:text-gray-300"></i>
+            </button>
+            <!-- Close Button -->
+            <button type="button" onclick="toggleMobileNav()"
+                class="w-8.5 h-8.5 border border-[#E6E2D8] dark:border-[#2E2E33] bg-[#FAF9F6] dark:bg-[#202024] rounded-full hover:border-gray-400 dark:hover:border-gray-500 flex items-center justify-center transition-colors cursor-pointer text-[#171719] dark:text-white"
+                aria-label="Close menu">
                 <i class="fa-solid fa-xmark text-sm"></i>
             </button>
         </div>
+    </div>
 
-        <!-- City Indicator -->
-        <div class="mt-4 p-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#202024] border border-[#E6E2D8] dark:border-[#292929] flex items-center justify-between text-xs">
-            <span class="flex items-center gap-1.5 font-bold text-[#171719] dark:text-gray-200">
-                <i class="fa-solid fa-location-dot text-gray-700 dark:text-gray-300"></i>
-                Indore, MP
-            </span>
-            <span class="text-[10px] text-gray-500 dark:text-gray-400 font-semibold">
-                Active Service
-            </span>
+    <!-- 2. Drawer Body (Scrollable with Momentum & Overscroll Containment) -->
+    <div class="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-4 text-left" style="-webkit-overflow-scrolling: touch;">
+        <!-- Main Pages Links (Navigation Only, No Categories) -->
+        <div class="pt-1">
+            <span class="text-[10px] font-heading font-extrabold uppercase tracking-widest text-gray-400 dark:text-gray-500 block mb-2 px-1">Navigation</span>
+            <nav class="flex flex-col gap-1 font-heading font-semibold text-xs tracking-tight text-left">
+                <a href="{{ route('home') }}" onclick="toggleMobileNav()"
+                    class="py-2.5 px-3 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between transition-colors group {{ request()->routeIs('home') ? 'bg-[#FFD600]/15 text-black dark:text-white font-bold' : '' }}">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-house text-xs text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors w-4 text-center"></i>
+                        <span>Home</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right text-[9px] text-gray-300 dark:text-gray-600"></i>
+                </a>
+
+                <a href="{{ route('events.index') }}" onclick="toggleMobileNav()"
+                    class="py-2.5 px-3 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between transition-colors group {{ request()->routeIs('events.*') ? 'bg-[#FFD600]/15 text-black dark:text-white font-bold' : '' }}">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-wand-magic-sparkles text-xs text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors w-4 text-center"></i>
+                        <span>All Packages</span>
+                    </span>
+                    <span class="text-[9.5px] bg-[#FFD600] text-[#171719] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">Explore</span>
+                </a>
+
+                <a href="{{ route('gallery.index') }}" onclick="toggleMobileNav()"
+                    class="py-2.5 px-3 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between transition-colors group {{ request()->routeIs('gallery.*') ? 'bg-[#FFD600]/15 text-black dark:text-white font-bold' : '' }}">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-regular fa-images text-xs text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors w-4 text-center"></i>
+                        <span>Gallery</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right text-[9px] text-gray-300 dark:text-gray-600"></i>
+                </a>
+
+                <a href="{{ route('reviews.index') }}" onclick="toggleMobileNav()"
+                    class="py-2.5 px-3 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between transition-colors group {{ request()->routeIs('reviews.*') ? 'bg-[#FFD600]/15 text-black dark:text-white font-bold' : '' }}">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-regular fa-star text-xs text-amber-500 w-4 text-center"></i>
+                        <span>Customer Reviews</span>
+                    </span>
+                    <span class="text-[10px] text-amber-600 dark:text-amber-400 font-bold">★ 4.9</span>
+                </a>
+
+                <a href="{{ route('about-us') }}" onclick="toggleMobileNav()"
+                    class="py-2.5 px-3 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between transition-colors group {{ request()->routeIs('about-us') ? 'bg-[#FFD600]/15 text-black dark:text-white font-bold' : '' }}">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-regular fa-circle-question text-xs text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors w-4 text-center"></i>
+                        <span>About Artizen</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right text-[9px] text-gray-300 dark:text-gray-600"></i>
+                </a>
+
+                <a href="{{ route('faq.index') }}" onclick="toggleMobileNav()"
+                    class="py-2.5 px-3 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between transition-colors group {{ request()->routeIs('faq.*') ? 'bg-[#FFD600]/15 text-black dark:text-white font-bold' : '' }}">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-circle-info text-xs text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors w-4 text-center"></i>
+                        <span>FAQs</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right text-[9px] text-gray-300 dark:text-gray-600"></i>
+                </a>
+
+                <a href="{{ route('contact.index') }}" onclick="toggleMobileNav()"
+                    class="py-2.5 px-3 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between transition-colors group {{ request()->routeIs('contact.*') ? 'bg-[#FFD600]/15 text-black dark:text-white font-bold' : '' }}">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-regular fa-envelope text-xs text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors w-4 text-center"></i>
+                        <span>Contact Us</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right text-[9px] text-gray-300 dark:text-gray-600"></i>
+                </a>
+            </nav>
         </div>
 
-        <!-- Mobile Search with Clear Icon & Autocomplete -->
-        <div class="relative mt-4" id="mobile-search-container">
-            <form action="{{ route('events.index') }}" method="GET" class="relative">
+        <!-- Bookings & Account Links -->
+        <div class="pt-3 border-t border-[#E6E2D8] dark:border-[#292929]">
+            <span class="text-[10px] font-heading font-extrabold uppercase tracking-widest text-gray-400 dark:text-gray-500 block mb-2 px-1">Bookings & Services</span>
+            <nav class="flex flex-col gap-1 font-heading font-semibold text-xs tracking-tight text-left">
+                <a href="{{ route('orders.index') }}" onclick="toggleMobileNav()"
+                    class="py-2.5 px-3 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between transition-colors group">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-bag-shopping text-xs text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors w-4 text-center"></i>
+                        <span>My Bookings &amp; Orders</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right text-[9px] text-gray-300 dark:text-gray-600"></i>
+                </a>
+
+                <a href="{{ route('booking.track') }}" onclick="toggleMobileNav()"
+                    class="py-2.5 px-3 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between transition-colors group">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-magnifying-glass-location text-xs text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors w-4 text-center"></i>
+                        <span>Track Reference ID</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right text-[9px] text-gray-300 dark:text-gray-600"></i>
+                </a>
+
+                @if(Auth::check())
+                <div class="py-2.5 px-3 rounded-2xl bg-[#FAF9F6] dark:bg-white/5 border border-black/5 dark:border-white/10 flex items-center justify-between mt-2">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        @if(Auth::user()->avatar)
+                            <div class="relative w-8 h-8 shrink-0">
+                                <img src="{{ Auth::user()->avatar }}" alt="{{ Auth::user()->name }}" class="w-8 h-8 rounded-full object-cover ring-1 ring-black/10" referrerpolicy="no-referrer">
+                                @if(Auth::user()->google_id)
+                                    <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-white flex items-center justify-center shadow-xs">
+                                        <svg class="w-2 h-2" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.87c2.27-2.09 3.67-5.17 3.67-9.15z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.87-3.05c-1.08.72-2.45 1.16-4.06 1.16-3.13 0-5.78-2.11-6.73-4.96H1.25v3.15C3.25 21.36 7.35 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.39-1.5-.39-2.24s.14-1.52.39-2.24V6.61H1.25C.45 8.2 0 10.04 0 12s.45 3.8 1.25 5.39l4.02-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.25 2.64 1.25 6.61l4.02 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
+                                    </span>
+                                @endif
+                            </div>
+                        @else
+                            <span class="w-8 h-8 rounded-full flex items-center justify-center font-heading font-black text-xs shrink-0 shadow-inner" style="background: linear-gradient(135deg, #18181B 0%, #2A2A2E 100%) !important; color: #FFD600 !important; border: 1.5px solid rgba(255, 214, 0, 0.45);">
+                                {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
+                            </span>
+                        @endif
+                        <div class="truncate">
+                            <span class="block text-xs font-bold text-gray-800 dark:text-gray-200 truncate">{{ Auth::user()->name }}</span>
+                            <span class="block text-[10px] text-gray-500 truncate">{{ Auth::user()->email }}</span>
+                        </div>
+                    </div>
+                    <form action="{{ route('logout') }}" method="POST" class="inline shrink-0 ml-2">
+                        @csrf
+                        <button type="submit" class="text-[11px] font-bold text-red-600 hover:underline cursor-pointer">Logout</button>
+                    </form>
+                </div>
+                @else
+                <a href="{{ route('login') }}" onclick="toggleMobileNav()"
+                    class="py-2.5 px-3 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between transition-colors group">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-regular fa-user text-xs text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors w-4 text-center"></i>
+                        <span>Login</span>
+                    </span>
+                    <i class="fa-solid fa-arrow-right-to-bracket text-[10px] text-gray-400"></i>
+                </a>
+                @endif
+            </nav>
+        </div>
+    </div>
+
+    <!-- 3. Drawer Bottom Book CTA (Pinned at Bottom) -->
+    <div class="shrink-0 p-4 border-t border-[#E6E2D8] dark:border-[#292929] bg-[#FAF9F6] dark:bg-[#1C1C1F] flex flex-col gap-2">
+        <a href="{{ route('events.index') }}" onclick="toggleMobileNav()"
+            class="w-full flex items-center justify-center gap-2 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] py-3 rounded-xl font-heading font-extrabold text-xs uppercase tracking-wider shadow-xs text-center transition-transform active:scale-[0.98]">
+            <i class="fa-solid fa-calendar-check text-xs"></i>
+            <span>Book Event Setup</span>
+        </a>
+        <div class="flex items-center justify-center gap-3 pt-1 text-[11px] text-gray-500 dark:text-gray-400">
+            <a href="https://wa.me/917489565502" target="_blank" rel="noopener" class="flex items-center gap-1.5 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                <i class="fa-brands fa-whatsapp text-emerald-500 text-xs"></i>
+                <span>WhatsApp</span>
+            </a>
+            <span class="text-gray-300 dark:text-gray-700">•</span>
+            <a href="tel:+917489565502" class="flex items-center gap-1.5 hover:text-black dark:hover:text-white transition-colors">
+                <i class="fa-solid fa-phone text-[10px]"></i>
+                <span>Call Support</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Drawer Overlay Backdrop -->
+<div id="mobile-nav-overlay" onclick="toggleMobileNav()"
+    class="fixed inset-0 bg-black/80 backdrop-blur-xs z-[995] hidden transition-opacity duration-300 opacity-0 pointer-events-none lg:hidden touch-none overscroll-contain">
+</div>
+
+<!-- Mobile Slide-Down Search Modal Overlay -->
+<div id="mobile-search-modal" 
+     class="fixed inset-0 z-[1050] bg-black/75 backdrop-blur-xs hidden opacity-0 transition-opacity duration-200 flex flex-col justify-start touch-none">
+    <div id="mobile-search-panel" 
+         class="w-full bg-white dark:bg-[#171719] border-b border-[#E6E2D8] dark:border-[#2E2E33] shadow-2xl p-4 sm:p-5 pt-3 transform -translate-y-4 transition-transform duration-200 max-h-[88vh] flex flex-col touch-auto select-none">
+        
+        <!-- Search Input Bar & Close Button -->
+        <div class="flex items-center gap-2.5">
+            <form action="{{ route('events.index') }}" method="GET" class="relative flex-1" id="mobile-modal-search-form">
                 <div class="relative flex items-center">
-                    <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                    <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#B89700] dark:text-[#FFD600] pointer-events-none">
                         <i class="fa-solid fa-magnifying-glass text-xs"></i>
                     </span>
                     <input type="text" 
-                           id="mobile-search-input"
+                           id="mobile-modal-search-input"
                            name="q" 
                            value="{{ request('q', '') }}"
                            autocomplete="off"
                            placeholder="Search setups, decor, DJ, weddings..." 
-                           class="w-full pl-9 pr-9 py-2.5 bg-[#FAF9F6] dark:bg-[#242428] border border-[#E6E2D8] dark:border-[#333338] rounded-xl text-xs font-medium text-[#171719] dark:text-white placeholder-gray-400 outline-none focus:border-[#171719] dark:focus:border-white/40 shadow-none ring-0 focus:ring-0">
+                           class="w-full pl-9 pr-9 py-2.5 bg-[#FAF9F6] dark:bg-[#242428] border border-[#E6E2D8] dark:border-[#333338] rounded-xl text-xs sm:text-sm font-medium text-[#171719] dark:text-white placeholder-gray-400 outline-none focus:border-[#FFD600] dark:focus:border-[#FFD600] shadow-none ring-0 focus:ring-0">
                     
                     <button type="button" 
-                            id="mobile-search-clear" 
-                            onclick="clearMobileSearch()" 
+                            id="mobile-modal-search-clear" 
+                            onclick="clearMobileModalSearch()" 
                             class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#171719] dark:hover:text-white transition-colors cursor-pointer {{ request('q') ? '' : 'hidden' }} p-0.5"
                             aria-label="Clear search">
                         <i class="fa-solid fa-xmark text-xs"></i>
                     </button>
                 </div>
             </form>
+            <button type="button" 
+                    onclick="toggleMobileSearchModal()"
+                    class="shrink-0 px-3 py-2 rounded-xl text-xs font-heading font-bold text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                Cancel
+            </button>
+        </div>
 
-            <!-- Mobile Live Search Suggestions Dropdown -->
-            <div id="mobile-search-suggestions" 
-                 class="absolute left-0 top-full mt-1.5 w-full bg-white dark:bg-[#171719] border border-[#E6E2D8] dark:border-[#2E2E33] shadow-2xl rounded-xl p-2 z-50 hidden max-h-[300px] overflow-y-auto overscroll-contain text-left">
-                <div id="mobile-suggestions-content"></div>
+        <!-- Popular Quick Search Tag Chips -->
+        <div id="mobile-search-quick-tags" class="pt-3 pb-1">
+            <span class="text-[10px] font-heading font-extrabold uppercase tracking-widest text-gray-400 dark:text-gray-500 block mb-2">Popular Celebrations</span>
+            <div class="flex flex-wrap gap-1.5 text-xs">
+                <button type="button" onclick="selectQuickSearchTag('Birthday')" class="px-2.5 py-1 rounded-full bg-[#FAF9F6] dark:bg-[#202024] border border-[#E6E2D8] dark:border-[#2E2E33] hover:border-[#FFD600] text-gray-700 dark:text-gray-200 text-[11px] font-semibold transition-colors flex items-center gap-1.5 active:scale-95">
+                    <i class="fa-solid fa-cake-candles text-[10px] text-amber-500"></i> Birthday
+                </button>
+                <button type="button" onclick="selectQuickSearchTag('Proposal')" class="px-2.5 py-1 rounded-full bg-[#FAF9F6] dark:bg-[#202024] border border-[#E6E2D8] dark:border-[#2E2E33] hover:border-[#FFD600] text-gray-700 dark:text-gray-200 text-[11px] font-semibold transition-colors flex items-center gap-1.5 active:scale-95">
+                    <i class="fa-solid fa-heart text-[10px] text-rose-500"></i> Proposal
+                </button>
+                <button type="button" onclick="selectQuickSearchTag('House Party & DJ')" class="px-2.5 py-1 rounded-full bg-[#FAF9F6] dark:bg-[#202024] border border-[#E6E2D8] dark:border-[#2E2E33] hover:border-[#FFD600] text-gray-700 dark:text-gray-200 text-[11px] font-semibold transition-colors flex items-center gap-1.5 active:scale-95">
+                    <i class="fa-solid fa-volume-high text-[10px] text-indigo-500"></i> DJ & Music
+                </button>
+                <button type="button" onclick="selectQuickSearchTag('Anniversaries')" class="px-2.5 py-1 rounded-full bg-[#FAF9F6] dark:bg-[#202024] border border-[#E6E2D8] dark:border-[#2E2E33] hover:border-[#FFD600] text-gray-700 dark:text-gray-200 text-[11px] font-semibold transition-colors flex items-center gap-1.5 active:scale-95">
+                    <i class="fa-solid fa-gem text-[10px] text-purple-500"></i> Anniversary
+                </button>
+                <button type="button" onclick="selectQuickSearchTag('Weddings')" class="px-2.5 py-1 rounded-full bg-[#FAF9F6] dark:bg-[#202024] border border-[#E6E2D8] dark:border-[#2E2E33] hover:border-[#FFD600] text-gray-700 dark:text-gray-200 text-[11px] font-semibold transition-colors flex items-center gap-1.5 active:scale-95">
+                    <i class="fa-solid fa-rings-wedding text-[10px] text-amber-600"></i> Weddings
+                </button>
             </div>
         </div>
 
-        <!-- Category Links (Icons, No Emojis) -->
-        <div class="mt-5">
-            <span class="text-[10px] font-heading font-extrabold uppercase tracking-widest text-gray-400 dark:text-gray-500 block mb-2 px-1">Browse Categories</span>
-            <nav class="flex flex-col gap-1 font-heading font-semibold text-xs tracking-tight text-left">
-                @foreach($navCategories as $cat)
-                    <a href="{{ route('events.index', ['category' => $cat->nav_slug]) }}" onclick="toggleMobileNav()"
-                        class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between">
-                        <span class="flex items-center gap-2">
-                            <i class="{{ $cat->icon ?: 'fa-solid fa-cake-candles' }} text-xs text-gray-400"></i>
-                            <span>{{ $cat->title }}</span>
-                        </span>
-                        <i class="fa-solid fa-chevron-right text-[9px] text-gray-400"></i>
-                    </a>
-                @endforeach
-            </nav>
-        </div>
-
-        <!-- Main Pages Links -->
-        <div class="mt-4 pt-3 border-t border-[#E6E2D8] dark:border-[#292929]">
-            <span class="text-[10px] font-heading font-extrabold uppercase tracking-widest text-gray-400 dark:text-gray-500 block mb-2 px-1">Navigation</span>
-            <nav class="flex flex-col gap-1 font-heading font-semibold text-xs tracking-tight text-left">
-                <a href="{{ route('home') }}" onclick="toggleMobileNav()"
-                    class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white">Home</a>
-                <a href="{{ route('events.index') }}" onclick="toggleMobileNav()"
-                    class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white">All Packages</a>
-                <a href="{{ route('gallery.index') }}" onclick="toggleMobileNav()"
-                    class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white">Gallery</a>
-                <a href="{{ route('about-us') }}" onclick="toggleMobileNav()"
-                    class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white">About Artizen</a>
-                <button type="button" onclick="toggleTheme()"
-                    class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-between w-full text-left font-heading font-semibold text-xs tracking-tight">
-                    <span class="flex items-center gap-2">
-                        <i id="mobile-theme-icon" class="fa-solid fa-moon text-xs text-gray-400"></i>
-                        <span id="mobile-theme-text">Switch Theme</span>
-                    </span>
-                    <span class="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Theme</span>
-                </button>
-                <a href="{{ route('booking.index') }}" onclick="toggleMobileNav()"
-                    class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center gap-1.5">
-                    <i class="fa-solid fa-bag-shopping text-[11px] text-gray-500 dark:text-gray-400"></i>
-                    <span>Booking Cart & Requests</span>
-                </a>
-                <a href="{{ route('booking.track') }}" onclick="toggleMobileNav()"
-                    class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center gap-1.5">
-                    <i class="fa-solid fa-truck-fast text-[11px] text-gray-500 dark:text-gray-400"></i>
-                    <span>Track Booking Status</span>
-                </a>
-                <a href="{{ route('admin.login') }}" onclick="toggleMobileNav()"
-                    class="py-2 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center gap-1.5">
-                    <i class="fa-regular fa-user text-[11px] text-gray-500 dark:text-gray-400"></i>
-                    <span>Admin / Account Login</span>
-                </a>
-            </nav>
+        <!-- Live Search Suggestions Container -->
+        <div id="mobile-modal-search-suggestions" 
+             class="mt-2 flex-1 overflow-y-auto overscroll-contain hidden max-h-[55vh] pt-1 text-left">
+            <div id="mobile-modal-suggestions-content"></div>
         </div>
     </div>
-
-    <!-- Mobile Drawer Bottom Book CTA -->
-    <div class="flex flex-col gap-2 pt-4 border-t border-[#E6E2D8] dark:border-[#292929] mt-auto">
-        <a href="{{ route('booking.index') }}" onclick="toggleMobileNav()"
-            class="w-full flex items-center justify-center gap-2 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] py-3 rounded-xl font-heading font-extrabold text-xs uppercase tracking-wider shadow-xs text-center transition-colors">
-            <i class="fa-solid fa-calendar-check"></i>
-            <span>Book Event Setup</span>
-        </a>
-    </div>
-</div>
-
-<!-- Mobile Drawer Overlay Backdrop -->
-<div id="mobile-nav-overlay" onclick="toggleMobileNav()"
-    class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[90] hidden transition-opacity duration-300 opacity-0 pointer-events-none lg:hidden">
+    <!-- Dismiss Backdrop Area -->
+    <div class="flex-1" onclick="toggleMobileSearchModal()"></div>
 </div>
 
 <!-- Header JavaScript: Rotators & Live Autocomplete Search -->
@@ -412,13 +659,19 @@
 
         function openDropdown() {
             dropdown.classList.remove('hidden');
+            document.documentElement.classList.add('overflow-hidden');
             document.body.classList.add('overflow-hidden');
         }
 
         function closeDropdown() {
             dropdown.classList.add('hidden');
-            const anyOpen = document.querySelectorAll('#header-search-suggestions:not(.hidden), #mobile-search-suggestions:not(.hidden)').length > 0;
-            if (!anyOpen) {
+            const anyOpen = document.querySelectorAll('#header-search-suggestions:not(.hidden), #mobile-modal-search-suggestions:not(.hidden)').length > 0;
+            const mobileNav = document.getElementById('mobile-nav');
+            const mobileNavOpen = mobileNav && !mobileNav.classList.contains('translate-x-full') && !mobileNav.classList.contains('hidden');
+            const searchModal = document.getElementById('mobile-search-modal');
+            const searchModalOpen = searchModal && !searchModal.classList.contains('hidden');
+            if (!anyOpen && !mobileNavOpen && !searchModalOpen) {
+                document.documentElement.classList.remove('overflow-hidden');
                 document.body.classList.remove('overflow-hidden');
             }
         }
@@ -520,25 +773,78 @@
         }
     }
 
-    function clearMobileSearch() {
-        const input = document.getElementById('mobile-search-input');
-        const clearBtn = document.getElementById('mobile-search-clear');
-        const dropdown = document.getElementById('mobile-search-suggestions');
+    window.toggleMobileSearchModal = function () {
+        const modal = document.getElementById('mobile-search-modal');
+        const panel = document.getElementById('mobile-search-panel');
+        const input = document.getElementById('mobile-modal-search-input');
+        if (!modal || !panel) return;
+
+        const isClosed = modal.classList.contains('hidden');
+        if (isClosed) {
+            modal.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                modal.classList.remove('opacity-0');
+                modal.classList.add('opacity-100');
+                panel.classList.remove('-translate-y-4');
+                panel.classList.add('translate-y-0');
+            });
+            document.documentElement.classList.add('overflow-hidden');
+            document.body.classList.add('overflow-hidden');
+            if (input) {
+                setTimeout(() => input.focus(), 120);
+            }
+        } else {
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            panel.classList.remove('translate-y-0');
+            panel.classList.add('-translate-y-4');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 210);
+            const mobileNav = document.getElementById('mobile-nav');
+            const mobileNavOpen = mobileNav && !mobileNav.classList.contains('translate-x-full') && !mobileNav.classList.contains('hidden');
+            if (!mobileNavOpen) {
+                document.documentElement.classList.remove('overflow-hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+        }
+    };
+
+    window.clearMobileModalSearch = function () {
+        const input = document.getElementById('mobile-modal-search-input');
+        const clearBtn = document.getElementById('mobile-modal-search-clear');
+        const dropdown = document.getElementById('mobile-modal-search-suggestions');
         if (input) {
             input.value = '';
             input.focus();
         }
         if (clearBtn) clearBtn.classList.add('hidden');
-        if (dropdown) {
-            dropdown.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
+        if (dropdown) dropdown.classList.add('hidden');
+    };
+
+    window.selectQuickSearchTag = function (tag) {
+        const input = document.getElementById('mobile-modal-search-input');
+        if (input) {
+            input.value = tag;
+            input.dispatchEvent(new Event('input'));
+            input.focus();
         }
-    }
+    };
+
+    // Close mobile search on Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('mobile-search-modal');
+            if (modal && !modal.classList.contains('hidden')) {
+                toggleMobileSearchModal();
+            }
+        }
+    });
 
     document.addEventListener('DOMContentLoaded', function () {
         // Initialize Search Autocompletes
         initSearchAutocomplete('header-search-input', 'header-search-clear', 'header-search-suggestions', 'header-suggestions-content');
-        initSearchAutocomplete('mobile-search-input', 'mobile-search-clear', 'mobile-search-suggestions', 'mobile-suggestions-content');
+        initSearchAutocomplete('mobile-modal-search-input', 'mobile-modal-search-clear', 'mobile-modal-search-suggestions', 'mobile-modal-suggestions-content');
 
         // 1. Location Rotator
         const locRotator = document.getElementById('header-location-rotator');
@@ -603,6 +909,46 @@
             }, { passive: true });
 
             updateHeaderState(); // Initial check on load
+        }
+    });
+
+    // Avatar Dropdown Menu Controller
+    function toggleUserAvatarDropdown(event) {
+        if (event) {
+            event.stopPropagation();
+        }
+        const menu = document.getElementById('user-avatar-menu');
+        const btn = document.getElementById('user-avatar-btn');
+        if (!menu) return;
+
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            if (btn) btn.setAttribute('aria-expanded', 'true');
+        } else {
+            menu.classList.add('hidden');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+        }
+    }
+
+    document.addEventListener('click', function(e) {
+        const container = document.getElementById('user-avatar-dropdown-container');
+        const menu = document.getElementById('user-avatar-menu');
+        if (container && menu && !container.contains(e.target)) {
+            menu.classList.add('hidden');
+            const btn = document.getElementById('user-avatar-btn');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const menu = document.getElementById('user-avatar-menu');
+            if (menu && !menu.classList.contains('hidden')) {
+                menu.classList.add('hidden');
+                const btn = document.getElementById('user-avatar-btn');
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+            }
         }
     });
 </script>

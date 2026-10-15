@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\DashboardController;
 // Public Front-end Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about-us', [AboutController::class, 'index'])->name('about-us');
+Route::get('/about', [AboutController::class, 'index'])->name('about');
 Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
 Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store')->middleware('throttle:10,1');
 Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
@@ -40,8 +41,14 @@ Route::get('/booking/success', [BookingController::class, 'success'])->name('boo
 Route::post('/booking/save', [BookingController::class, 'store'])->name('booking.save')->middleware('throttle:10,1');
 
 use App\Http\Controllers\BookingTrackerController;
+use App\Http\Controllers\CustomerOrderController;
 
-// Public Booking Status Tracker Routes
+// Authenticated Customer Order & Booking History (Bag Icon)
+Route::get('/orders', [CustomerOrderController::class, 'index'])->name('orders.index');
+Route::get('/my-bookings', [CustomerOrderController::class, 'index'])->name('orders.my-bookings');
+Route::get('/order-history', [CustomerOrderController::class, 'index'])->name('orders.history');
+
+// Public Booking Status Tracker (Lookup by Reference ID + Mobile)
 Route::get('/track-booking', [BookingTrackerController::class, 'showForm'])->name('booking.track');
 Route::post('/track-booking/search', [BookingTrackerController::class, 'search'])->name('booking.track.search')->middleware('throttle:15,1');
 
@@ -71,18 +78,25 @@ Route::get('/event-details.html', function (\Illuminate\Http\Request $request) {
 
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 
 // User Authentication Routes
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-Route::post('/register', [RegisterController::class, 'register'])->name('register.submit')->middleware('throttle:5,1');
+Route::post('/register', [RegisterController::class, 'register'])->name('register.submit')->middleware('throttle:10,1');
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login'])->name('login.submit')->middleware('throttle:5,1');
+Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// Admin Authentication Public Routes
+// Google Social Authentication Routes
+Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+
+// Admin Authentication Redirect Routes (Unified Authentication on /login)
 Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
-Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.submit')->middleware('throttle:5,1');
-Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
+Route::post('/admin/login', [LoginController::class, 'login'])->name('admin.login.submit')->middleware('throttle:5,1');
+Route::get('/admin/forgot-password', [AdminAuthController::class, 'showForgotPasswordForm'])->name('admin.password.request');
+Route::post('/admin/forgot-password', [AdminAuthController::class, 'handleForgotPassword'])->name('admin.password.reset')->middleware('throttle:5,1');
+Route::match(['get', 'post'], '/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');
 
 use App\Http\Controllers\Admin\AdminPageController;
 
@@ -100,13 +114,16 @@ Route::middleware('admin')->prefix('admin')->group(function () {
     Route::get('/faq-reviews',  [AdminPageController::class, 'testimonials'])->name('admin.testimonials');
     Route::get('/faqs',         [AdminPageController::class, 'testimonials'])->name('admin.faqs');
     Route::get('/hero-slider',  [AdminPageController::class, 'hero'])->name('admin.hero');
-    Route::get('/about',        [AdminPageController::class, 'about'])->name('admin.about');
+    Route::redirect('/about',   '/admin/dashboard');
     Route::get('/legal-pages',  [AdminPageController::class, 'legal'])->name('admin.legal');
     Route::get('/settings',     [AdminPageController::class, 'settings'])->name('admin.settings');
+    Route::post('/settings/profile',         [AdminPageController::class, 'updateProfile'])->name('admin.settings.profile');
+    Route::post('/settings/password',        [AdminPageController::class, 'updatePassword'])->name('admin.settings.password');
+    Route::post('/settings/emergency-reset', [AdminPageController::class, 'emergencyPasswordReset'])->name('admin.settings.emergency-reset');
     
     // CMS Settings & Assets
     Route::post('/cms/save', [DashboardController::class, 'saveCms'])->name('admin.cms.save');
-    Route::post('/settings/save', [DashboardController::class, 'saveSettings'])->name('admin.settings.save');
+    Route::post('/settings/save', [AdminPageController::class, 'updateProfile'])->name('admin.settings.save');
     
     // Categories & Package CRUD
     Route::post('/categories/save', [DashboardController::class, 'saveCategory'])->name('admin.categories.save');

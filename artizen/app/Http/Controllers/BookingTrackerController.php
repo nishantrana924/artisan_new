@@ -13,13 +13,28 @@ class BookingTrackerController extends Controller
     public function showForm(Request $request)
     {
         $bookingId = trim($request->query('id', ''));
+        $mobile = trim($request->query('mobile', ''));
         $booking = null;
         $searched = false;
 
-        // If ID passed via query string from booking success page, attempt lookup if mobile provided
-        if (!empty($bookingId) && $request->has('mobile')) {
-            $booking = $this->findBooking($bookingId, $request->query('mobile'));
+        // If both ID and mobile provided in query
+        if (!empty($bookingId) && !empty($mobile)) {
+            $booking = $this->findBooking($bookingId, $mobile);
             $searched = true;
+        } elseif (!empty($bookingId)) {
+            // If ID provided (e.g., from confirmation page or notification link)
+            $booking = $this->findBookingById($bookingId);
+            if ($booking) {
+                $searched = true;
+            }
+        } elseif (session()->has('last_booking_id')) {
+            // If user previously booked in current session
+            $sessionBookingId = (string)session('last_booking_id');
+            $booking = $this->findBookingById($sessionBookingId);
+            if ($booking) {
+                $bookingId = $sessionBookingId;
+                $searched = true;
+            }
         }
 
         return view('booking.track', compact('booking', 'searched', 'bookingId'));
@@ -98,6 +113,23 @@ class BookingTrackerController extends Controller
                 if ($storedMobile === $cleanInputPhone || $storedWhatsapp === $cleanInputPhone) {
                     return $b;
                 }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Lookup booking by Booking ID alone.
+     */
+    private function findBookingById(string $bookingId): ?array
+    {
+        $bookings = JsonStorageService::read('bookings.json', []);
+        $cleanId = strtoupper(trim($bookingId));
+
+        foreach ($bookings as $b) {
+            if (strtoupper(trim($b['id'] ?? '')) === $cleanId) {
+                return $b;
             }
         }
 

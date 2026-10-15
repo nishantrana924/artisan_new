@@ -77,12 +77,14 @@
                     @php
                         $priceFormatted = '₹' . number_format($pkg['price']);
                         $mrpFormatted = !empty($pkg['original_price']) ? ('₹' . number_format($pkg['original_price'])) : null;
+                        $pkgSlug = $pkg['slug'] ?? \Illuminate\Support\Str::slug($pkg['name']);
+                        $pkgDetailUrl = route('events.show', ['slug' => $pkgSlug]);
                     @endphp
                     <div class="bg-white dark:bg-[#121212] border border-gray-200 dark:border-white/10 rounded-sm overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
                         <div>
                             <!-- Package Image -->
-                            <div class="h-52 relative overflow-hidden bg-gray-100 dark:bg-white/5 border-b border-gray-100 dark:border-white/5 experience-card-img-container" data-card-images='@json($pkg['all_images'] ?? [$pkg['image']])'>
-                                <img src="{{ $pkg['image'] }}" alt="{{ $pkg['name'] }}" class="w-full h-full object-cover experience-card-img primary-img" onerror="this.src='/assets/images/hero/1.jpg'">
+                            <a href="{{ $pkgDetailUrl }}" class="block h-52 relative overflow-hidden bg-gray-100 dark:bg-white/5 border-b border-gray-100 dark:border-white/5 experience-card-img-container cursor-pointer" data-card-images='@json($pkg['all_images'] ?? [$pkg['image']])'>
+                                <img src="{{ $pkg['image'] }}" alt="{{ $pkg['name'] }}" class="w-full h-full object-cover experience-card-img primary-img group-hover:scale-105 transition-transform duration-300" onerror="this.src='/assets/images/hero/1.jpg'">
                                 @if(!empty($pkg['secondary_image']) && $pkg['secondary_image'] !== $pkg['image'])
                                     <img src="{{ $pkg['secondary_image'] }}" alt="{{ $pkg['name'] }}" class="w-full h-full object-cover experience-card-img secondary-img" onerror="this.src='/assets/images/hero/1.jpg'">
                                 @endif
@@ -101,12 +103,14 @@
                                         @endforeach
                                     </div>
                                 @endif
-                            </div>
+                            </a>
 
                             <!-- Package Details -->
                             <div class="p-6 flex flex-col gap-3">
                                 <h3 class="font-heading font-extrabold text-xl text-gray-900 dark:text-white leading-tight">
-                                    {{ $pkg['name'] }}
+                                    <a href="{{ $pkgDetailUrl }}" class="hover:text-amber-500 transition-colors">
+                                        {{ $pkg['name'] }}
+                                    </a>
                                 </h3>
 
                                 <p class="text-xs text-gray-600 dark:text-gray-400 font-normal leading-relaxed line-clamp-2">
@@ -142,9 +146,10 @@
 
                         <!-- Footer Actions -->
                         <div class="px-6 py-4 bg-gray-50 dark:bg-white/[0.02] border-t border-gray-100 dark:border-white/5 flex items-center justify-between mt-auto">
-                            <span class="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase">Offline Payment</span>
-                            <a href="{{ route('booking.index', ['category' => $currentCategory['title'] ?? '', 'package' => $pkg['name'], 'price' => $pkg['price']]) }}" class="px-5 py-2.5 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] text-xs font-bold rounded-sm shadow-md transition-all flex items-center gap-2">
-                                <i class="fa-solid fa-calendar-check"></i> Book Package
+                            <span class="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase">Indore Setup</span>
+                            <a href="{{ $pkgDetailUrl }}" class="px-5 py-2.5 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] text-xs font-bold rounded-sm shadow-md transition-all flex items-center gap-2">
+                                <span>View Details &amp; Book</span>
+                                <i class="fa-solid fa-arrow-right text-[11px]"></i>
                             </a>
                         </div>
                     </div>

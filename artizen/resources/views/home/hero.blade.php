@@ -25,14 +25,11 @@
     }
     .hero-banner-swiper .swiper-slide {
         flex-shrink: 0;
-        margin-right: 16px;
+        box-sizing: border-box;
     }
     @media (min-width: 640px) {
         .hero-banner-swiper {
             min-height: 185px;
-        }
-        .hero-banner-swiper .swiper-slide {
-            margin-right: 20px;
         }
     }
     @media (min-width: 768px) {
@@ -43,9 +40,6 @@
     @media (min-width: 1024px) {
         .hero-banner-swiper {
             min-height: 215px;
-        }
-        .hero-banner-swiper .swiper-slide {
-            margin-right: 24px;
         }
     }
 
@@ -134,7 +128,7 @@
                 <div class="swiper-wrapper py-1">
 
                     <!-- Slide 1: Blooming Love & Celebrations (Deep Navy Floral) -->
-                    <div class="swiper-slide !w-[86vw] sm:!w-[520px] md:!w-[600px] lg:!w-[680px] xl:!w-[720px]">
+                    <div class="swiper-slide">
                         <a href="{{ route('events.index', ['category' => 'cat-proposal-anniversary']) }}" 
                            draggable="false"
                            class="block relative w-full h-[165px] sm:h-[185px] md:h-[205px] lg:h-[215px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-md cursor-pointer select-none group"
@@ -167,7 +161,7 @@
                     </div>
 
                     <!-- Slide 2: Royal Haldi & Weddings (Deep Emerald Green) -->
-                    <div class="swiper-slide !w-[86vw] sm:!w-[520px] md:!w-[600px] lg:!w-[680px] xl:!w-[720px]">
+                    <div class="swiper-slide">
                         <a href="{{ route('events.index', ['category' => 'cat-weddings-sangeet']) }}" 
                            draggable="false"
                            class="block relative w-full h-[165px] sm:h-[185px] md:h-[205px] lg:h-[215px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-md cursor-pointer select-none group"
@@ -200,7 +194,7 @@
                     </div>
 
                     <!-- Slide 3: High-Bass DJ & House Party (Warm Golden Amber) -->
-                    <div class="swiper-slide !w-[86vw] sm:!w-[520px] md:!w-[600px] lg:!w-[680px] xl:!w-[720px]">
+                    <div class="swiper-slide">
                         <a href="{{ route('events.index', ['category' => 'cat-house-party']) }}" 
                            draggable="false"
                            class="block relative w-full h-[165px] sm:h-[185px] md:h-[205px] lg:h-[215px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-md cursor-pointer select-none group"
@@ -233,7 +227,7 @@
                     </div>
 
                     <!-- Slide 4: Artisanal Birthday Celebrations (Warm Champagne Beige) -->
-                    <div class="swiper-slide !w-[86vw] sm:!w-[520px] md:!w-[600px] lg:!w-[680px] xl:!w-[720px]">
+                    <div class="swiper-slide">
                         <a href="{{ route('events.index', ['category' => 'cat-birthdays']) }}" 
                            draggable="false"
                            class="block relative w-full h-[165px] sm:h-[185px] md:h-[205px] lg:h-[215px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-md cursor-pointer select-none group"
@@ -316,11 +310,10 @@
                         bannerEl.swiper.update();
                     } else {
                         new Swiper('.hero-banner-swiper', {
-                            slidesPerView: 'auto',
+                            slidesPerView: 1.15,
                             centeredSlides: true,
                             loop: true,
-                            loopedSlides: 4,
-                            spaceBetween: 16,
+                            spaceBetween: 14,
                             speed: 600,
                             observer: true,
                             observeParents: true,
@@ -333,9 +326,19 @@
                             grabCursor: true,
                             breakpoints: {
                                 640: {
+                                    slidesPerView: 1.25,
+                                    spaceBetween: 18,
+                                },
+                                768: {
+                                    slidesPerView: 1.32,
                                     spaceBetween: 20,
                                 },
                                 1024: {
+                                    slidesPerView: 1.5,
+                                    spaceBetween: 22,
+                                },
+                                1280: {
+                                    slidesPerView: 1.75,
                                     spaceBetween: 24,
                                 }
                             }
@@ -369,7 +372,7 @@
                     </div>
                     <div>
                         <h4 class="text-xs sm:text-[13px] font-heading font-extrabold text-gray-900 dark:text-white leading-tight">Zero Upfront Advance</h4>
-                        <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-normal">Pay offline after setup is ready</p>
+                        <p class="hidden sm:block text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-normal">Pay offline after setup is ready</p>
                     </div>
                 </div>
 
@@ -380,7 +383,7 @@
                     </div>
                     <div>
                         <h4 class="text-xs sm:text-[13px] font-heading font-extrabold text-gray-900 dark:text-white leading-tight">100% On-Time Setup</h4>
-                        <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-normal">Ready 1 hr before guests arrive</p>
+                        <p class="hidden sm:block text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-normal">Ready 1 hr before guests arrive</p>
                     </div>
                 </div>
 
@@ -391,7 +394,7 @@
                     </div>
                     <div>
                         <h4 class="text-xs sm:text-[13px] font-heading font-extrabold text-gray-900 dark:text-white leading-tight">All Indore Covered</h4>
-                        <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-normal">Vijay Nagar, Palasia, Bypass & more</p>
+                        <p class="hidden sm:block text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-normal">Vijay Nagar, Palasia, Bypass & more</p>
                     </div>
                 </div>
 
@@ -402,7 +405,7 @@
                     </div>
                     <div>
                         <h4 class="text-xs sm:text-[13px] font-heading font-extrabold text-gray-900 dark:text-white leading-tight">Dedicated Coordinator</h4>
-                        <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-normal">Direct planner on call & WhatsApp</p>
+                        <p class="hidden sm:block text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-normal">Direct planner on call & WhatsApp</p>
                     </div>
                 </div>
 

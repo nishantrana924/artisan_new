@@ -5819,10 +5819,15 @@ html.dark .package-detail-page button[onclick="openFullGalleryModal()"] {
     color: #FFFFFF !important;
 }
 
-/* On pages with mobile sticky bottom CTA, position the floating WhatsApp widget above it on mobile */
+/* On pages with mobile sticky bottom CTA, position the floating WhatsApp widget and footer above it on mobile */
 @media (max-width: 767px) {
-    body.hospitality-page #whatsapp-floating-widget {
-        bottom: 5.5rem !important;
+    body.hospitality-page footer,
+    body:has(.package-detail-sticky-bar) footer {
+        padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px)) !important;
+    }
+    body.hospitality-page #whatsapp-floating-widget,
+    body:has(.package-detail-sticky-bar) #whatsapp-floating-widget {
+        bottom: 5.75rem !important;
     }
 }
 
@@ -5868,12 +5873,32 @@ html.dark .package-detail-page button[onclick="openFullGalleryModal()"] {
 [data-theme="light"] h2.text-white,
 [data-theme="light"] h3.text-white,
 [data-theme="light"] h4.text-white,
-[data-theme="light"] span.text-white,
+[data-theme="light"] span.text-white:not(.checkout-step-num):not([style*="color"]),
 [data-theme="light"] p.text-white,
-[data-theme="light"] div.text-white,
+[data-theme="light"] div.text-white:not([style*="color"]),
 [data-theme="light"] select,
 [data-theme="light"] input {
     color: var(--text-main) !important;
+}
+
+/* Ensure step numbers in checkout stay bright white on dark circles */
+.checkout-step-num,
+[data-theme="light"] .checkout-step-num,
+[data-theme="light"] span.checkout-step-num {
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px !important;
+    min-height: 22px !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #ffffff !important;
+    background-color: #18181b !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    flex-shrink: 0 !important;
 }
 
 /* Force light theme colors for select menus, text fields, and placeholders */

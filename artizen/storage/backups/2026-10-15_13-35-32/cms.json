@@ -1,0 +1,60 @@
+{
+    "hero_slides": [
+        {
+            "image": "/assets/images/hero/1.jpg",
+            "badge": "PLAN, BOOK & RELAX",
+            "title": "ELEVATE YOUR CELEBRATIONS",
+            "desc": "Book complete premium decor, sound, and lighting setups instantly for birthdays, house parties, and sangeet.",
+            "link1": "/events",
+            "btn1Text": "Explore Packages",
+            "link2": "https://wa.me/919131668156",
+            "btn2Text": "WhatsApp Inquiry"
+        },
+        {
+            "image": "/assets/images/hero/2.jpg",
+            "badge": "SOUNDS OF ARTIZEN",
+            "title": "HIGH-BASS PARTY RIGS",
+            "desc": "Professional active speaker columns, live DJs, strobes, and concert fog delivered directly to your venue.",
+            "link1": "/events",
+            "btn1Text": "View DJ Setups",
+            "link2": "https://wa.me/919131668156",
+            "btn2Text": "Book Instant"
+        },
+        {
+            "image": "/assets/images/hero/3.jpg",
+            "badge": "ROMANTIC MEMORIES",
+            "title": "ROYAL STAGES & DECORS",
+            "desc": "Exquisite wedding mandaps, traditional haldi Urli setups, and premium anniversary flower panels.",
+            "link1": "/events",
+            "btn1Text": "View Weddings",
+            "link2": "https://wa.me/919131668156",
+            "btn2Text": "Contact Planner"
+        }
+    ],
+    "about": {
+        "badge": "INDORE CELEBRATION SPECIALISTS",
+        "title": "Curating Unforgettable Celebrations Across Indore",
+        "desc": "We engineered the smoothest event booking flow in Indore. Forget calling multiple decorators, negotiating sound rentals, or coordinating with DJs separately. With Artizen, choose your complete setup, book in 60 seconds, and let our verified team execute on-site with perfection.",
+        "image": "/assets/images/hero/1.jpg",
+        "images": [
+            "/assets/images/hero/1.jpg"
+        ],
+        "cards": [
+            {
+                "icon": "fa-solid fa-clock",
+                "title": "24/7 SUPPORT",
+                "desc": "Our support team is live 24/7 to resolve booking queries instantly."
+            },
+            {
+                "icon": "fa-solid fa-bolt",
+                "title": "INSTANT SETUP",
+                "desc": "Seamless delivery and basic setups installed on-site within hours."
+            },
+            {
+                "icon": "fa-solid fa-handshake-angle",
+                "title": "100% OFFLINE PAY",
+                "desc": "Transparent offline payment after booking confirmation."
+            }
+        ]
+    }
+}

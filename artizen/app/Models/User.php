@@ -22,8 +22,23 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'avatar',
+        'google_id',
         'is_admin',
     ];
+
+    /**
+     * Get user avatar URL.
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        if (!empty($this->avatar)) {
+            return $this->avatar;
+        }
+
+        $name = urlencode($this->name ?: 'Customer');
+        return "https://ui-avatars.com/api/?name={$name}&background=18181b&color=ffd600&bold=true&format=svg";
+    }
 
     /**
      * The attributes that should be hidden for serialization.

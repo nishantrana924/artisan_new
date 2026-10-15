@@ -3,8 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Services\JsonStorageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 /**
  * AdminPageController
@@ -24,6 +29,20 @@ class AdminPageController extends Controller
         $faqs       = JsonStorageService::read('faqs.json', []);
         $artists    = JsonStorageService::read('artists.json', []);
         $cms        = JsonStorageService::read('cms.json', []);
+        if (empty($cms['hero_slides'])) {
+            $cms['hero_slides'] = [
+                [
+                    'image' => '/assets/images/hero/1.jpg',
+                    'badge' => 'PLAN, BOOK & RELAX',
+                    'title' => 'ELEVATE YOUR CELEBRATIONS',
+                    'desc' => 'Book complete premium decor, sound, and lighting setups instantly for birthdays, house parties, and sangeet.',
+                    'link1' => '/events',
+                    'btn1Text' => 'Explore Packages',
+                    'link2' => 'https://wa.me/919131668156',
+                    'btn2Text' => 'WhatsApp Inquiry'
+                ]
+            ];
+        }
         $settings   = JsonStorageService::read('settings.json', []);
 
         $defaultLegalPages = app(\App\Http\Controllers\LegalController::class)->getDefaultLegalPages();
@@ -238,16 +257,7 @@ class AdminPageController extends Controller
         ));
     }
 
-    // ---------------------------------------------------------------------------
-    // About Page
-    // ---------------------------------------------------------------------------
-    public function about(Request $request)
-    {
-        return view('admin.pages.about', array_merge(
-            $this->allData($request),
-            ['adminActivePage' => 'about-manager']
-        ));
-    }
+
 
     // ---------------------------------------------------------------------------
     // Legal Pages
@@ -260,14 +270,150 @@ class AdminPageController extends Controller
         ));
     }
 
+    /**
+     * Resolve the current authenticated administrator user.
+     */
+    public function getAdminUser(): ?User
+    {
+        if (Auth::check() && Auth::user()->isAdmin()) {
+            return Auth::user();
+        }
+
+        $sessionEmail = session('admin_email');
+        if ($sessionEmail) {
+            $user = User::where('email', $sessionEmail)->first();
+            if ($user) {
+                Auth::login($user);
+                return $user;
+            }
+        }
+
+        $admin = User::where('is_admin', true)->first();
+        if ($admin) {
+            Auth::login($admin);
+            return $admin;
+        }
+
+        return null;
+    }
+
     // ---------------------------------------------------------------------------
     // Settings page
     // ---------------------------------------------------------------------------
     public function settings(Request $request)
     {
+        // Purge legacy SEO / surcharges data from settings database table
+        try {
+            DB::table('settings')->whereIn('key', ['meta_title', 'meta_description', 'meta_keywords', 'surcharges', 'seo'])->delete();
+        } catch (\Throwable $e) {}
+
+        $adminUser = $this->getAdminUser();
+
         return view('admin.pages.settings', array_merge(
             $this->allData($request),
-            ['adminActivePage' => 'settings']
+            [
+                'adminActivePage' => 'settings',
+                'adminUser'       => $adminUser,
+            ]
         ));
+    }
+
+    /**
+     * Update administrator profile details (Name, Email, Avatar).
+     */
+    public function updateProfile(Request $request)
+    {
+        $admin = $this->getAdminUser();
+        if (!$admin) {
+            return redirect()->route('admin.settings')->with('error', 'Administrator account not found.');
+        }
+
+        $validated = $request->validate([
+            'name'   => ['required', 'string', 'max:100'],
+            'email'  => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($admin->id)],
+            'avatar' => ['nullable', 'string', 'max:500'],
+        ], [
+            'name.required'  => 'Administrator name is required.',
+            'email.required' => 'Email address is required.',
+            'email.unique'   => 'This email address is already in use by another user.',
+        ]);
+
+        $admin->name = trim($validated['name']);
+        $admin->email = strtolower(trim($validated['email']));
+        if (array_key_exists('avatar', $validated)) {
+            $admin->avatar = $validated['avatar'] ? trim($validated['avatar']) : null;
+        }
+        $admin->save();
+
+        session(['admin_email' => $admin->email]);
+
+        return redirect()->route('admin.settings')->with('success', 'Profile details updated successfully!');
+    }
+
+    /**
+     * Update administrator password with current password verification.
+     */
+    public function updatePassword(Request $request)
+    {
+        $admin = $this->getAdminUser();
+        if (!$admin) {
+            return redirect()->route('admin.settings')->with('error', 'Administrator account not found.');
+        }
+
+        $request->validate([
+            'current_password' => ['required', 'string'],
+            'password'         => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'current_password.required' => 'Current password is required.',
+            'password.required'         => 'New password is required.',
+            'password.min'              => 'New password must be at least 8 characters.',
+            'password.confirmed'        => 'Password confirmation does not match.',
+        ]);
+
+        if (!Hash::check($request->current_password, $admin->password)) {
+            return back()->withErrors([
+                'current_password' => 'The provided current password does not match your existing password.',
+            ])->withInput();
+        }
+
+        $admin->password = Hash::make($request->password);
+        $admin->save();
+
+        return redirect()->route('admin.settings')->with('success', 'Password updated successfully! Keep your credentials safe.');
+    }
+
+    /**
+     * Emergency in-session password reset when admin forgets existing password.
+     */
+    public function emergencyPasswordReset(Request $request)
+    {
+        $admin = $this->getAdminUser();
+        if (!$admin) {
+            return redirect()->route('admin.settings')->with('error', 'Administrator account not found.');
+        }
+
+        $request->validate([
+            'admin_confirmation' => ['required', 'string'],
+            'new_password'       => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'admin_confirmation.required' => 'Please confirm your administrator email or type RESET.',
+            'new_password.required'       => 'New password is required.',
+            'new_password.min'            => 'New password must be at least 8 characters.',
+            'new_password.confirmed'      => 'Password confirmation does not match.',
+        ]);
+
+        $confirmation = trim($request->admin_confirmation);
+        $expectedEmail = trim($admin->email);
+
+        if (strcasecmp($confirmation, $expectedEmail) !== 0 && strtoupper($confirmation) !== 'RESET') {
+            return back()->withErrors([
+                'admin_confirmation' => "Security verification failed. Please enter \"{$expectedEmail}\" or \"RESET\" to confirm authorization.",
+            ])->withInput();
+        }
+
+        $admin->password = Hash::make($request->new_password);
+        $admin->save();
+
+        return redirect()->route('admin.settings')->with('success', 'Emergency password reset completed! Your new password has been set.');
     }
 }

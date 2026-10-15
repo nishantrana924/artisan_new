@@ -28,19 +28,19 @@
         <div class="lg:col-span-7 text-left flex flex-col gap-6">
             <div>
                 <span class="inline-flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-gold uppercase tracking-wider mb-3">
-                    <span class="w-1.5 h-1.5 rounded-full bg-gold"></span> {{ $about['badge'] }}
+                    <span class="w-1.5 h-1.5 rounded-full bg-gold"></span> {{ $about['badge'] ?? 'INDORE CELEBRATION SPECIALISTS' }}
                 </span>
                 <h2 class="font-heading font-bold text-3xl md:text-5xl uppercase tracking-tighter leading-none mb-4">
-                    {!! nl2br(e($about['title'])) !!}
+                    {!! nl2br(e($about['title'] ?? 'Curating Unforgettable Celebrations Across Indore')) !!}
                 </h2>
                 <div class="font-body text-xs md:text-sm text-gray-300 leading-relaxed text-left text-editor-content">
-                    {!! $about['desc'] !!}
+                    {!! $about['desc'] ?? 'Artizen is Indore\'s premier celebration platform bringing together designer floral decor, concert-grade acoustic sound, ambient lighting, and verified on-site execution.' !!}
                 </div>
             </div>
 
             <!-- Value Cards (Dynamic Grid of Icons) -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                @foreach ($about['cards'] as $card)
+                @foreach ($about['cards'] ?? [] as $card)
                     <div class="bg-[#121212] border border-white/5 p-4 rounded-xl flex flex-col justify-between hover:border-gold/40 transition-all duration-300 text-left">
                         <div class="text-gold mb-3 text-lg">
                             <i class="{{ $card['icon'] ?? 'fa-solid fa-star' }} text-gold text-xl"></i>

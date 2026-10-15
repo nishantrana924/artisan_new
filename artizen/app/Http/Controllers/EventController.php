@@ -219,27 +219,50 @@ class EventController extends Controller
         $cleanSlug = Str::slug(str_replace('cat-', '', $slug));
         if ($cleanSlug === 'adult-birthdays') $cleanSlug = 'birthdays';
 
-        // Find current category
+        // 1. Check if the slug matches a package first - if so, redirect directly to events.show
+        $allPackages = \App\Services\CelebrationCatalogService::getAllPackages();
+        foreach ($allPackages as $pkg) {
+            $pkgSlug = $pkg['slug'] ?? '';
+            $pkgTitleSlug = Str::slug($pkg['title'] ?? '');
+            if ($slug === $pkgSlug || $cleanSlug === $pkgSlug || $slug === $pkgTitleSlug || $cleanSlug === $pkgTitleSlug) {
+                return redirect()->route('events.show', ['slug' => $pkgSlug], 301);
+            }
+        }
+
+        // 2. Find current category from categoriesList
         $currentCategory = null;
         foreach ($categoriesList as $cat) {
             $catSlug = $cat['slug'] ?? Str::slug($cat['title'] ?? '');
             if ($catSlug === 'adult-birthdays') $catSlug = 'birthdays';
 
-            if ($catSlug === $cleanSlug || Str::slug($cat['title'] ?? '') === $cleanSlug || ($cat['id'] ?? '') == $slug) {
+            if ($catSlug === $cleanSlug || Str::slug($cat['title'] ?? '') === $cleanSlug || ($cat['id'] ?? '') == $slug || ($cat['nav_slug'] ?? '') === $slug) {
                 $currentCategory = $cat;
                 break;
             }
         }
 
+        // 3. Fallback: Check database Category model directly
         if (!$currentCategory) {
-            $currentCategory = [
-                'id' => 1,
-                'title' => ucwords(str_replace('-', ' ', $cleanSlug)),
-                'slug' => $cleanSlug,
-                'desc' => 'Explore ready-to-book setup packages for ' . ucwords(str_replace('-', ' ', $cleanSlug)) . ' in Indore.',
-                'image' => asset('assets/images/hero/1.jpg'),
-                'active' => true
-            ];
+            $dbCat = \App\Models\Category::where('slug', $slug)
+                ->orWhere('slug', $cleanSlug)
+                ->orWhere('nav_slug', $slug)
+                ->orWhere('nav_slug', 'cat-' . $cleanSlug)
+                ->first();
+            if ($dbCat) {
+                $currentCategory = [
+                    'id' => $dbCat->id,
+                    'title' => $dbCat->title,
+                    'slug' => $dbCat->slug,
+                    'desc' => 'Explore ready-to-book setup packages for ' . $dbCat->title . ' in Indore.',
+                    'image' => $dbCat->image ?: asset('assets/images/hero/1.jpg'),
+                    'active' => (bool)$dbCat->active
+                ];
+            }
+        }
+
+        // If it neither matches a category nor an event package, return 404
+        if (!$currentCategory) {
+            abort(404);
         }
 
         // Load packages via JsonStorageService
@@ -284,6 +307,30 @@ class EventController extends Controller
                         'all_images' => $allPkgImages,
                         'inclusions' => $tier['inclusions'] ?? [],
                         'badge' => $tier['badge'] ?? null
+                    ];
+                }
+            }
+        }
+
+        if (empty($categoryPackages)) {
+            $allCelebrationPackages = \App\Services\CelebrationCatalogService::getAllPackages();
+            foreach ($allCelebrationPackages as $p) {
+                $pCatId = $p['category_id'] ?? '';
+                $pCatName = strtolower($p['category_name'] ?? '');
+                if ($pCatId === 'cat-' . $cleanSlug || $pCatId === $cleanSlug || str_contains($pCatName, $cleanSlug) || $cleanSlug === Str::slug($p['category_name'] ?? '')) {
+                    $categoryPackages[] = [
+                        'catId' => $p['id'] ?? 'pkg',
+                        'slug' => $p['slug'] ?? Str::slug($p['title']),
+                        'tierIndex' => 0,
+                        'name' => $p['title'],
+                        'price' => $p['price'] ?? 4999,
+                        'original_price' => $p['original_price'] ?? null,
+                        'desc' => $p['desc'] ?? '',
+                        'image' => $p['image'] ?? asset('assets/images/hero/1.jpg'),
+                        'secondary_image' => $p['image'] ?? asset('assets/images/hero/1.jpg'),
+                        'all_images' => [$p['image'] ?? asset('assets/images/hero/1.jpg')],
+                        'inclusions' => $p['inclusions'] ?? [],
+                        'badge' => $p['badge'] ?? null
                     ];
                 }
             }
@@ -384,7 +431,7 @@ class EventController extends Controller
                 'rating'         => 4.9,
                 'reviews_count'  => 65,
                 'image'          => $dbPkgModel->image ?: asset('assets/images/hero/1.jpg'),
-                'gallery'        => is_array($dbPkgModel->gallery) && !empty($dbPkgModel->gallery) ? $dbPkgModel->gallery : [$dbPkgModel->image],
+                'gallery'        => is_array($dbPkgModel->gallery) && !empty($dbPkgModel->gallery) ? $dbPkgModel->gallery : [],
                 'desc'           => $dbPkgModel->description ?? '',
                 'tags'           => $tags,
                 'inclusions'     => $inclusions,
@@ -506,8 +553,10 @@ class EventController extends Controller
             }
         }
 
-        if ($matchedId && !isset($combinedDb[$matchedId])) {
+        if ($matchedId) {
             $combinedDb[$matchedId] = $matchedPackage;
+            $numKey = str_replace('pkg-', '', (string)$matchedId);
+            $combinedDb[$numKey] = $matchedPackage;
         }
 
         // Filter similar/related celebrations from master CelebrationCatalogService
@@ -561,13 +610,22 @@ class EventController extends Controller
         ];
 
         $gallery = !empty($pkg['gallery']) && is_array($pkg['gallery']) ? array_values(array_filter($pkg['gallery'])) : [];
-        if (empty($gallery)) {
-            $gallery = [
-                $pkg['image'],
-                asset('images/banners/custom_gathering_lights.webp'),
-                asset('images/banners/custom_romantic_table.webp'),
-                asset('images/banners/custom_fairy_reception.webp')
-            ];
+        if (count($gallery) <= 1) {
+            $catId = $pkg['category_id'] ?? '';
+            $relatedImgs = [];
+            foreach (\App\Services\CelebrationCatalogService::getAllPackages() as $cPkg) {
+                if (($cPkg['category_id'] ?? '') === $catId && !empty($cPkg['image']) && $cPkg['image'] !== $pkg['image']) {
+                    $relatedImgs[] = $cPkg['image'];
+                }
+            }
+            if (empty($relatedImgs)) {
+                $relatedImgs = [
+                    asset('images/banners/custom_gathering_lights.webp'),
+                    asset('images/banners/custom_romantic_table.webp'),
+                    asset('images/banners/custom_fairy_reception.webp')
+                ];
+            }
+            $gallery = array_values(array_unique(array_filter(array_merge([$pkg['image']], $gallery, array_slice($relatedImgs, 0, 4)))));
         }
 
         $tiers = [];

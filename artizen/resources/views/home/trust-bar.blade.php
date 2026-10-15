@@ -4,7 +4,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 py-5 sm:py-6">
 
             <!-- Item 1: On-Site Venue Setup (Indore) -->
-            <div class="flex items-center justify-center gap-3.5 sm:gap-4 px-4 sm:px-6 py-3 md:py-1 border-b md:border-b-0 md:border-r border-gray-200/80 dark:border-white/10 group">
+            <div class="flex items-center justify-start md:justify-center gap-3.5 sm:gap-4 px-1 sm:px-4 md:px-6 py-3.5 md:py-1 border-b md:border-b-0 md:border-r border-gray-200/80 dark:border-white/10 group">
                 <div class="shrink-0 transition-transform duration-300 group-hover:scale-105">
                     <svg class="w-8 h-8 sm:w-9 sm:h-9 text-[#1E293B] dark:text-[#E2E8F0]" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <!-- Globe -->
@@ -30,7 +30,7 @@
             </div>
 
             <!-- Item 2: 100% Safe Booking & Offline Pay -->
-            <div class="flex items-center justify-center gap-3.5 sm:gap-4 px-4 sm:px-6 py-3 md:py-1 border-b md:border-b-0 md:border-r border-gray-200/80 dark:border-white/10 group">
+            <div class="flex items-center justify-start md:justify-center gap-3.5 sm:gap-4 px-1 sm:px-4 md:px-6 py-3.5 md:py-1 border-b md:border-b-0 md:border-r border-gray-200/80 dark:border-white/10 group">
                 <div class="shrink-0 transition-transform duration-300 group-hover:scale-105">
                     <svg class="w-8 h-8 sm:w-9 sm:h-9 text-[#1E293B] dark:text-[#E2E8F0]" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <!-- Back card -->
@@ -58,7 +58,7 @@
             </div>
 
             <!-- Item 3: Dedicated Help Center -->
-            <div class="flex items-center justify-center gap-3.5 sm:gap-4 px-4 sm:px-6 py-3 md:py-1 group">
+            <div class="flex items-center justify-start md:justify-center gap-3.5 sm:gap-4 px-1 sm:px-4 md:px-6 py-3.5 md:py-1 group">
                 <div class="shrink-0 transition-transform duration-300 group-hover:scale-105">
                     <svg class="w-8 h-8 sm:w-9 sm:h-9 text-[#1E293B] dark:text-[#E2E8F0]" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <!-- Head / Circle -->

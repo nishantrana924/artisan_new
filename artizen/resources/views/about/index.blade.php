@@ -1,131 +1,285 @@
 @extends('layouts.app')
 
+@section('title', 'About Us | Curated Celebrations in Indore | ARTIZEN')
+@section('meta_description', 'Learn about Artizen, Indore\'s premier event booking platform for birthdays, proposals, anniversaries, house parties, and weddings with verified on-site execution and transparent offline pricing.')
+
 @section('content')
-<!-- About Us Header Banner -->
-<section class="relative bg-black py-24 flex items-center justify-center overflow-hidden border-b border-white/10">
-    <div class="absolute inset-0 bg-cover bg-center opacity-30 pointer-events-none" style="background-image: url('{{ $about['image'] ?? '/assets/images/hero/1.jpg' }}');"></div>
-    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none"></div>
-    
-    <div class="relative z-10 text-center px-4">
-        <span class="inline-flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-gold uppercase tracking-wider mb-3">
-            <span class="w-1.5 h-1.5 rounded-full bg-gold"></span> Dynamic Portal CMS
-        </span>
-        <h1 class="font-heading font-extrabold text-4xl md:text-6xl text-white uppercase tracking-tight leading-none">
-            About Us
-        </h1>
-        <p class="font-body text-xs md:text-sm text-gray-400 mt-3 max-w-xl mx-auto leading-relaxed">
-            Discover the vision behind Artizen's premium Indore celebrations booking platform.
-        </p>
-    </div>
-</section>
+<div class="min-h-screen bg-[#FCFBF8] text-gray-950 font-body select-none">
 
-<!-- Main About Content Split -->
-<section class="bg-[#0a0a0a] text-white py-20 relative overflow-hidden">
-    <div class="w-full px-4 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
-        
-        <!-- Left Column: Main Uploaded Image (Swiper Slider) -->
-        <div class="lg:col-span-6 flex justify-center">
-            <div class="relative w-full aspect-[4/3] max-w-xl rounded-2xl overflow-hidden border border-white/10 shadow-2xl group">
-                <div class="swiper about-swiper w-full h-full">
-                    <div class="swiper-wrapper">
-                        @foreach ($about['images'] ?? [ $about['image'] ?? '/assets/images/hero/1.jpg' ] as $imgUrl)
-                            <div class="swiper-slide w-full h-full">
-                                <img src="{{ $imgUrl }}" alt="Artizen Experience Setup" class="w-full h-full object-cover group-hover:scale-102 transition-all duration-500">
-                            </div>
-                        @endforeach
-                    </div>
-                    <!-- Pagination dots -->
-                    <div class="swiper-pagination about-swiper-pagination"></div>
-                </div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10 pointer-events-none"></div>
-                <!-- Dynamic badge overlay -->
-                <span class="absolute bottom-4 left-4 bg-black/85 backdrop-blur-md text-[#FFD600] text-[10px] md:text-xs font-bold px-3.5 py-1.5 rounded-full uppercase tracking-wider border border-[#FFD600]/40 shadow-lg z-20 flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#FFD600]"></span>
-                    Indore's Top Booking Platform
-                </span>
-            </div>
-        </div>
-
-        <!-- Right Column: Text & Content -->
-        <div class="lg:col-span-6 text-left flex flex-col gap-6">
-            <div>
-                <span class="inline-flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-gold uppercase tracking-wider mb-3">
-                    <span class="w-1.5 h-1.5 rounded-full bg-gold"></span> {{ $about['badge'] ?? 'INSTANT BOOKING' }}
-                </span>
-                <h2 class="font-heading font-bold text-3xl md:text-5xl uppercase tracking-tighter leading-none text-white">
-                    {!! nl2br(e($about['title'] ?? 'BOOKING CONFIRMED IN SECONDS')) !!}
-                </h2>
-            </div>
+    <!-- ========================================================
+         SECTION A: CLEAN MINIMAL HERO & BREADCRUMB
+         ======================================================== -->
+    <section class="border-b border-[#EFE7D8] bg-[#FAF7F2] py-8 sm:py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
-            <div class="font-body text-xs md:text-sm text-gray-300 leading-relaxed text-left max-w-2xl text-editor-content">
-                {!! $about['desc'] ?? 'We engineered the fastest event booking flow in the industry. Choose your setup, book instantly, and relax.' !!}
+            <!-- Breadcrumbs (Text only, no arrows) -->
+            <nav class="text-xs text-gray-500 font-medium mb-4">
+                <a href="{{ route('home') }}" class="text-gray-600">Home</a>
+                <span class="mx-1.5 text-gray-400">/</span>
+                <span class="text-gray-950 font-semibold">About Us</span>
+            </nav>
+
+            <div class="max-w-3xl">
+                <h1 class="font-heading font-extrabold text-3xl sm:text-4xl md:text-5xl text-gray-950 tracking-tight leading-tight mb-3">
+                    {{ $hero['title'] }}
+                </h1>
+                <p class="text-sm sm:text-base text-gray-600 font-normal leading-relaxed mb-6">
+                    {{ $hero['subtitle'] }}
+                </p>
+
+                <!-- Clean Actions (Zero hover animation) -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="{{ route('events.index') }}" 
+                       class="inline-flex items-center justify-center bg-gray-950 text-white font-heading font-bold text-xs sm:text-[13px] px-5 py-2.5 rounded-xl cursor-pointer">
+                        Explore Celebrations
+                    </a>
+                    <a href="https://wa.me/919131668156?text={{ urlencode('Hi Artizen, I would like to inquire about planning a celebration in Indore.') }}" 
+                       target="_blank" 
+                       rel="noopener noreferrer" 
+                       class="inline-flex items-center justify-center bg-white text-gray-900 border border-[#E8DFC8] font-heading font-bold text-xs sm:text-[13px] px-5 py-2.5 rounded-xl cursor-pointer">
+                        WhatsApp Concierge
+                    </a>
+                </div>
             </div>
-        </div>
-    </div>
-</section>
 
-<!-- Dynamic Values Grid Section -->
-<section class="bg-[#121212] border-t border-white/10 text-white py-20 relative">
-    <div class="w-full px-4 md:px-12 relative z-10 text-center">
-        <div class="max-w-2xl mx-auto mb-16 text-center">
-            <span class="inline-flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-gold uppercase tracking-wider mb-3">
-                EXCELLENCE IN SERVICES
-            </span>
-            <h2 class="font-heading font-bold text-3xl md:text-4xl uppercase tracking-tighter text-white">
-                WHY CHOOSE ARTIZEN
-            </h2>
-            <p class="font-body text-xs text-gray-400 mt-2">
-                We design and manage every function directly to guarantee visual beauty and reliability.
-            </p>
         </div>
+    </section>
 
-        <!-- Value Cards Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-center">
-            @foreach ($about['cards'] ?? [] as $card)
-                <div class="bg-[#0a0a0a] border border-white/5 p-6 rounded-2xl flex flex-col justify-between hover:border-gold/40 transition-all duration-300 text-left shadow-lg">
-                    <div class="text-gold mb-6 text-2xl">
-                        <i class="{{ $card['icon'] ?? 'fa-solid fa-star' }} text-gold text-2xl"></i>
+
+    <!-- ========================================================
+         SECTION B: CURATED PHOTOGRAPHY SHOWCASE (FULL-BLEED 2x2, ZERO EMPTY SPACING)
+         ======================================================== -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 items-stretch">
+            
+            <!-- Main Featured Celebration Visual (Left 6 Columns, Full Height) -->
+            <div class="lg:col-span-6 rounded-2xl overflow-hidden border border-[#E8DFC8] bg-white min-h-[300px] sm:min-h-[400px]">
+                <img src="{{ $hero['main_image'] }}" 
+                     alt="Artizen Celebration Setup Indore" 
+                     class="w-full h-full object-cover block" 
+                     loading="lazy">
+            </div>
+
+            <!-- Curated Celebration Grid (Right 6 Columns - 2x2 Grid, Completely Fills Height) -->
+            <div class="lg:col-span-6 grid grid-cols-2 gap-3.5 sm:gap-4">
+                @foreach($hero['gallery'] as $img)
+                    <div class="rounded-2xl overflow-hidden border border-[#E8DFC8] bg-white aspect-[4/3]">
+                        <img src="{{ $img }}" 
+                             alt="Indore Celebration Setup" 
+                             class="w-full h-full object-cover block" 
+                             loading="lazy">
                     </div>
-                    <div>
-                        <h3 class="font-heading font-bold text-sm uppercase tracking-wider text-white mb-2">{{ $card['title'] ?? 'SERVICE FEATURE' }}</h3>
-                        <div class="font-body text-[11px] text-gray-400 leading-relaxed text-left text-editor-content">
-                            {!! $card['desc'] ?? '' !!}
-                        </div>
+                @endforeach
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ========================================================
+         SECTION C: KEY TRUST METRICS (PURE TYPOGRAPHY, ZERO ICONS)
+         ======================================================== -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-4.5">
+            @foreach($stats as $stat)
+                <div class="bg-white border border-[#E8DFC8] rounded-2xl p-5 sm:p-6 text-left">
+                    <div class="font-heading font-extrabold text-2xl sm:text-3xl md:text-4xl text-gray-950 tracking-tight leading-none mb-1.5">
+                        {{ $stat['value'] }}
+                    </div>
+                    <div class="text-xs sm:text-sm font-heading font-bold text-gray-900">
+                        {{ $stat['label'] }}
+                    </div>
+                    <div class="text-[11px] text-gray-500 font-normal mt-0.5">
+                        {{ $stat['sub'] }}
                     </div>
                 </div>
             @endforeach
         </div>
-    </div>
-</section>
+    </section>
 
-<style>
-    /* Styling elements inside rich text descriptions */
-    .text-editor-content p {
-        margin-bottom: 1rem;
-    }
-    .text-editor-content ul {
-        list-style-type: disc;
-        margin-left: 1.5rem;
-        margin-bottom: 1rem;
-    }
-    .text-editor-content ol {
-        list-style-type: decimal;
-        margin-left: 1.5rem;
-        margin-bottom: 1rem;
-    }
-</style>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        if (typeof Swiper !== 'undefined') {
-            new Swiper('.about-swiper', {
-                effect: 'fade',
-                fadeEffect: { crossFade: true },
-                loop: true,
-                autoplay: { delay: 4000, disableOnInteraction: false },
-                pagination: { el: '.about-swiper-pagination', clickable: true }
-            });
-        }
-    });
-</script>
+    <!-- ========================================================
+         SECTION D: THE ARTIZEN DIFFERENCE (100% VISIBLE, ZERO DOTS)
+         ======================================================== -->
+    <section class="border-y border-[#EFE7D8] bg-[#FAF7F2] py-12 sm:py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="max-w-2xl mb-8 text-left">
+                <h2 class="font-heading font-extrabold text-2xl sm:text-3xl text-gray-950 tracking-tight mb-1.5">
+                    A Better Way to Celebrate
+                </h2>
+                <p class="text-xs sm:text-sm text-gray-600 font-normal">
+                    We replaced vendor fragmentation and unpredictable costs with complete, transparent packages.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                
+                <!-- The Traditional Way Card -->
+                <div class="bg-[#FAF7F2] border border-[#E8DFC8] rounded-2xl p-6 sm:p-8 text-left flex flex-col justify-between">
+                    <div>
+                        <span class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-gray-400 block mb-1.5">
+                            Traditional Planning
+                        </span>
+                        <h3 class="font-heading font-extrabold text-xl sm:text-2xl text-gray-950 mb-5">
+                            Fragmented & Stressful
+                        </h3>
+                        <div class="divide-y divide-[#E8DFC8] text-xs sm:text-[13px] text-gray-600 font-normal">
+                            @foreach($comparison['traditional'] as $point)
+                                <div class="py-3 first:pt-0 last:pb-0">
+                                    {{ $point }}
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                <!-- The Artizen Way Card -->
+                <div class="bg-white border-2 border-gray-950 rounded-2xl p-6 sm:p-8 text-left flex flex-col justify-between shadow-xs">
+                    <div>
+                        <span class="text-[11px] font-heading font-extrabold uppercase tracking-wider text-amber-700 block mb-1.5">
+                            The Artizen Standard
+                        </span>
+                        <h3 class="font-heading font-extrabold text-xl sm:text-2xl text-gray-950 mb-5">
+                            Curated & Effortless
+                        </h3>
+                        <div class="divide-y divide-[#E8DFC8] text-xs sm:text-[13px] text-gray-950 font-semibold">
+                            @foreach($comparison['artizen'] as $point)
+                                <div class="py-3 first:pt-0 last:pb-0">
+                                    {{ $point }}
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ========================================================
+         SECTION E: 3-STEP EFFORTLESS JOURNEY (CLEAN CARDS)
+         ======================================================== -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+        <div class="max-w-2xl mb-8 text-left">
+            <h2 class="font-heading font-extrabold text-2xl sm:text-3xl text-gray-950 tracking-tight mb-1.5">
+                How It Works
+            </h2>
+            <p class="text-xs sm:text-sm text-gray-600 font-normal">
+                Three simple steps from browsing to celebrating with zero online payment required.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            @foreach($steps as $step)
+                <div class="bg-white border border-[#E8DFC8] rounded-2xl p-6 sm:p-7 text-left flex flex-col justify-between">
+                    <div>
+                        <div class="font-heading font-black text-2xl sm:text-3xl text-gray-300 tracking-tight leading-none mb-3">
+                            {{ $step['number'] }}
+                        </div>
+                        <h3 class="font-heading font-bold text-base text-gray-950 mb-2">
+                            {{ $step['title'] }}
+                        </h3>
+                        <p class="text-xs text-gray-600 leading-relaxed font-normal">
+                            {{ $step['desc'] }}
+                        </p>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </section>
+
+
+    <!-- ========================================================
+         SECTION F: SPACES WE TRANSFORM (CLEAN 4-GRID, ZERO HOVER ANIMATION)
+         ======================================================== -->
+    <section class="border-t border-[#EFE7D8] bg-[#FAF7F2] py-12 sm:py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="max-w-2xl mb-8 text-left">
+                <h2 class="font-heading font-extrabold text-2xl sm:text-3xl text-gray-950 tracking-tight mb-1.5">
+                    Spaces We Transform
+                </h2>
+                <p class="text-xs sm:text-sm text-gray-600 font-normal">
+                    Custom-fitted setups designed for residential homes, terraces, lawns, and banquet venues across Indore.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-4.5">
+                @foreach($spaces as $space)
+                    <div class="bg-white border border-[#E8DFC8] rounded-2xl overflow-hidden text-left flex flex-col justify-between">
+                        <div class="aspect-[4/3] w-full overflow-hidden bg-gray-100">
+                            <img src="{{ $space['image'] }}" 
+                                 alt="{{ $space['title'] }} Indore" 
+                                 class="w-full h-full object-cover block" 
+                                 loading="lazy">
+                        </div>
+                        <div class="p-4 sm:p-5">
+                            <h3 class="font-heading font-bold text-xs sm:text-sm text-gray-950 mb-1">
+                                {{ $space['title'] }}
+                            </h3>
+                            <p class="text-[11px] text-gray-600 font-normal leading-relaxed">
+                                {{ $space['desc'] }}
+                            </p>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ========================================================
+         SECTION G: INDORE COVERAGE DIRECTORY (CLEAN TEXT, NO BADGES)
+         ======================================================== -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+        <div class="bg-white border border-[#E8DFC8] rounded-2xl p-6 sm:p-8 text-left">
+            <h3 class="font-heading font-extrabold text-base sm:text-lg text-gray-950 mb-1">
+                Serving All Prime Neighborhoods Across Indore
+            </h3>
+            <p class="text-xs sm:text-sm text-gray-600 font-normal mb-6">
+                Our logistics vehicles and technical field crew provide on-time setups across every key hub:
+            </p>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-y-3.5 gap-x-6 text-xs sm:text-[13px] text-gray-950">
+                @foreach($indoreHubs as $hub)
+                    <div class="border-b border-[#EFE7D8] pb-2 text-gray-950 font-bold">
+                        {{ $hub }}
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ========================================================
+         SECTION H: CLEAN CALL-TO-ACTION BANNER (ZERO HOVER ANIMATION)
+         ======================================================== -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div class="bg-[#FAF7F2] border border-[#E8DFC8] rounded-2xl p-8 sm:p-12 text-center">
+            <h2 class="font-heading font-extrabold text-2xl sm:text-3xl text-gray-950 tracking-tight mb-2">
+                Ready to Plan Your Indore Celebration?
+            </h2>
+            <p class="text-xs sm:text-sm text-gray-600 font-normal max-w-xl mx-auto mb-6">
+                Explore our complete collection of curated celebration packages or chat directly with our Indore concierge.
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-3">
+                <a href="{{ route('events.index') }}" 
+                   class="inline-flex items-center justify-center bg-gray-950 text-white font-heading font-bold text-xs sm:text-[13px] px-6 py-3 rounded-xl cursor-pointer">
+                    Explore All Celebrations
+                </a>
+                <a href="https://wa.me/919131668156?text={{ urlencode('Hi Artizen, I would like to plan a celebration in Indore.') }}" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   class="inline-flex items-center justify-center bg-white text-gray-900 border border-[#E8DFC8] font-heading font-bold text-xs sm:text-[13px] px-6 py-3 rounded-xl cursor-pointer">
+                    WhatsApp Concierge
+                </a>
+            </div>
+        </div>
+    </section>
+
+</div>
 @endsection

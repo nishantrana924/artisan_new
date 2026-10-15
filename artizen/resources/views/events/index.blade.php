@@ -18,6 +18,15 @@
                 Discover curated setups, romantic decors, DJ party rigs, and live artists across Indore.
             </p>
         </div>
+
+        @if(session('info'))
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+                <div class="p-3 sm:p-3.5 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-900 text-xs sm:text-sm font-medium flex items-center gap-2.5 shadow-2xs">
+                    <i class="fa-solid fa-circle-info text-amber-600 shrink-0 text-sm"></i>
+                    <span>{{ session('info') }}</span>
+                </div>
+            </div>
+        @endif
     </section>
 
 
@@ -99,14 +108,6 @@
                     <button type="button" onclick="setDrawerFor('all')" class="hover:text-red-600 cursor-pointer ml-1"><i class="fa-solid fa-xmark text-[10px]"></i></button>
                 </span>
             </div>
-
-            <!-- Clear all link (if any filters active) -->
-            <button type="button" 
-                    id="clear-all-filters-link" 
-                    onclick="resetAllCatalogFilters()" 
-                    class="hidden text-[11.5px] font-heading font-bold text-gray-600 hover:text-gray-950 underline cursor-pointer">
-                Clear all filters
-            </button>
         </div>
     </section>
 
