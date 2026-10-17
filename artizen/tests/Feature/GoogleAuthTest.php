@@ -37,7 +37,7 @@ class GoogleAuthTest extends TestCase
     }
 
     /**
-     * Test redirect with credentials calls Socialite driver.
+     * Test  hh redirect with credentials calls Socialite driver.
      */
     public function test_redirect_with_credentials_initiates_oauth(): void
     {
