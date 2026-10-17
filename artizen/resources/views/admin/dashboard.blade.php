@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>Artizen Admin Portal - Event Management Dashboard</title>
 
     <!-- Favicons & App Icons (Matching Public Site) -->
@@ -76,13 +76,35 @@
         }
 
         input[type="text"], input[type="number"], input[type="url"], input[type="email"], select, textarea {
-            font-size: 14px !important;
+            font-size: 14px;
             color: #111827 !important;
             background-color: #FFFFFF !important;
             border: 1px solid #D1D5DB !important;
             border-radius: 8px !important;
             padding: 9px 13px !important;
             transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+        }
+
+        /* Prevent automatic zoom-in on iPhone/iOS mobile inputs & disable double-tap/pinch zoom */
+        @media screen and (max-width: 899px) {
+            html body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+            html body select,
+            html body textarea,
+            html body input[class],
+            html body select[class],
+            html body textarea[class],
+            input.text-xs,
+            select.text-xs,
+            textarea.text-xs,
+            input.text-sm,
+            select.text-sm,
+            textarea.text-sm {
+                font-size: 16px !important;
+            }
+        }
+
+        html, body, button, input, select, textarea, a {
+            touch-action: manipulation;
         }
 
         input[type="text"]:focus, input[type="number"]:focus, input[type="url"]:focus, select:focus, textarea:focus {
@@ -364,25 +386,39 @@
                         </div>
                     </div>
 
-                    <!-- Time Filter Dropdown Form -->
-                    <form action="{{ route('admin.dashboard') }}" method="GET" class="flex flex-wrap items-center gap-2">
-                        <label for="analytics-time-filter" class="sr-only">Time Range Filter</label>
-                        <select id="analytics-time-filter" name="time_filter" onchange="this.form.submit()" class="text-xs font-bold bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-1 focus:ring-[#1E1E24]">
-                            <option value="all" {{ ($analytics['time_filter'] ?? '') === 'all' ? 'selected' : '' }}>All Time</option>
-                            <option value="today" {{ ($analytics['time_filter'] ?? '') === 'today' ? 'selected' : '' }}>Today</option>
-                            <option value="7_days" {{ ($analytics['time_filter'] ?? '') === '7_days' ? 'selected' : '' }}>Last 7 Days</option>
-                            <option value="30_days" {{ ($analytics['time_filter'] ?? '') === '30_days' ? 'selected' : '' }}>Last 30 Days</option>
-                            <option value="this_month" {{ ($analytics['time_filter'] ?? '') === 'this_month' ? 'selected' : '' }}>This Month</option>
-                            <option value="custom" {{ ($analytics['time_filter'] ?? '') === 'custom' ? 'selected' : '' }}>Custom Date Range</option>
-                        </select>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Quick Links -->
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('admin.bookings') }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold rounded-lg transition-colors border border-gray-200">
+                                <i class="fa-solid fa-list-check text-xs text-gray-600"></i>
+                                <span>Bookings ({{ number_format($analytics['total_bookings'] ?? 0) }})</span>
+                            </a>
+                            <a href="{{ route('admin.customers') }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 text-xs font-bold rounded-lg transition-colors border border-indigo-200">
+                                <i class="fa-solid fa-users text-xs text-indigo-600"></i>
+                                <span>Customers ({{ number_format($analytics['total_customers'] ?? \App\Models\Customer::count()) }})</span>
+                            </a>
+                        </div>
 
-                        @if(($analytics['time_filter'] ?? '') === 'custom')
-                            <input type="date" name="start_date" value="{{ $analytics['start_date'] ?? '' }}" class="text-xs py-1.5 px-2.5 border border-gray-300 rounded-lg">
-                            <span class="text-xs font-bold text-gray-400">to</span>
-                            <input type="date" name="end_date" value="{{ $analytics['end_date'] ?? '' }}" class="text-xs py-1.5 px-2.5 border border-gray-300 rounded-lg">
-                            <button type="submit" class="px-3 py-1.5 bg-[#1E1E24] text-white text-xs font-bold rounded-lg hover:bg-black transition-colors">Apply</button>
-                        @endif
-                    </form>
+                        <!-- Time Filter Dropdown Form -->
+                        <form action="{{ route('admin.dashboard') }}" method="GET" class="flex flex-wrap items-center gap-2">
+                            <label for="analytics-time-filter" class="sr-only">Time Range Filter</label>
+                            <select id="analytics-time-filter" name="time_filter" onchange="this.form.submit()" class="text-xs font-bold bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-1 focus:ring-[#1E1E24]">
+                                <option value="all" {{ ($analytics['time_filter'] ?? '') === 'all' ? 'selected' : '' }}>All Time</option>
+                                <option value="today" {{ ($analytics['time_filter'] ?? '') === 'today' ? 'selected' : '' }}>Today</option>
+                                <option value="7_days" {{ ($analytics['time_filter'] ?? '') === '7_days' ? 'selected' : '' }}>Last 7 Days</option>
+                                <option value="30_days" {{ ($analytics['time_filter'] ?? '') === '30_days' ? 'selected' : '' }}>Last 30 Days</option>
+                                <option value="this_month" {{ ($analytics['time_filter'] ?? '') === 'this_month' ? 'selected' : '' }}>This Month</option>
+                                <option value="custom" {{ ($analytics['time_filter'] ?? '') === 'custom' ? 'selected' : '' }}>Custom Date Range</option>
+                            </select>
+
+                            @if(($analytics['time_filter'] ?? '') === 'custom')
+                                <input type="date" name="start_date" value="{{ $analytics['start_date'] ?? '' }}" class="text-xs py-1.5 px-2.5 border border-gray-300 rounded-lg">
+                                <span class="text-xs font-bold text-gray-400">to</span>
+                                <input type="date" name="end_date" value="{{ $analytics['end_date'] ?? '' }}" class="text-xs py-1.5 px-2.5 border border-gray-300 rounded-lg">
+                                <button type="submit" class="px-3 py-1.5 bg-[#1E1E24] text-white text-xs font-bold rounded-lg hover:bg-black transition-colors">Apply</button>
+                            @endif
+                        </form>
+                    </div>
                 </div>
 
                 <!-- 9 Core Dynamic Metric Cards Grid -->
@@ -513,6 +549,25 @@
                             </div>
                         </div>
                         <span class="text-[10px] text-teal-700 font-bold mt-2">Scheduled today onwards</span>
+                    </div>
+
+                    <!-- Metric 10: Verified Customers -->
+                    <div class="bg-white border border-gray-200 p-4 rounded-xl flex flex-col justify-between shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Verified Customers</span>
+                                <span class="text-2xl font-black text-indigo-600 block mt-1">{{ number_format($analytics['total_customers'] ?? \App\Models\Customer::count()) }}</span>
+                            </div>
+                            <div class="w-9 h-9 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 text-xs">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-2">
+                            <span class="text-[10px] text-indigo-700 font-bold">Client database</span>
+                            <a href="{{ route('admin.customers') }}" class="text-[10px] font-bold text-gray-900 hover:underline flex items-center gap-1">
+                                Directory <i class="fa-solid fa-arrow-right text-[8px]"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
 
@@ -1027,16 +1082,6 @@
 
                 <form action="{{ route('admin.cms.save') }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-6">
                     @csrf
-
-                    <!-- Form parameters to retain about copy config when saving hero slider -->
-                    <input type="hidden" name="about[badge]" value="{{ $cms['about']['badge'] }}">
-                    <input type="hidden" name="about[title]" value="{{ $cms['about']['title'] }}">
-                    <input type="hidden" name="about[desc]" value="{{ $cms['about']['desc'] }}">
-                    @foreach ($cms['about']['cards'] as $idx => $card)
-                        <input type="hidden" name="about[cards][{{ $idx }}][icon]" value="{{ $card['icon'] }}">
-                        <input type="hidden" name="about[cards][{{ $idx }}][title]" value="{{ $card['title'] }}">
-                        <input type="hidden" name="about[cards][{{ $idx }}][desc]" value="{{ $card['desc'] }}">
-                    @endforeach
                     
                     <div class="bg-white border border-gray-200 p-6 rounded-xl shadow-sm flex flex-col gap-6">
                         <h3 class="text-base font-bold text-gray-900 border-b border-gray-100 pb-3 mb-2 flex items-center gap-2">

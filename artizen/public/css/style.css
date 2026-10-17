@@ -152,7 +152,7 @@ body {
     font-family: var(--font-body);
     font-weight: 400;
     line-height: 1.6;
-    overflow-x: hidden;
+    overflow-x: clip;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -1125,6 +1125,9 @@ footer {
 }
 
 header.header-premium {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
     background-color: #FFFFFF !important;
     background-image: none !important;
     border-top: none !important;
@@ -5869,13 +5872,13 @@ html.dark .package-detail-page button[onclick="openFullGalleryModal()"] {
 }
 
 /* In light mode, override hardcoded text-white helper classes */
-[data-theme="light"] h1.text-white,
-[data-theme="light"] h2.text-white,
-[data-theme="light"] h3.text-white,
-[data-theme="light"] h4.text-white,
-[data-theme="light"] span.text-white:not(.checkout-step-num):not([style*="color"]),
-[data-theme="light"] p.text-white,
-[data-theme="light"] div.text-white:not([style*="color"]),
+[data-theme="light"] h1.text-white:not(.hero-banner-swiper *),
+[data-theme="light"] h2.text-white:not(.hero-banner-swiper *),
+[data-theme="light"] h3.text-white:not(.hero-banner-swiper *),
+[data-theme="light"] h4.text-white:not(.hero-banner-swiper *),
+[data-theme="light"] span.text-white:not(.checkout-step-num):not([style*="color"]):not(.hero-banner-swiper *),
+[data-theme="light"] p.text-white:not(.hero-banner-swiper *),
+[data-theme="light"] div.text-white:not([style*="color"]):not(.hero-banner-swiper *),
 [data-theme="light"] select,
 [data-theme="light"] input {
     color: var(--text-main) !important;
@@ -5929,6 +5932,16 @@ html.dark .package-detail-page button[onclick="openFullGalleryModal()"] {
 
 
 /* Maintain white text colors for dark hero components in light mode */
+[data-theme="light"] .hero-banner-swiper h1,
+[data-theme="light"] .hero-banner-swiper h2,
+[data-theme="light"] .hero-banner-swiper h3,
+[data-theme="light"] .hero-banner-swiper h4,
+[data-theme="light"] .hero-banner-swiper span.hero-banner-title,
+[data-theme="light"] .hero-banner-swiper .hero-banner-title,
+[data-theme="light"] .hero-banner-swiper h1.text-white,
+[data-theme="light"] .hero-banner-swiper h2.text-white,
+[data-theme="light"] .hero-banner-swiper p,
+[data-theme="light"] .hero-banner-swiper p.text-white,
 [data-theme="light"] .hero-text-container h1.text-white,
 [data-theme="light"] .hero-text-container h2.text-white,
 [data-theme="light"] .hero-text-container h3.text-white,
@@ -7838,9 +7851,6 @@ html.dark .swipe-indicator:hover {
     transform: scaleY(1.2);
 }
 
-min-height: 120px;
-}
-
 .category-features-wrap span {
     transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -7853,4 +7863,28 @@ min-height: 120px;
 
 .swipe-indicator {
     box-shadow: 0 4px 14px rgba(234, 116, 29, 0.28);
+}
+
+/* ============================================================
+   Prevent automatic zoom-in on iPhone/iOS mobile inputs & disable double-tap/pinch zoom
+   ============================================================ */
+@media screen and (max-width: 899px) {
+    html body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+    html body select,
+    html body textarea,
+    html body input[class],
+    html body select[class],
+    html body textarea[class],
+    input.text-xs,
+    select.text-xs,
+    textarea.text-xs,
+    input.text-sm,
+    select.text-sm,
+    textarea.text-sm {
+        font-size: 16px !important;
+    }
+}
+
+html, body, button, input, select, textarea, a {
+    touch-action: manipulation;
 }

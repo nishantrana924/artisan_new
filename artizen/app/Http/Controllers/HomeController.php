@@ -65,6 +65,54 @@ class HomeController extends Controller
                         'desc' => 'Cryptographically signed QR codes and secure SSL payment channels.'
                     ]
                 ]
+            ],
+            'offers' => [
+                'section_title' => 'Save More with Offers',
+                'is_active' => true,
+                'items' => [
+                    [
+                        'id' => 1,
+                        'category_name' => 'Birthdays & House Parties',
+                        'icon' => 'fa-solid fa-cake-candles',
+                        'icon_color' => 'text-amber-600',
+                        'subheading' => 'BIRTHDAYS & TERRACE DECORS',
+                        'discount_title' => 'Up to 20% OFF',
+                        'terms' => 'T&C Apply | Applicable on Birthday & Terrace Setups',
+                        'link' => '/events?category=cat-birthdays',
+                        'is_active' => true,
+                        'display_order' => 1
+                    ],
+                    [
+                        'id' => 2,
+                        'category_name' => 'Anniversaries & Proposals',
+                        'icon' => 'fa-solid fa-heart',
+                        'icon_color' => 'text-rose-600',
+                        'subheading' => 'ROMANTIC CANOPIES & STAGES',
+                        'discount_title' => 'Up to 15% OFF',
+                        'terms' => 'T&C Apply | Applicable on Canopies & Flower Panels',
+                        'link' => '/events?category=cat-proposal-anniversary',
+                        'is_active' => true,
+                        'display_order' => 2
+                    ],
+                    [
+                        'id' => 3,
+                        'category_name' => 'Weddings & DJ Sound',
+                        'icon' => 'fa-solid fa-compact-disc',
+                        'icon_color' => 'text-purple-600',
+                        'subheading' => 'GRAND SANGEET & PARTY RIGS',
+                        'discount_title' => 'Up to 25% OFF',
+                        'terms' => 'T&C Apply | Applicable on Stage Decors & DJ Rigs',
+                        'link' => '/events?category=cat-weddings-sangeet',
+                        'is_active' => true,
+                        'display_order' => 3
+                    ],
+                ]
+            ],
+            'promise_banner' => [
+                'is_active' => true,
+                'image' => '/images/banners/artizen-promise-banner.webp',
+                'title' => 'Artizen — Curating Unforgettable Moments, Luxury Weddings & Celebrations',
+                'link' => '/events',
             ]
         ];
 

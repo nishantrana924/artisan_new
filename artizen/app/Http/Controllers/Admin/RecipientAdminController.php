@@ -8,6 +8,8 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
+use App\Services\ImageOptimizationService;
 
 class RecipientAdminController extends Controller
 {
@@ -73,7 +75,7 @@ class RecipientAdminController extends Controller
             'slug'           => 'nullable|string|max:100',
             'display_order'  => 'nullable|integer|min:1',
             'is_active'      => 'nullable',
-            'image_file'     => 'nullable|file|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'image_file'     => 'nullable|file|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
             'existing_image' => 'nullable|string',
         ]);
 
@@ -158,51 +160,17 @@ class RecipientAdminController extends Controller
      */
     protected function convertAndSaveWebp($file, string $name): ?string
     {
-        $dir = public_path('images/for-everyone');
-        if (!File::exists($dir)) {
-            File::makeDirectory($dir, 0755, true);
+        try {
+            return app(ImageOptimizationService::class)->optimize(
+                file: $file,
+                targetSubdir: 'images/for-everyone',
+                profile: 'recipient',
+                prefix: 'recipient_' . Str::slug($name),
+                quality: ImageOptimizationService::DEFAULT_QUALITY
+            );
+        } catch (\Throwable $e) {
+            Log::warning("Recipient image optimization failed for '{$name}': " . $e->getMessage());
+            return null;
         }
-
-        $filename = 'recipient_' . Str::slug($name) . '_' . time() . '.webp';
-        $targetPath = $dir . DIRECTORY_SEPARATOR . $filename;
-
-        $sourcePath = $file->getRealPath();
-        $mime = $file->getMimeType();
-
-        $image = null;
-        switch ($mime) {
-            case 'image/jpeg':
-            case 'image/jpg':
-                $image = @imagecreatefromjpeg($sourcePath);
-                break;
-            case 'image/png':
-                $image = @imagecreatefrompng($sourcePath);
-                if ($image) {
-                    imagepalettetotruecolor($image);
-                    imagealphablending($image, true);
-                    imagesavealpha($image, true);
-                }
-                break;
-            case 'image/webp':
-                $image = @imagecreatefromwebp($sourcePath);
-                break;
-            case 'image/gif':
-                $image = @imagecreatefromgif($sourcePath);
-                break;
-            default:
-                $image = @imagecreatefromstring(file_get_contents($sourcePath));
-                break;
-        }
-
-        if ($image && function_exists('imagewebp')) {
-            // Save at quality 85 for crisp resolution with lightweight file size
-            imagewebp($image, $targetPath, 85);
-            imagedestroy($image);
-            return '/images/for-everyone/' . $filename;
-        }
-
-        // Fallback: move file if imagewebp is not available
-        $file->move($dir, $filename);
-        return '/images/for-everyone/' . $filename;
     }
 }

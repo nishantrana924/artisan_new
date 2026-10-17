@@ -5,8 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Services\JsonStorageService;
+use App\Services\ImageOptimizationService;
+use Illuminate\Support\Facades\Log;
+use App\Models\Booking;
 
 class DashboardController extends Controller
 {
@@ -15,11 +19,6 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
-        // Purge compiled views cache to ensure latest template edits render instantly
-        foreach (glob(storage_path('framework/views/*.php')) as $cachedFile) {
-            @unlink($cachedFile);
-        }
-
         // Redirect legacy tab query params to their dedicated standalone pages
         if ($request->has('tab')) {
             $tab = $request->query('tab');
@@ -31,11 +30,15 @@ class DashboardController extends Controller
                 'reviews'       => 'admin.reviews',
                 'testimonials'  => 'admin.faqs',
                 'faqs'          => 'admin.faqs',
-                'hero-manager'  => 'admin.hero',
-                'hero'          => 'admin.hero',
-                'legal-manager' => 'admin.legal',
-                'legal'         => 'admin.legal',
-                'settings'      => 'admin.settings',
+                'hero-manager'           => 'admin.hero',
+                'hero'                   => 'admin.hero',
+                'offers-manager'         => 'admin.offers',
+                'offers'                 => 'admin.offers',
+                'promise-banner-manager' => 'admin.promise-banner',
+                'promise-banner'         => 'admin.promise-banner',
+                'legal-manager'          => 'admin.legal',
+                'legal'                  => 'admin.legal',
+                'settings'               => 'admin.settings',
             ];
 
             if (isset($tabRedirects[$tab])) {
@@ -100,7 +103,8 @@ class DashboardController extends Controller
             ]
         ];
 
-        $cms = JsonStorageService::read('cms.json', $defaultCms);
+        $rawCms = JsonStorageService::read('cms.json', []) ?? [];
+        $cms = array_replace_recursive($defaultCms, $rawCms);
         $artists = JsonStorageService::read('artists.json');
         $categories = JsonStorageService::read('categories.json');
         $packages = JsonStorageService::read('packages.json');
@@ -259,52 +263,296 @@ class DashboardController extends Controller
             'top_packages' => $topPackages,
             'upcoming_events' => $upcomingEventsList,
             'recent_activity' => $recentActivity,
+            'total_customers' => \App\Models\Customer::count(),
         ];
     }
 
     /**
      * Save dynamic CMS settings.
+    /**
+     * Save Hero Banners.
      */
-    public function saveCms(Request $request)
+    public function saveHeroSlides(Request $request)
     {
-        $cmsPath = storage_path('app/cms.json');
-        
-        // Read current CMS layout to preserve existing image paths if no new image is uploaded
-        $currentCms = [];
-        if (File::exists($cmsPath)) {
-            $currentCms = json_decode(File::get($cmsPath), true);
-        }
+        $request->validate([
+            'hero_slides'                 => ['nullable', 'array'],
+            'hero_slides.*.id'            => ['nullable'],
+            'hero_slides.*.image_file'    => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'],
+            'hero_slides.*.image'         => ['nullable', 'string', 'max:255'],
+            'hero_slides.*.badge'         => ['nullable', 'string', 'max:100'],
+            'hero_slides.*.title'         => ['nullable', 'string', 'max:255'],
+            'hero_slides.*.desc'          => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) {
+                    $cleaned = trim(strip_tags((string)$value));
+                    $wordCount = $cleaned === '' ? 0 : count(preg_split('/\s+/', $cleaned));
+                    if ($wordCount > 50) {
+                        $fail("The description must not exceed 50 words (currently {$wordCount} words).");
+                    }
+                },
+            ],
+            'hero_slides.*.btn1Text'      => ['nullable', 'string', 'max:100'],
+            'hero_slides.*.link1'         => ['nullable', 'string', 'max:255'],
+            'hero_slides.*.btn2Text'      => ['nullable', 'string', 'max:100'],
+            'hero_slides.*.link2'         => ['nullable', 'string', 'max:255'],
+            'hero_slides.*.display_order' => ['nullable', 'integer'],
+        ]);
 
+        $currentCms = JsonStorageService::read('cms.json', []);
         $heroSlidesInput = $request->input('hero_slides', []);
         $heroSlides = [];
 
         foreach ($heroSlidesInput as $idx => $slideData) {
-            // Check if a new file upload is present for this slide
             if ($request->hasFile("hero_slides.{$idx}.image_file")) {
-                $file = $request->file("hero_slides.{$idx}.image_file");
-                $filename = 'hero_' . $idx . '_' . time() . '.' . $file->getClientOriginalExtension();
-                
-                // Ensure the public uploads directory exists
-                if (!File::exists(public_path('uploads'))) {
-                    File::makeDirectory(public_path('uploads'), 0755, true);
+                try {
+                    $slideData['image'] = app(ImageOptimizationService::class)->optimize(
+                        file: $request->file("hero_slides.{$idx}.image_file"),
+                        targetSubdir: 'uploads',
+                        profile: 'hero_slide',
+                        prefix: 'hero_' . $idx,
+                        quality: ImageOptimizationService::DEFAULT_QUALITY
+                    );
+                } catch (\Throwable $e) {
+                    Log::warning("Hero slide {$idx} optimization failed: " . $e->getMessage());
+                    $slideData['image'] = $slideData['image'] ?? ($currentCms['hero_slides'][$idx]['image'] ?? '/assets/images/hero/1.jpg');
                 }
-                
-                $file->move(public_path('uploads'), $filename);
-                $slideData['image'] = '/uploads/' . $filename;
             } else {
-                // Preserve existing image if available
                 $slideData['image'] = $slideData['image'] ?? ($currentCms['hero_slides'][$idx]['image'] ?? '/assets/images/hero/1.jpg');
             }
             unset($slideData['image_file']);
+            unset($slideData['badge']);
+
+            $slideData['id'] = !empty($slideData['id']) ? (int)$slideData['id'] : null;
+            $slideData['title'] = trim((string)($slideData['title'] ?? ''));
+            $slideData['desc'] = trim(strip_tags((string)($slideData['desc'] ?? '')));
+            $slideData['btn1Text'] = trim((string)($slideData['btn1Text'] ?? 'Explore Packages'));
+            $slideData['link1'] = trim((string)($slideData['link1'] ?? '/events'));
+
+            if (isset($slideData['is_active'])) {
+                $slideData['is_active'] = in_array($slideData['is_active'], [true, 1, '1', 'on', 'true'], true);
+            } else {
+                $slideData['is_active'] = true;
+            }
+
+            $slideData['display_order'] = (int)($slideData['display_order'] ?? $idx);
             $heroSlides[] = $slideData;
         }
 
-        $cms = [
-            'hero_slides' => $heroSlides,
+        $currentCms['hero_slides'] = $heroSlides;
+        JsonStorageService::write('cms.json', $currentCms);
+
+        return redirect()->route('admin.hero')->with('success', 'Hero banners updated successfully!');
+    }
+
+    /**
+     * Save Offers Section.
+     */
+    public function saveOffers(Request $request)
+    {
+        $request->validate([
+            'offers'                        => ['nullable', 'array'],
+            'offers.section_title'          => ['nullable', 'string', 'max:150'],
+            'offers.items'                  => ['nullable', 'array'],
+            'offers.items.*.category_name'  => ['nullable', 'string', 'max:150'],
+            'offers.items.*.discount_title' => ['nullable', 'string', 'max:100'],
+            'offers.items.*.subheading'     => ['nullable', 'string', 'max:150'],
+            'offers.items.*.terms'          => ['nullable', 'string', 'max:255'],
+            'offers.items.*.link'           => ['nullable', 'string', 'max:255'],
+            'offers.items.*.icon'           => ['nullable', 'string', 'max:100'],
+            'offers.items.*.icon_color'     => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $currentCms = JsonStorageService::read('cms.json', []);
+        $offersInput = $request->input('offers', []);
+        $items = [];
+
+        foreach ($offersInput['items'] ?? [] as $oIdx => $item) {
+            $items[] = [
+                'id'             => !empty($item['id']) ? (int)$item['id'] : ($oIdx + 1),
+                'category_name'  => trim($item['category_name'] ?? 'Celebration Offer'),
+                'icon'           => trim($item['icon'] ?? 'fa-solid fa-cake-candles'),
+                'icon_color'     => trim($item['icon_color'] ?? 'text-amber-600'),
+                'subheading'     => trim($item['subheading'] ?? ''),
+                'discount_title' => trim($item['discount_title'] ?? 'Special Offer'),
+                'terms'          => trim($item['terms'] ?? 'T&C Apply'),
+                'link'           => trim($item['link'] ?? '/events'),
+                'is_active'      => isset($item['is_active']) ? (bool)$item['is_active'] : true,
+                'display_order'  => (int)($item['display_order'] ?? ($oIdx + 1)),
+            ];
+        }
+
+        $currentCms['offers'] = [
+            'section_title' => trim($offersInput['section_title'] ?? 'Save More with Offers'),
+            'is_active'     => isset($offersInput['is_active']) ? (bool)$offersInput['is_active'] : true,
+            'items'         => $items,
         ];
 
-        JsonStorageService::write('cms.json', $cms);
-        return redirect()->route('admin.hero')->with('success', 'Hero slides updated successfully!');
+        JsonStorageService::write('cms.json', $currentCms);
+
+        return redirect()->route('admin.offers')->with('success', 'Offers section updated successfully!');
+    }
+
+    /**
+     * Save Promise Banner.
+     */
+    public function savePromiseBanner(Request $request)
+    {
+        $request->validate([
+            'promise_banner'            => ['nullable', 'array'],
+            'promise_banner.image_file' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'],
+            'promise_banner.title'      => ['nullable', 'string', 'max:255'],
+            'promise_banner.link'       => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $currentCms = JsonStorageService::read('cms.json', []);
+        $pbInput = $request->input('promise_banner', []);
+        $pbImage = $pbInput['image'] ?? ($currentCms['promise_banner']['image'] ?? '/images/banners/artizen-promise-banner.webp');
+
+        if ($request->hasFile('promise_banner.image_file')) {
+            try {
+                $pbImage = app(ImageOptimizationService::class)->optimize(
+                    file: $request->file('promise_banner.image_file'),
+                    targetSubdir: 'uploads',
+                    profile: 'hero_slide',
+                    prefix: 'promise_banner',
+                    quality: ImageOptimizationService::DEFAULT_QUALITY
+                );
+            } catch (\Throwable $e) {
+                Log::warning("Promise banner optimization failed: " . $e->getMessage());
+            }
+        }
+
+        $currentCms['promise_banner'] = [
+            'image'     => $pbImage,
+            'title'     => trim($pbInput['title'] ?? 'Artizen Promise'),
+            'link'      => trim($pbInput['link'] ?? '/events'),
+            'is_active' => isset($pbInput['is_active']) ? (bool)$pbInput['is_active'] : true,
+        ];
+
+        JsonStorageService::write('cms.json', $currentCms);
+
+        return redirect()->route('admin.promise-banner')->with('success', 'Promise banner updated successfully!');
+    }
+
+    /**
+     * Save dynamic CMS settings (backward-compatible master handler).
+     */
+    public function saveCms(Request $request)
+    {
+        $request->validate([
+            'hero_slides'                      => ['nullable', 'array'],
+            'hero_slides.*.id'                 => ['nullable'],
+            'hero_slides.*.image_file'         => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'],
+            'hero_slides.*.badge'              => ['nullable', 'string', 'max:100'],
+            'hero_slides.*.title'              => ['nullable', 'string', 'max:255'],
+            'hero_slides.*.desc'               => ['nullable', 'string'],
+            'hero_slides.*.btn1Text'           => ['nullable', 'string', 'max:100'],
+            'hero_slides.*.link1'              => ['nullable', 'string', 'max:255'],
+            'hero_slides.*.btn2Text'           => ['nullable', 'string', 'max:100'],
+            'hero_slides.*.link2'              => ['nullable', 'string', 'max:255'],
+            'offers'                           => ['nullable', 'array'],
+            'offers.section_title'             => ['nullable', 'string', 'max:150'],
+            'offers.items'                     => ['nullable', 'array'],
+            'offers.items.*.category_name'     => ['nullable', 'string', 'max:150'],
+            'offers.items.*.discount_title'    => ['nullable', 'string', 'max:100'],
+            'offers.items.*.subheading'        => ['nullable', 'string', 'max:150'],
+            'offers.items.*.terms'             => ['nullable', 'string', 'max:255'],
+            'offers.items.*.link'              => ['nullable', 'string', 'max:255'],
+            'promise_banner'                   => ['nullable', 'array'],
+            'promise_banner.image_file'        => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'],
+            'promise_banner.title'             => ['nullable', 'string', 'max:255'],
+            'promise_banner.link'              => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $currentCms = JsonStorageService::read('cms.json', []);
+
+        // 1. Process Hero Slides if provided in request
+        if ($request->has('hero_slides')) {
+            $heroSlidesInput = $request->input('hero_slides', []);
+            $heroSlides = [];
+
+            foreach ($heroSlidesInput as $idx => $slideData) {
+                if ($request->hasFile("hero_slides.{$idx}.image_file")) {
+                    try {
+                        $slideData['image'] = app(ImageOptimizationService::class)->optimize(
+                            file: $request->file("hero_slides.{$idx}.image_file"),
+                            targetSubdir: 'uploads',
+                            profile: 'hero_slide',
+                            prefix: 'hero_' . $idx,
+                            quality: ImageOptimizationService::DEFAULT_QUALITY
+                        );
+                    } catch (\Throwable $e) {
+                        Log::warning("Hero slide {$idx} optimization failed: " . $e->getMessage());
+                        $slideData['image'] = $slideData['image'] ?? ($currentCms['hero_slides'][$idx]['image'] ?? '/assets/images/hero/1.jpg');
+                    }
+                } else {
+                    $slideData['image'] = $slideData['image'] ?? ($currentCms['hero_slides'][$idx]['image'] ?? '/assets/images/hero/1.jpg');
+                }
+                unset($slideData['image_file']);
+                $slideData['id'] = !empty($slideData['id']) ? (int)$slideData['id'] : null;
+                $slideData['is_active'] = isset($slideData['is_active']) ? (bool)$slideData['is_active'] : true;
+                $slideData['display_order'] = (int)($slideData['display_order'] ?? $idx);
+                $heroSlides[] = $slideData;
+            }
+            $currentCms['hero_slides'] = $heroSlides;
+        }
+
+        // 2. Process Offers if provided in request
+        if ($request->has('offers')) {
+            $offersInput = $request->input('offers', []);
+            $items = [];
+            foreach ($offersInput['items'] ?? [] as $oIdx => $item) {
+                $items[] = [
+                    'id'             => (int)($item['id'] ?? ($oIdx + 1)),
+                    'category_name'  => trim($item['category_name'] ?? 'Celebration Offer'),
+                    'icon'           => trim($item['icon'] ?? 'fa-solid fa-tag'),
+                    'icon_color'     => trim($item['icon_color'] ?? 'text-amber-600'),
+                    'subheading'     => trim($item['subheading'] ?? ''),
+                    'discount_title' => trim($item['discount_title'] ?? 'Special Offer'),
+                    'terms'          => trim($item['terms'] ?? 'T&C Apply'),
+                    'link'           => trim($item['link'] ?? '/events'),
+                    'is_active'      => isset($item['is_active']) ? (bool)$item['is_active'] : true,
+                    'display_order'  => (int)($item['display_order'] ?? ($oIdx + 1)),
+                ];
+            }
+
+            $currentCms['offers'] = [
+                'section_title' => trim($offersInput['section_title'] ?? 'Save More with Offers'),
+                'is_active'     => isset($offersInput['is_active']) ? (bool)$offersInput['is_active'] : true,
+                'items'         => $items,
+            ];
+        }
+
+        // 3. Process Promise Banner if provided in request
+        if ($request->has('promise_banner')) {
+            $pbInput = $request->input('promise_banner', []);
+            $pbImage = $pbInput['image'] ?? ($currentCms['promise_banner']['image'] ?? '/images/banners/artizen-promise-banner.webp');
+
+            if ($request->hasFile('promise_banner.image_file')) {
+                try {
+                    $pbImage = app(ImageOptimizationService::class)->optimize(
+                        file: $request->file('promise_banner.image_file'),
+                        targetSubdir: 'uploads',
+                        profile: 'hero_slide',
+                        prefix: 'promise_banner',
+                        quality: ImageOptimizationService::DEFAULT_QUALITY
+                    );
+                } catch (\Throwable $e) {
+                    Log::warning("Promise banner optimization failed: " . $e->getMessage());
+                }
+            }
+
+            $currentCms['promise_banner'] = [
+                'image'     => $pbImage,
+                'title'     => trim($pbInput['title'] ?? 'Artizen Promise'),
+                'link'      => trim($pbInput['link'] ?? '/events'),
+                'is_active' => isset($pbInput['is_active']) ? (bool)$pbInput['is_active'] : true,
+            ];
+        }
+
+        JsonStorageService::write('cms.json', $currentCms);
+        return redirect()->route('admin.hero')->with('success', 'Homepage CMS configuration updated successfully!');
     }
 
     /**
@@ -312,6 +560,12 @@ class DashboardController extends Controller
      */
     public function saveArtist(Request $request)
     {
+        $request->validate([
+            'name'       => ['required', 'string', 'max:150'],
+            'category'   => ['nullable', 'string', 'max:100'],
+            'image_file' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'],
+        ]);
+
         $artistsPath = storage_path('app/artists.json');
         $artists = [];
         if (File::exists($artistsPath)) {
@@ -334,7 +588,7 @@ class DashboardController extends Controller
         }
 
         // Assign basic details
-        $artistData['name'] = $request->input('name');
+        $artistData['name'] = trim((string)$request->input('name'));
         $artistData['category'] = $request->input('category', 'DJ');
         $artistData['price'] = $request->input('price', '₹10,000 onwards');
         $artistData['experience'] = $request->input('experience', '5+ Years');
@@ -350,15 +604,18 @@ class DashboardController extends Controller
 
         // Handle Profile Image upload
         if ($request->hasFile('image_file')) {
-            $file = $request->file('image_file');
-            $filename = 'artist_' . time() . '.' . $file->getClientOriginalExtension();
-            
-            if (!File::exists(public_path('uploads'))) {
-                File::makeDirectory(public_path('uploads'), 0755, true);
+            try {
+                $artistData['image'] = app(ImageOptimizationService::class)->optimize(
+                    file: $request->file('image_file'),
+                    targetSubdir: 'uploads',
+                    profile: 'artist',
+                    prefix: 'artist',
+                    quality: ImageOptimizationService::DEFAULT_QUALITY
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Artist profile image optimization failed: ' . $e->getMessage());
+                $artistData['image'] = $request->input('image', $artistData['image'] ?? '/assets/images/hero/2.jpg');
             }
-            
-            $file->move(public_path('uploads'), $filename);
-            $artistData['image'] = '/uploads/' . $filename;
         } else {
             $artistData['image'] = $request->input('image', $artistData['image'] ?? '/assets/images/hero/2.jpg');
         }
@@ -406,12 +663,14 @@ class DashboardController extends Controller
     public function saveCategory(Request $request)
     {
         $request->validate([
-            'title'          => 'required|string|max:255',
-            'nav_slug'       => 'nullable|string|max:100',
-            'icon'           => 'nullable|string|max:100',
-            'bg_color'       => 'nullable|string|max:20',
-            'dropdown_badge' => 'nullable|string|max:100',
-            'display_order'  => 'nullable|integer',
+            'title'               => 'required|string|max:255',
+            'nav_slug'            => 'nullable|string|max:100',
+            'icon'                => 'nullable|string|max:100',
+            'bg_color'            => 'nullable|string|max:20',
+            'dropdown_badge'      => 'nullable|string|max:100',
+            'display_order'       => 'nullable|integer',
+            'slider_image_file'   => 'nullable|file|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'dropdown_image_file' => 'nullable|file|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
         ]);
 
         $allowedImageExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
@@ -464,34 +723,36 @@ class DashboardController extends Controller
 
         // Slider Image upload or URL
         if ($request->hasFile('slider_image_file')) {
-            $file = $request->file('slider_image_file');
-            $ext  = strtolower($file->getClientOriginalExtension());
-            if (!in_array($ext, $allowedImageExts)) {
-                return redirect()->back()->with('error', 'Invalid slider image format. Use JPG, PNG, WEBP or GIF.');
+            try {
+                $dbPayload['slider_image'] = app(ImageOptimizationService::class)->optimize(
+                    file: $request->file('slider_image_file'),
+                    targetSubdir: 'uploads/categories',
+                    profile: 'category',
+                    prefix: 'slider',
+                    quality: ImageOptimizationService::DEFAULT_QUALITY
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Slider image optimization failed: ' . $e->getMessage());
+                return redirect()->back()->withInput()->with('error', 'Slider image processing failed: ' . $e->getMessage());
             }
-            if (!File::exists(public_path('uploads/categories'))) {
-                File::makeDirectory(public_path('uploads/categories'), 0755, true);
-            }
-            $fname = 'slider_' . time() . '_' . rand(100, 999) . '.' . $ext;
-            $file->move(public_path('uploads/categories'), $fname);
-            $dbPayload['slider_image'] = '/uploads/categories/' . $fname;
         } else {
             $dbPayload['slider_image'] = $request->input('slider_image') ?: null;
         }
 
         // Dropdown Image upload or URL
         if ($request->hasFile('dropdown_image_file')) {
-            $file = $request->file('dropdown_image_file');
-            $ext  = strtolower($file->getClientOriginalExtension());
-            if (!in_array($ext, $allowedImageExts)) {
-                return redirect()->back()->with('error', 'Invalid dropdown image format. Use JPG, PNG, WEBP or GIF.');
+            try {
+                $dbPayload['dropdown_image'] = app(ImageOptimizationService::class)->optimize(
+                    file: $request->file('dropdown_image_file'),
+                    targetSubdir: 'uploads/categories',
+                    profile: 'category',
+                    prefix: 'dropdown',
+                    quality: ImageOptimizationService::DEFAULT_QUALITY
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Dropdown image optimization failed: ' . $e->getMessage());
+                return redirect()->back()->withInput()->with('error', 'Dropdown image processing failed: ' . $e->getMessage());
             }
-            if (!File::exists(public_path('uploads/categories'))) {
-                File::makeDirectory(public_path('uploads/categories'), 0755, true);
-            }
-            $fname = 'dropdown_' . time() . '_' . rand(100, 999) . '.' . $ext;
-            $file->move(public_path('uploads/categories'), $fname);
-            $dbPayload['dropdown_image'] = '/uploads/categories/' . $fname;
         } else {
             $dbPayload['dropdown_image'] = $request->input('dropdown_image') ?: null;
         }
@@ -589,6 +850,7 @@ class DashboardController extends Controller
             $categories[] = $catData;
         }
         JsonStorageService::write('categories.json', $categories);
+        \App\Services\CelebrationCatalogService::clearCache();
 
         return redirect()->route('admin.categories')->with('success', 'Category saved successfully!');
     }
@@ -598,13 +860,6 @@ class DashboardController extends Controller
      */
     public function createPackagePage()
     {
-        // Purge stale compiled Blade views to ensure fresh layout rendering
-        foreach (glob(storage_path('framework/views/*.php')) as $cachedFile) {
-            if (is_file($cachedFile)) {
-                @unlink($cachedFile);
-            }
-        }
-
         $categories = JsonStorageService::read('categories.json');
 
         return view('admin.packages.edit', [
@@ -682,13 +937,6 @@ class DashboardController extends Controller
      */
     public function editPackagePage($catId, $tierIdx)
     {
-        // Purge stale compiled Blade views to ensure fresh layout rendering
-        foreach (glob(storage_path('framework/views/*.php')) as $cachedFile) {
-            if (is_file($cachedFile)) {
-                @unlink($cachedFile);
-            }
-        }
-
         $categoriesPath = storage_path('app/categories.json');
         $categories = [];
         if (File::exists($categoriesPath)) {
@@ -798,16 +1046,18 @@ class DashboardController extends Controller
     public function savePackage(Request $request)
     {
         $request->validate([
-            'title'          => 'required|string|max:255',
-            'category_id'    => 'required|exists:categories,id',
-            'slug'           => 'nullable|string|max:255',
-            'badge'          => 'nullable|string|max:50',
-            'tag'            => 'nullable|string|max:50',
-            'recipients'     => 'nullable',
-            'price'          => 'nullable|numeric|min:0',
-            'original_price' => 'nullable|numeric|min:0',
-            'description'    => 'nullable|string',
-            'image_file'     => 'nullable|file|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'title'           => 'required|string|max:255',
+            'category_id'     => 'required|exists:categories,id',
+            'slug'            => 'nullable|string|max:255',
+            'badge'           => 'nullable|string|max:50',
+            'tag'             => 'nullable|string|max:50',
+            'recipients'      => 'nullable',
+            'price'           => 'nullable|numeric|min:0',
+            'original_price'  => 'nullable|numeric|min:0',
+            'description'     => 'nullable|string',
+            'image_file'      => 'nullable|file|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'gallery_files'   => 'nullable|array|max:10',
+            'gallery_files.*' => 'nullable|file|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
         ]);
 
         $id = $request->input('id') ?: $request->input('package_id');
@@ -827,14 +1077,18 @@ class DashboardController extends Controller
         // 1. Process Main Cover Image
         $image = $request->input('image') ?: null;
         if ($request->hasFile('image_file')) {
-            $file = $request->file('image_file');
-            $ext  = strtolower($file->getClientOriginalExtension());
-            if (!File::exists(public_path('uploads/packages'))) {
-                File::makeDirectory(public_path('uploads/packages'), 0755, true);
+            try {
+                $image = app(ImageOptimizationService::class)->optimize(
+                    file: $request->file('image_file'),
+                    targetSubdir: 'uploads/packages',
+                    profile: 'package',
+                    prefix: 'pkg',
+                    quality: ImageOptimizationService::DEFAULT_QUALITY
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Package cover image optimization failed: ' . $e->getMessage());
+                return redirect()->back()->withInput()->with('error', 'Package image processing failed: ' . $e->getMessage());
             }
-            $filename = 'pkg_' . time() . '_' . rand(100, 999) . '.' . $ext;
-            $file->move(public_path('uploads/packages'), $filename);
-            $image = '/uploads/packages/' . $filename;
         }
 
         // 2. Process Gallery Banners
@@ -844,14 +1098,20 @@ class DashboardController extends Controller
 
         for ($i = 0; $i < 4; $i++) {
             if (isset($galleryFiles[$i]) && $galleryFiles[$i]->isValid()) {
-                $file = $galleryFiles[$i];
-                $ext  = strtolower($file->getClientOriginalExtension());
-                if (!File::exists(public_path('uploads/packages'))) {
-                    File::makeDirectory(public_path('uploads/packages'), 0755, true);
+                try {
+                    $galleryImages[] = app(ImageOptimizationService::class)->optimize(
+                        file: $galleryFiles[$i],
+                        targetSubdir: 'uploads/packages',
+                        profile: 'gallery',
+                        prefix: 'pkg_gal_' . $i,
+                        quality: ImageOptimizationService::DEFAULT_QUALITY
+                    );
+                } catch (\Throwable $e) {
+                    Log::warning("Package gallery image {$i} optimization failed: " . $e->getMessage());
+                    if (!empty($galleryInputs[$i])) {
+                        $galleryImages[] = trim($galleryInputs[$i]);
+                    }
                 }
-                $filename = 'pkg_gal_' . $i . '_' . time() . '_' . rand(100, 999) . '.' . $ext;
-                $file->move(public_path('uploads/packages'), $filename);
-                $galleryImages[] = '/uploads/packages/' . $filename;
             } elseif (!empty($galleryInputs[$i])) {
                 $galleryImages[] = trim($galleryInputs[$i]);
             }
@@ -1008,6 +1268,8 @@ class DashboardController extends Controller
             \Illuminate\Support\Facades\Log::warning('packages.json sync warning: ' . $e->getMessage());
         }
 
+        \App\Services\CelebrationCatalogService::clearCache();
+
         return redirect()->route('admin.packages')->with('success', 'Package saved successfully!');
     }
 
@@ -1145,96 +1407,140 @@ class DashboardController extends Controller
      */
     public function updateBookingStatus(Request $request)
     {
-        $id = $request->input('id');
-        $status = $request->input('status');
+        $validated = $request->validate([
+            'id'     => 'required|string',
+            'status' => 'required|string|in:Pending,Contacted,Approved,Confirmed,Completed,Cancelled,Rejected,Under Review',
+        ]);
 
-        if (empty($id) || empty($status)) {
-            return response()->json(['success' => false, 'message' => 'Invalid parameters'], 422);
+        $id = $validated['id'];
+        $status = $validated['status'];
+
+        $result = DB::transaction(function() use ($id, $status) {
+            // 1. Fetch and lock targeted booking row in database
+            $bookingModel = Booking::where('id', $id)->lockForUpdate()->first();
+            $previousStatus = $bookingModel ? $bookingModel->status : 'Pending';
+            $sentList = $bookingModel ? ($bookingModel->notifications_sent ?? []) : [];
+
+            if ($bookingModel) {
+                $bookingModel->status = $status;
+                $bookingModel->updated_at = now();
+                $bookingModel->save();
+            }
+
+            // 2. Synchronize single targeted record in JSON fallback under exclusive flock
+            $updatedJsonBooking = JsonStorageService::updateBookingRecord($id, [
+                'status' => $status,
+                'updated_at' => date('d M Y, h:i A')
+            ]);
+
+            if (!$bookingModel && !$updatedJsonBooking) {
+                return null;
+            }
+
+            $bookingData = $updatedJsonBooking ?? [
+                'id' => $bookingModel->id,
+                'name' => $bookingModel->customer_name,
+                'mobile' => $bookingModel->customer_mobile,
+                'whatsapp' => $bookingModel->customer_whatsapp,
+                'email' => $bookingModel->customer_email,
+                'package' => $bookingModel->package_name,
+                'date' => $bookingModel->event_date,
+                'status' => $status,
+                'total' => $bookingModel->total_amount,
+                'notifications_sent' => $sentList
+            ];
+
+            return [
+                'booking' => $bookingData,
+                'previous_status' => $previousStatus,
+                'model' => $bookingModel
+            ];
+        });
+
+        if (!$result) {
+            return response()->json(['success' => false, 'message' => 'Booking ID not found'], 404);
         }
 
-        $bookings = \App\Services\JsonStorageService::read('bookings.json');
-        $updatedBooking = null;
+        // Invalidate pending bookings counter badge cache on any successful status update
+        \Illuminate\Support\Facades\Cache::forget('admin_pending_bookings_count');
 
-        foreach ($bookings as &$b) {
-            if (($b['id'] ?? '') === $id) {
-                $previousStatus = $b['status'] ?? 'Pending';
-                $b['status'] = $status;
-                $b['updated_at'] = date('d M Y, h:i A');
+        $updatedBooking = $result['booking'];
+        $previousStatus = $result['previous_status'];
+        $bookingModel = $result['model'];
+        $sentList = is_array($updatedBooking['notifications_sent'] ?? null) ? $updatedBooking['notifications_sent'] : [];
 
-                $sentList = $b['notifications_sent'] ?? [];
+        // Duplicate Notification Protection & Rate Limiting: 60-second debounce per booking status notification
+        $notifDebounceKey = 'booking_status_notif_cooldown_' . $id . '_' . strtolower($status);
+        $isDebounced = \Illuminate\Support\Facades\Cache::has($notifDebounceKey);
 
-                // Duplicate Notification Protection: Only send if status actually changed or notification was not sent yet
-                if ($previousStatus !== $status || !in_array(strtolower($status), $sentList)) {
-                    try {
-                        if (!empty($b['email'])) {
-                            if (strcasecmp($status, 'Confirmed') === 0) {
-                                \Illuminate\Support\Facades\Notification::route('mail', $b['email'])
-                                    ->notify(new \App\Notifications\BookingConfirmedNotification($b));
-                                $sentList[] = 'confirmed';
-                            } else if (strcasecmp($status, 'Cancelled') === 0) {
-                                \Illuminate\Support\Facades\Notification::route('mail', $b['email'])
-                                    ->notify(new \App\Notifications\BookingCancelledNotification($b));
-                                $sentList[] = 'cancelled';
-                            }
-                        }
-                    } catch (\Throwable $e) {
-                        \Illuminate\Support\Facades\Log::error('Status update mail notification error: ' . $e->getMessage());
-                    }
-
-                    try {
-                        $waSmsService = new \App\Services\WhatsAppSmsService();
-                        if (strcasecmp($status, 'Confirmed') === 0 && !in_array('confirmed_wa', $sentList)) {
-                            $waSmsService->sendCustomerBookingConfirmed($b);
-                            $sentList[] = 'confirmed_wa';
-                        } else if (strcasecmp($status, 'Cancelled') === 0 && !in_array('cancelled_wa', $sentList)) {
-                            $waSmsService->sendCustomerBookingCancelled($b);
-                            $sentList[] = 'cancelled_wa';
-                        }
-                    } catch (\Throwable $e) {
-                        \Illuminate\Support\Facades\Log::error('Status update WhatsApp/SMS notification error: ' . $e->getMessage());
+        if (!$isDebounced && ($previousStatus !== $status || !in_array(strtolower($status), $sentList))) {
+            \Illuminate\Support\Facades\Cache::put($notifDebounceKey, true, 60);
+            try {
+                if (!empty($updatedBooking['email'])) {
+                    if (strcasecmp($status, 'Confirmed') === 0) {
+                        \Illuminate\Support\Facades\Notification::route('mail', $updatedBooking['email'])
+                            ->notify(new \App\Notifications\BookingConfirmedNotification($updatedBooking));
+                        $sentList[] = 'confirmed';
+                    } else if (strcasecmp($status, 'Cancelled') === 0) {
+                        \Illuminate\Support\Facades\Notification::route('mail', $updatedBooking['email'])
+                            ->notify(new \App\Notifications\BookingCancelledNotification($updatedBooking));
+                        $sentList[] = 'cancelled';
                     }
                 }
-
-                $b['notifications_sent'] = array_unique($sentList);
-                $updatedBooking = $b;
-                break;
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Status update mail notification error: ' . $e->getMessage());
             }
+
+            try {
+                $waSmsService = new \App\Services\WhatsAppSmsService();
+                if (strcasecmp($status, 'Confirmed') === 0 && !in_array('confirmed_wa', $sentList)) {
+                    $waSmsService->sendCustomerBookingConfirmed($updatedBooking);
+                    $sentList[] = 'confirmed_wa';
+                } else if (strcasecmp($status, 'Cancelled') === 0 && !in_array('cancelled_wa', $sentList)) {
+                    $waSmsService->sendCustomerBookingCancelled($updatedBooking);
+                    $sentList[] = 'cancelled_wa';
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Status update WhatsApp/SMS notification error: ' . $e->getMessage());
+            }
+
+            // Update sent list if changed
+            $sentList = array_unique($sentList);
+            if ($bookingModel) {
+                $bookingModel->notifications_sent = $sentList;
+                $bookingModel->save();
+            }
+            JsonStorageService::updateBookingRecord($id, ['notifications_sent' => $sentList]);
         }
 
-        if ($updatedBooking) {
-            \App\Services\JsonStorageService::write('bookings.json', $bookings);
-
-            // Compile customer notification WhatsApp message link
-            $custPhone = preg_replace('/[^0-9]/', '', $updatedBooking['whatsapp'] ?? $updatedBooking['mobile'] ?? '');
-            if (!str_starts_with($custPhone, '91') && strlen($custPhone) === 10) {
-                $custPhone = '91' . $custPhone;
-            }
-
-            $imgUrl = $updatedBooking['image'] ?? '/assets/images/hero/1.jpg';
-            if (!str_starts_with($imgUrl, 'http')) {
-                $imgUrl = url($imgUrl);
-            }
-
-            $msg = "";
-            if (strcasecmp($status, 'Confirmed') === 0) {
-                $msg = "Hello " . ($updatedBooking['name'] ?? 'Customer') . "! Your Artizen event booking request (" . $id . ") for " . ($updatedBooking['package'] ?? 'Setup') . " on " . ($updatedBooking['date'] ?? '') . " has been CONFIRMED. Our team will reach your venue on time.\n\n📷 Setup Photo: " . $imgUrl;
-            } else if (strcasecmp($status, 'Cancelled') === 0) {
-                $msg = "Hello " . ($updatedBooking['name'] ?? 'Customer') . ". Your Artizen event booking request (" . $id . ") has been CANCELLED. Please contact us on +91 9131668156 for assistance.";
-            } else {
-                $msg = "Hello " . ($updatedBooking['name'] ?? 'Customer') . "! Your Artizen booking (" . $id . ") status is now " . strtoupper($status) . ".\n\n📷 Setup Photo: " . $imgUrl;
-            }
-
-            $notifyUrl = !empty($custPhone) ? ("https://wa.me/" . $custPhone . "?text=" . urlencode($msg)) : null;
-
-            return response()->json([
-                'success' => true,
-                'status' => $status,
-                'notify_url' => $notifyUrl,
-                'message' => 'Booking ' . $id . ' status updated to ' . $status
-            ]);
+        // Compile customer notification WhatsApp message link
+        $custPhone = preg_replace('/[^0-9]/', '', $updatedBooking['whatsapp'] ?? $updatedBooking['mobile'] ?? '');
+        if (!str_starts_with($custPhone, '91') && strlen($custPhone) === 10) {
+            $custPhone = '91' . $custPhone;
         }
 
-        return response()->json(['success' => false, 'message' => 'Booking ID not found'], 404);
+        $imgUrl = $updatedBooking['image'] ?? '/assets/images/hero/1.jpg';
+        if (!str_starts_with($imgUrl, 'http')) {
+            $imgUrl = url($imgUrl);
+        }
+
+        $msg = "";
+        if (strcasecmp($status, 'Confirmed') === 0) {
+            $msg = "Hello " . ($updatedBooking['name'] ?? 'Customer') . "! Your Artizen event booking request (" . $id . ") for " . ($updatedBooking['package'] ?? 'Setup') . " on " . ($updatedBooking['date'] ?? '') . " has been CONFIRMED. Our team will reach your venue on time.\n\n📷 Setup Photo: " . $imgUrl;
+        } else if (strcasecmp($status, 'Cancelled') === 0) {
+            $msg = "Hello " . ($updatedBooking['name'] ?? 'Customer') . ". Your Artizen event booking request (" . $id . ") has been CANCELLED. Please contact us on +91 9131668156 for assistance.";
+        } else {
+            $msg = "Hello " . ($updatedBooking['name'] ?? 'Customer') . "! Your Artizen booking (" . $id . ") status is now " . strtoupper($status) . ".\n\n📷 Setup Photo: " . $imgUrl;
+        }
+
+        $notifyUrl = !empty($custPhone) ? ("https://wa.me/" . $custPhone . "?text=" . urlencode($msg)) : null;
+
+        return response()->json([
+            'success' => true,
+            'status' => $status,
+            'notify_url' => $notifyUrl,
+            'message' => 'Booking ' . $id . ' status updated to ' . $status
+        ]);
     }
 
     /**
@@ -1261,6 +1567,7 @@ class DashboardController extends Controller
                 // Remove tier from index
                 array_splice($packages[$catId]['tiers'], $tierIdx, 1);
                 File::put($path, json_encode($packages, JSON_PRETTY_PRINT));
+                \App\Services\CelebrationCatalogService::clearCache();
             }
         }
         return redirect()->route('admin.packages')->with('success', 'Package tier deleted successfully!');
@@ -1289,21 +1596,38 @@ class DashboardController extends Controller
         $cats = JsonStorageService::read('categories.json', []);
         $updatedCats = array_values(array_filter($cats, fn($c) => (string)($c['id'] ?? '') !== (string)$id));
         JsonStorageService::write('categories.json', $updatedCats);
+        \App\Services\CelebrationCatalogService::clearCache();
 
         return redirect()->route('admin.categories')->with('success', 'Category deleted successfully!');
     }
 
     /**
-     * Save/Update Testimonial.
+     * Save/Update Testimonial (Review).
      */
     public function saveTestimonial(Request $request)
     {
         $request->validate([
-            'author' => 'required|string|max:255',
-            'review' => 'required|string|max:2000',
-            'rating' => 'nullable|integer|min:1|max:5',
-            'event_type' => 'nullable|string|max:255'
+            'author'      => 'required|string|max:255',
+            'review'      => 'required|string|max:2000',
+            'rating'      => 'nullable|integer|min:1|max:5',
+            'event_type'  => 'nullable|string|max:255',
+            'avatar_file' => 'nullable|file|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
         ]);
+
+        $avatarPath = null;
+        if ($request->hasFile('avatar_file')) {
+            try {
+                $avatarPath = app(ImageOptimizationService::class)->optimize(
+                    file: $request->file('avatar_file'),
+                    targetSubdir: 'uploads',
+                    profile: 'review',
+                    prefix: 'review_avatar',
+                    quality: ImageOptimizationService::DEFAULT_QUALITY
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Testimonial avatar optimization failed: ' . $e->getMessage());
+            }
+        }
 
         $testimonials = JsonStorageService::read('testimonials.json', []);
         $id = $request->input('id');
@@ -1317,7 +1641,7 @@ class DashboardController extends Controller
                 'event_type' => trim($request->input('event_type', 'Birthday Event')),
                 'review' => trim($request->input('review')),
                 'rating' => (int)$request->input('rating', 5),
-                'avatar' => trim($request->input('avatar', '/assets/images/reviews/1.jpg')),
+                'avatar' => $avatarPath ?: trim($request->input('avatar', '/assets/images/reviews/1.jpg')),
                 'created_at' => date('d M Y')
             ];
             $testimonials[] = $testimonial;
@@ -1329,7 +1653,9 @@ class DashboardController extends Controller
                     $t['event_type'] = trim($request->input('event_type', $t['event_type'] ?? 'Celebration'));
                     $t['review'] = trim($request->input('review'));
                     $t['rating'] = (int)$request->input('rating', 5);
-                    if ($request->filled('avatar')) {
+                    if ($avatarPath) {
+                        $t['avatar'] = $avatarPath;
+                    } elseif ($request->filled('avatar')) {
                         $t['avatar'] = trim($request->input('avatar'));
                     }
                     break;
@@ -1339,6 +1665,14 @@ class DashboardController extends Controller
 
         JsonStorageService::write('testimonials.json', $testimonials);
         return redirect()->route('admin.testimonials')->with('success', 'Testimonial saved successfully!');
+    }
+
+    /**
+     * Alias for saveTestimonial to maintain naming convention with reviews.
+     */
+    public function saveReview(Request $request)
+    {
+        return $this->saveTestimonial($request);
     }
 
     /**
@@ -1359,8 +1693,9 @@ class DashboardController extends Controller
     public function saveGalleryItem(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
-            'category' => 'required|string|max:255'
+            'title'      => 'required|string|max:255',
+            'category'   => 'required|string|max:255',
+            'image_file' => 'nullable|file|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
         ]);
 
         $gallery = JsonStorageService::read('gallery.json', []);
@@ -1368,13 +1703,18 @@ class DashboardController extends Controller
 
         $imagePath = $request->input('image', '/assets/images/hero/1.jpg');
         if ($request->hasFile('image_file')) {
-            $file = $request->file('image_file');
-            $filename = 'gallery_' . time() . '_' . rand(100, 999) . '.' . $file->getClientOriginalExtension();
-            if (!File::exists(public_path('uploads'))) {
-                File::makeDirectory(public_path('uploads'), 0755, true);
+            try {
+                $imagePath = app(ImageOptimizationService::class)->optimize(
+                    file: $request->file('image_file'),
+                    targetSubdir: 'uploads',
+                    profile: 'gallery',
+                    prefix: 'gallery',
+                    quality: ImageOptimizationService::DEFAULT_QUALITY
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Gallery item image optimization failed: ' . $e->getMessage());
+                return redirect()->back()->withInput()->with('error', 'Gallery image processing failed: ' . $e->getMessage());
             }
-            $file->move(public_path('uploads'), $filename);
-            $imagePath = '/uploads/' . $filename;
         }
 
         if (empty($id)) {
@@ -1471,6 +1811,7 @@ class DashboardController extends Controller
         $package = \App\Models\Package::findOrFail($id);
         $package->active = !$package->active;
         $package->save();
+        \App\Services\CelebrationCatalogService::clearCache();
 
         if (request()->ajax() || request()->wantsJson()) {
             return response()->json([
@@ -1493,6 +1834,7 @@ class DashboardController extends Controller
         $package->tiers()->delete();
         $package->subcategories()->detach();
         $package->delete();
+        \App\Services\CelebrationCatalogService::clearCache();
 
         return redirect()->route('admin.packages')->with('success', "Package '{$title}' and its tiers deleted successfully.");
     }

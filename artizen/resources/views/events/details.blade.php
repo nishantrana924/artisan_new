@@ -52,7 +52,20 @@
                                 <div class="swiper detail-main-swiper w-full h-full cursor-grab active:cursor-grabbing">
                                     <div class="swiper-wrapper" id="detail-swiper-wrapper">
                                         <div class="swiper-slide w-full h-full flex items-center justify-center bg-gray-50">
-                                            <img id="detail-image" src="{{ $event['tiers'][$selectedTierIdx]['image'] ?? ($event['image'] ?? asset('assets/images/hero/1.jpg')) }}" alt="Main Package Image" class="w-full h-full object-cover select-none pointer-events-none">
+                                            @php
+                                                $mainDetailImg = $event['tiers'][$selectedTierIdx]['image'] ?? ($event['image'] ?? asset('assets/images/hero/1.jpg'));
+                                                $cleanMainPath = ltrim(parse_url($mainDetailImg, PHP_URL_PATH) ?? '', '/');
+                                                $optMainPath = preg_replace('/\.webp$/i', '.opt.webp', $cleanMainPath);
+                                                $hasOptMain = ($optMainPath !== $cleanMainPath && file_exists(public_path($optMainPath)));
+                                            @endphp
+                                            @if($hasOptMain)
+                                                <picture class="w-full h-full block">
+                                                    <source srcset="{{ asset($optMainPath) }}" type="image/webp">
+                                                    <img id="detail-image" src="{{ $mainDetailImg }}" alt="Main Package Image" class="w-full h-full object-cover select-none pointer-events-none" width="1000" height="750">
+                                                </picture>
+                                            @else
+                                                <img id="detail-image" src="{{ $mainDetailImg }}" alt="Main Package Image" class="w-full h-full object-cover select-none pointer-events-none" width="1000" height="750">
+                                            @endif
                                         </div>
                                     </div>
                                     <!-- Dynamic Pagination Bullets -->
@@ -555,11 +568,32 @@
                             
                             <!-- Image Box (Aspect 4/3.8 Crisp & Clean, No Hover Zoom) -->
                             <div class="relative w-full aspect-[4/3.8] overflow-hidden bg-[#FAF7F2] shrink-0">
-                                <img src="{{ $simItem['image'] }}" 
-                                     alt="{{ $simItem['title'] }}" 
-                                     class="w-full h-full object-cover select-none pointer-events-none" 
-                                     draggable="false"
-                                     loading="lazy">
+                                @php
+                                    $simImgSrc = $simItem['image'];
+                                    $cleanSimPath = ltrim(parse_url($simImgSrc, PHP_URL_PATH) ?? '', '/');
+                                    $optSimPath = preg_replace('/\.webp$/i', '.opt.webp', $cleanSimPath);
+                                    $hasOptSim = ($optSimPath !== $cleanSimPath && file_exists(public_path($optSimPath)));
+                                @endphp
+                                @if($hasOptSim)
+                                    <picture>
+                                        <source srcset="{{ asset($optSimPath) }}" type="image/webp">
+                                        <img src="{{ $simItem['image'] }}" 
+                                             alt="{{ $simItem['title'] }}" 
+                                             class="w-full h-full object-cover select-none pointer-events-none" 
+                                             draggable="false"
+                                             loading="lazy"
+                                             width="1000"
+                                             height="750">
+                                    </picture>
+                                @else
+                                    <img src="{{ $simItem['image'] }}" 
+                                         alt="{{ $simItem['title'] }}" 
+                                         class="w-full h-full object-cover select-none pointer-events-none" 
+                                         draggable="false"
+                                         loading="lazy"
+                                         width="1000"
+                                         height="750">
+                                @endif
                                 
                                 <!-- Rating Badge Top-Right -->
                                 <span class="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-xs px-2 py-0.5 rounded text-[11px] font-bold text-gray-900 flex items-center gap-1 shadow-2xs z-20">

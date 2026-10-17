@@ -15,6 +15,7 @@ class Booking extends Model
 
     protected $fillable = [
         'id',
+        'user_id',
         'customer_id',
         'package_id',
         'customer_name',
@@ -50,6 +51,11 @@ class Booking extends Model
         'surcharge_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function customer(): BelongsTo
     {

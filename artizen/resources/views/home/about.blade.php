@@ -7,8 +7,20 @@
                 <div class="swiper about-swiper w-full h-full">
                     <div class="swiper-wrapper">
                         @foreach ($about['images'] ?? [ $about['image'] ?? '/assets/images/hero/1.jpg' ] as $imgUrl)
+                            @php
+                                $webpImg = preg_replace('/\.(jpe?g|png)$/i', '.webp', $imgUrl);
+                                $cleanWebp = ltrim(parse_url($webpImg, PHP_URL_PATH) ?? '', '/');
+                                $hasWebp = file_exists(public_path($cleanWebp));
+                            @endphp
                             <div class="swiper-slide w-full h-full">
+                                @if($hasWebp)
+                                <picture>
+                                    <source srcset="{{ asset($cleanWebp) }}" type="image/webp">
+                                    <img src="{{ $imgUrl }}" alt="Artizen Experience Setup" class="w-full h-full object-cover group-hover:scale-102 transition-all duration-500">
+                                </picture>
+                                @else
                                 <img src="{{ $imgUrl }}" alt="Artizen Experience Setup" class="w-full h-full object-cover group-hover:scale-102 transition-all duration-500">
+                                @endif
                             </div>
                         @endforeach
                     </div>

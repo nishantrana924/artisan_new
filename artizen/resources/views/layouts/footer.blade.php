@@ -10,9 +10,13 @@
                 <div>
                     <!-- Brand Logo -->
                     <a href="{{ route('home') }}" class="inline-block mb-3.5 group">
-                        <img src="{{ asset('assets/images/logo/artizen.png') }}" 
-                             alt="ARTIZEN Events" 
-                             class="h-12 sm:h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-[1.02]">
+                        <picture>
+                            <source srcset="{{ asset('assets/images/logo/artizen.webp') }}" type="image/webp">
+                            <img src="{{ asset('assets/images/logo/artizen.png') }}" 
+                                 alt="ARTIZEN Events" 
+                                 class="h-12 sm:h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+                                 width="447" height="500">
+                        </picture>
                     </a>
 
                     <!-- Brand Bio -->

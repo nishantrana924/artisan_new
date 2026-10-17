@@ -16,13 +16,23 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // 1. Check if user is logged in via Auth Facade OR Session Flag
-        $isSessionAdmin = session('admin_logged_in') === true;
+        // 1. Check if user is logged in via Auth Facade OR Verified Session Admin
         $isAuthAdmin = Auth::check() && (
             (method_exists(Auth::user(), 'isAdmin') && Auth::user()->isAdmin()) ||
-            (!empty(Auth::user()->is_admin)) ||
-            (strcasecmp(Auth::user()->email ?? '', 'admin@artizen.com') === 0)
+            (!empty(Auth::user()->is_admin))
         );
+
+        $isSessionAdmin = false;
+        if (session('admin_logged_in') === true && session('admin_email')) {
+            $sessionEmail = strtolower(trim((string)session('admin_email')));
+            $sessionUser = \App\Models\User::where('email', $sessionEmail)->first();
+            if ($sessionUser && ($sessionUser->isAdmin() || !empty($sessionUser->is_admin))) {
+                $isSessionAdmin = true;
+                if (!Auth::check()) {
+                    Auth::login($sessionUser);
+                }
+            }
+        }
 
         if ($isSessionAdmin || $isAuthAdmin) {
             return $next($request);

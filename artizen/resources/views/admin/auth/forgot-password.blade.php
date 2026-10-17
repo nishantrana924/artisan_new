@@ -56,14 +56,51 @@
                     <label for="reset-email" class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1">
                         Admin Email Address <span class="text-[#FFD600]">*</span>
                     </label>
+                    <div class="flex gap-2">
+                        <div class="relative flex-1">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                                <i class="fa-solid fa-envelope text-xs"></i>
+                            </span>
+                            <input type="email" id="reset-email" name="email" value="{{ old('email', session('reset_email', 'admin@artizen.com')) }}" required autofocus
+                                placeholder="admin@artizen.com"
+                                class="w-full pl-9 pr-3 py-2.5 bg-[#FAF9F6] dark:bg-[#292929] border @error('email') border-red-500 @else border-gray-200 dark:border-white/10 @enderror rounded-xl text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600]">
+                        </div>
+                        <button type="button" id="send-otp-btn" onclick="sendPublicResetOtp()"
+                            class="px-3 py-2 bg-gray-900 hover:bg-black dark:bg-[#222224] dark:hover:bg-[#2d2d30] text-white border border-gray-300 dark:border-white/15 text-xs font-bold rounded-xl transition-colors cursor-pointer shrink-0">
+                            Send OTP
+                        </button>
+                    </div>
+                    <p id="otp-status-msg" class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
+                        @if(session('otp_sent'))
+                            A 6-digit verification code has been dispatched to your email.
+                        @else
+                            Click "Send OTP" to receive a 6-digit verification code.
+                        @endif
+                    </p>
+                    @error('email')
+                        <p class="text-[11px] text-rose-500 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- 6-digit OTP Code Field -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label for="reset-otp" class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                            Verification Code (OTP) <span class="text-[#FFD600]">*</span>
+                        </label>
+                        <span class="text-[10px] text-gray-400">Valid for 10 min</span>
+                    </div>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                            <i class="fa-solid fa-envelope text-xs"></i>
+                            <i class="fa-solid fa-key text-xs"></i>
                         </span>
-                        <input type="email" id="reset-email" name="email" value="{{ old('email', 'admin@artizen.com') }}" required autofocus
-                            placeholder="admin@artizen.com"
-                            class="w-full pl-9 pr-3 py-2.5 bg-[#FAF9F6] dark:bg-[#292929] border @error('email') border-red-500 @else border-gray-200 dark:border-white/10 @enderror rounded-xl text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600]">
+                        <input type="text" id="reset-otp" name="otp" value="{{ old('otp') }}" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
+                            placeholder="Enter 6-digit OTP"
+                            class="w-full pl-9 pr-3 py-2.5 bg-[#FAF9F6] dark:bg-[#292929] border @error('otp') border-red-500 @else border-gray-200 dark:border-white/10 @enderror rounded-xl text-xs font-mono tracking-widest text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600]">
                     </div>
+                    @error('otp')
+                        <p class="text-[11px] text-rose-500 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <!-- New Password -->
@@ -116,6 +153,57 @@
 </div>
 
 <script>
+function sendPublicResetOtp() {
+    const emailInput = document.getElementById('reset-email');
+    const btn = document.getElementById('send-otp-btn');
+    const statusMsg = document.getElementById('otp-status-msg');
+
+    if (!emailInput || !emailInput.value.trim()) {
+        if (statusMsg) {
+            statusMsg.textContent = 'Please enter your administrator email first.';
+            statusMsg.className = 'text-[11px] text-rose-500 font-medium mt-1';
+        }
+        emailInput?.focus();
+        return;
+    }
+
+    const email = emailInput.value.trim();
+    const origText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    fetch('{{ route("admin.password.send-otp") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ email: email })
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.textContent = 'Resend OTP';
+        if (statusMsg) {
+            statusMsg.textContent = data.message || 'Verification code dispatched to your email.';
+            statusMsg.className = 'text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1';
+        }
+        const otpInput = document.getElementById('reset-otp');
+        if (otpInput) {
+            otpInput.focus();
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.textContent = origText;
+        if (statusMsg) {
+            statusMsg.textContent = 'Failed to dispatch verification code. Please try again.';
+            statusMsg.className = 'text-[11px] text-rose-500 font-medium mt-1';
+        }
+    });
+}
+
 function togglePasswordVisibility(fieldId, iconId) {
     const input = document.getElementById(fieldId);
     const icon = document.getElementById(iconId);

@@ -2,188 +2,225 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
+
 class CelebrationCatalogService
 {
+    /**
+     * In-memory request memoization buffers.
+     */
+    protected static ?array $memoizedPackages = null;
+    protected static ?array $memoizedCategories = null;
+
+    /**
+     * Explicitly clear both in-memory request memoization and application cache.
+     * Invoked when admin saves, updates, or deletes packages, categories, or tiers.
+     */
+    public static function clearCache(): void
+    {
+        self::$memoizedPackages = null;
+        self::$memoizedCategories = null;
+        Cache::forget('artizen_celebration_catalog_all_packages');
+        Cache::forget('artizen_celebration_catalog_categories');
+    }
+
     /**
      * Master Category Taxonomy - loaded dynamically from database categories
      */
     public static function getCategories(): array
     {
-        try {
-            $dbCats = \App\Models\Category::where('active', true)->orderBy('display_order')->get();
-            if ($dbCats->isNotEmpty()) {
-                $categories = [
-                    'all' => [
-                        'slug' => 'all',
-                        'name' => 'All Celebrations',
-                        'short' => 'All',
-                        'icon' => 'fa-solid fa-sparkles',
-                    ],
-                ];
-                foreach ($dbCats as $cat) {
-                    $navSlug = $cat->nav_slug;
-                    if (!isset($categories[$navSlug])) {
-                        $categories[$navSlug] = [
-                            'slug' => $navSlug,
-                            'name' => $cat->title,
-                            'short' => $cat->title,
-                            'icon' => $cat->icon ?: 'fa-solid fa-cake-candles',
-                        ];
-                    }
-                }
-                return $categories;
-            }
-        } catch (\Throwable $e) {
-            // Fallback below
+        if (self::$memoizedCategories !== null) {
+            return self::$memoizedCategories;
         }
 
-        return [
-            'all' => [
-                'slug' => 'all',
-                'name' => 'All Celebrations',
-                'short' => 'All',
-                'icon' => 'fa-solid fa-sparkles',
-            ],
-            'cat-birthdays' => [
-                'slug' => 'cat-birthdays',
-                'name' => 'Birthdays',
-                'short' => 'Birthdays',
-                'icon' => 'fa-solid fa-cake-candles',
-            ],
-            'cat-kids-cozy' => [
-                'slug' => 'cat-kids-cozy',
-                'name' => 'Baby Shower & Kids',
-                'short' => 'Kids & Baby',
-                'icon' => 'fa-solid fa-baby-carriage',
-            ],
-            'cat-proposal-anniversary' => [
-                'slug' => 'cat-proposal-anniversary',
-                'name' => 'Proposals & Anniversaries',
-                'short' => 'Proposals',
-                'icon' => 'fa-solid fa-heart',
-            ],
-            'cat-weddings-sangeet' => [
-                'slug' => 'cat-weddings-sangeet',
-                'name' => 'Weddings & Sangeet',
-                'short' => 'Weddings',
-                'icon' => 'fa-solid fa-champagne-glasses',
-            ],
-            'cat-house-party' => [
-                'slug' => 'cat-house-party',
-                'name' => 'House Party',
-                'short' => 'House Party',
-                'icon' => 'fa-solid fa-compact-disc',
-            ],
-            'cat-dj-acoustic' => [
-                'slug' => 'cat-dj-acoustic',
-                'name' => 'DJ & Live Artists',
-                'short' => 'Live Artists',
-                'icon' => 'fa-solid fa-guitar',
-            ],
-            'cat-baby-corporate' => [
-                'slug' => 'cat-baby-corporate',
-                'name' => 'Corporate Events',
-                'short' => 'Corporate',
-                'icon' => 'fa-solid fa-briefcase',
-            ],
-        ];
+        self::$memoizedCategories = Cache::remember('artizen_celebration_catalog_categories', 3600, function () {
+            try {
+                $dbCats = \App\Models\Category::where('active', true)->orderBy('display_order')->get();
+                if ($dbCats->isNotEmpty()) {
+                    $categories = [
+                        'all' => [
+                            'slug' => 'all',
+                            'name' => 'All Celebrations',
+                            'short' => 'All',
+                            'icon' => 'fa-solid fa-sparkles',
+                        ],
+                    ];
+                    foreach ($dbCats as $cat) {
+                        $navSlug = $cat->nav_slug;
+                        if (!isset($categories[$navSlug])) {
+                            $categories[$navSlug] = [
+                                'slug' => $navSlug,
+                                'name' => $cat->title,
+                                'short' => $cat->title,
+                                'icon' => $cat->icon ?: 'fa-solid fa-cake-candles',
+                            ];
+                        }
+                    }
+                    return $categories;
+                }
+            } catch (\Throwable $e) {
+                // Fallback below
+            }
+
+            return [
+                'all' => [
+                    'slug' => 'all',
+                    'name' => 'All Celebrations',
+                    'short' => 'All',
+                    'icon' => 'fa-solid fa-sparkles',
+                ],
+                'cat-birthdays' => [
+                    'slug' => 'cat-birthdays',
+                    'name' => 'Birthdays',
+                    'short' => 'Birthdays',
+                    'icon' => 'fa-solid fa-cake-candles',
+                ],
+                'cat-kids-cozy' => [
+                    'slug' => 'cat-kids-cozy',
+                    'name' => 'Baby Shower & Kids',
+                    'short' => 'Kids & Baby',
+                    'icon' => 'fa-solid fa-baby-carriage',
+                ],
+                'cat-proposal-anniversary' => [
+                    'slug' => 'cat-proposal-anniversary',
+                    'name' => 'Proposals & Anniversaries',
+                    'short' => 'Proposals',
+                    'icon' => 'fa-solid fa-heart',
+                ],
+                'cat-weddings-sangeet' => [
+                    'slug' => 'cat-weddings-sangeet',
+                    'name' => 'Weddings & Sangeet',
+                    'short' => 'Weddings',
+                    'icon' => 'fa-solid fa-champagne-glasses',
+                ],
+                'cat-house-party' => [
+                    'slug' => 'cat-house-party',
+                    'name' => 'House Party',
+                    'short' => 'House Party',
+                    'icon' => 'fa-solid fa-compact-disc',
+                ],
+                'cat-dj-acoustic' => [
+                    'slug' => 'cat-dj-acoustic',
+                    'name' => 'DJ & Live Artists',
+                    'short' => 'Live Artists',
+                    'icon' => 'fa-solid fa-guitar',
+                ],
+                'cat-baby-corporate' => [
+                    'slug' => 'cat-baby-corporate',
+                    'name' => 'Corporate Events',
+                    'short' => 'Corporate',
+                    'icon' => 'fa-solid fa-briefcase',
+                ],
+            ];
+        });
+
+        return self::$memoizedCategories;
     }
 
     /**
      * Complete Master Catalog - dynamically queries database packages table with relationships,
      * ensuring newly created admin packages immediately appear everywhere across the site.
+     * Cached with explicit invalidation upon any package/category/tier edit.
      */
     public static function getAllPackages(): array
     {
-        try {
-            $dbPackages = \App\Models\Package::with([
-                'category',
-                'subcategories',
-                'tiers' => function ($q) {
-                    $q->where('active', true)->orderBy('display_order');
-                }
-            ])
-            ->where('active', true)
-            ->orderBy('id', 'asc')
-            ->get();
-
-            if ($dbPackages->isNotEmpty()) {
-                $packages = [];
-                foreach ($dbPackages as $p) {
-                    $catNavSlug = $p->category?->nav_slug ?? ('cat-' . \Illuminate\Support\Str::slug($p->category?->title ?? 'celebrations'));
-                    $catName = $p->category?->title ?? 'Celebrations';
-                    $subcat = $p->subcategories->first()?->name ?? ($p->tag ?: 'Curated Setup');
-
-                    $inclusions = [];
-                    $tiersList = [];
-                    foreach ($p->tiers as $t) {
-                        $tInclusions = is_array($t->inclusions) ? $t->inclusions : [];
-                        if (empty($inclusions) && !empty($tInclusions)) {
-                            $inclusions = $tInclusions;
-                        }
-                        $tiersList[] = [
-                            'id' => $t->id,
-                            'name' => $t->name,
-                            'badge' => $t->badge ?? null,
-                            'price' => (float)$t->price,
-                            'original_price' => (float)($p->original_price ?: round($t->price * 1.15)),
-                            'desc' => $t->description ?: $p->description,
-                            'image' => $t->image ?: $p->image,
-                            'inclusions' => $tInclusions,
-                        ];
-                    }
-
-                    if (empty($inclusions)) {
-                        $inclusions = [
-                            'Full theme backdrop & decoration setup',
-                            'Ambient LED lighting & focus spots',
-                            'Indore on-site delivery and coordination team'
-                        ];
-                    }
-
-                    $gallery = is_array($p->gallery) ? $p->gallery : [];
-                    if (empty($gallery) && $p->image) {
-                        $gallery = [$p->image];
-                    }
-
-                    $tags = array_values(array_filter(array_unique(array_merge(
-                        [$p->tag ?: 'decor'],
-                        $p->subcategories->pluck('name')->toArray(),
-                        explode(' ', strtolower($p->title))
-                    ))));
-
-                    $price = (float)$p->price;
-                    $origPrice = (float)($p->original_price ?: round($price * 1.15));
-
-                    $packages[] = [
-                        'id' => 'pkg-' . $p->id,
-                        'db_id' => $p->id,
-                        'slug' => $p->slug,
-                        'title' => $p->title,
-                        'subcategory' => $subcat,
-                        'category_id' => $catNavSlug,
-                        'category_name' => $catName,
-                        'price' => $price,
-                        'original_price' => $origPrice,
-                        'rating' => 4.9,
-                        'reviews_count' => 65,
-                        'image' => $p->image ?: asset('assets/images/hero/1.jpg'),
-                        'gallery' => $gallery,
-                        'desc' => $p->description ?? '',
-                        'tags' => $tags,
-                        'inclusions' => $inclusions,
-                        'badge' => $p->badge ?: '15% OFF',
-                        'recipients' => is_array($p->recipients) ? $p->recipients : (json_decode($p->recipients ?? '[]', true) ?? []),
-                        'tiers' => $tiersList,
-                    ];
-                }
-                return $packages;
-            }
-        } catch (\Throwable $e) {
-            // Fallback to static catalog if DB is offline or migrating
+        if (self::$memoizedPackages !== null) {
+            return self::$memoizedPackages;
         }
 
-        return self::getStaticPackagesFallback();
+        self::$memoizedPackages = Cache::remember('artizen_celebration_catalog_all_packages', 3600, function () {
+            try {
+                $dbPackages = \App\Models\Package::with([
+                    'category',
+                    'subcategories',
+                    'tiers' => function ($q) {
+                        $q->where('active', true)->orderBy('display_order');
+                    }
+                ])
+                ->where('active', true)
+                ->orderBy('id', 'asc')
+                ->get();
+
+                if ($dbPackages->isNotEmpty()) {
+                    $packages = [];
+                    foreach ($dbPackages as $p) {
+                        $catNavSlug = $p->category?->nav_slug ?? ('cat-' . \Illuminate\Support\Str::slug($p->category?->title ?? 'celebrations'));
+                        $catName = $p->category?->title ?? 'Celebrations';
+                        $subcat = $p->subcategories->first()?->name ?? ($p->tag ?: 'Curated Setup');
+
+                        $inclusions = [];
+                        $tiersList = [];
+                        foreach ($p->tiers as $t) {
+                            $tInclusions = is_array($t->inclusions) ? $t->inclusions : [];
+                            if (empty($inclusions) && !empty($tInclusions)) {
+                                $inclusions = $tInclusions;
+                            }
+                            $tiersList[] = [
+                                'id' => $t->id,
+                                'name' => $t->name,
+                                'badge' => $t->badge ?? null,
+                                'price' => (float)$t->price,
+                                'original_price' => (float)($p->original_price ?: round($t->price * 1.15)),
+                                'desc' => $t->description ?: $p->description,
+                                'image' => $t->image ?: $p->image,
+                                'inclusions' => $tInclusions,
+                            ];
+                        }
+
+                        if (empty($inclusions)) {
+                            $inclusions = [
+                                'Full theme backdrop & decoration setup',
+                                'Ambient LED lighting & focus spots',
+                                'Indore on-site delivery and coordination team'
+                            ];
+                        }
+
+                        $gallery = is_array($p->gallery) ? $p->gallery : [];
+                        if (empty($gallery) && $p->image) {
+                            $gallery = [$p->image];
+                        }
+
+                        $tags = array_values(array_filter(array_unique(array_merge(
+                            [$p->tag ?: 'decor'],
+                            $p->subcategories->pluck('name')->toArray(),
+                            explode(' ', strtolower($p->title))
+                        ))));
+
+                        $price = (float)$p->price;
+                        $origPrice = (float)($p->original_price ?: round($price * 1.15));
+
+                        $packages[] = [
+                            'id' => 'pkg-' . $p->id,
+                            'db_id' => $p->id,
+                            'slug' => $p->slug,
+                            'title' => $p->title,
+                            'subcategory' => $subcat,
+                            'category_id' => $catNavSlug,
+                            'category_name' => $catName,
+                            'price' => $price,
+                            'original_price' => $origPrice,
+                            'rating' => 4.9,
+                            'reviews_count' => 65,
+                            'image' => $p->image ?: asset('assets/images/hero/1.jpg'),
+                            'gallery' => $gallery,
+                            'desc' => $p->description ?? '',
+                            'tags' => $tags,
+                            'inclusions' => $inclusions,
+                            'badge' => $p->badge ?: '15% OFF',
+                            'recipients' => is_array($p->recipients) ? $p->recipients : (json_decode($p->recipients ?? '[]', true) ?? []),
+                            'tiers' => $tiersList,
+                        ];
+                    }
+                    return $packages;
+                }
+            } catch (\Throwable $e) {
+                // Fallback to static catalog if DB is offline or migrating
+            }
+
+            return self::getStaticPackagesFallback();
+        });
+
+        return self::$memoizedPackages;
     }
 
     /**

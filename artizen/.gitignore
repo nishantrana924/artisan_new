@@ -18,6 +18,11 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/backups
+/storage/backups/*
+/storage/logs/*.log
+/public/uploads/*
+!/public/uploads/.gitkeep
 /vendor
 Homestead.json
 Homestead.yaml

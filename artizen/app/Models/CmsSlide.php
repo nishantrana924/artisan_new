@@ -10,7 +10,6 @@ class CmsSlide extends Model
     use HasFactory;
 
     protected $fillable = [
-        'badge',
         'title',
         'description',
         'image',

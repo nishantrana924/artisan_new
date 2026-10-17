@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>{{ $isEdit ? 'Edit Package Tier' : 'Add Package Tier' }} - Artizen Admin</title>
 
     <!-- Favicons & App Icons (Matching Public Site) -->
@@ -65,13 +65,35 @@
         }
 
         input[type="text"], input[type="number"], input[type="url"], input[type="email"], select, textarea {
-            font-size: 14px !important;
+            font-size: 14px;
             color: #111827 !important;
             background-color: #FFFFFF !important;
             border: 1px solid #D1D5DB !important;
             border-radius: 8px !important;
             padding: 9px 13px !important;
             transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+        }
+
+        /* Prevent automatic zoom-in on iPhone/iOS mobile inputs & disable double-tap/pinch zoom */
+        @media screen and (max-width: 899px) {
+            html body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+            html body select,
+            html body textarea,
+            html body input[class],
+            html body select[class],
+            html body textarea[class],
+            input.text-xs,
+            select.text-xs,
+            textarea.text-xs,
+            input.text-sm,
+            select.text-sm,
+            textarea.text-sm {
+                font-size: 16px !important;
+            }
+        }
+
+        html, body, button, input, select, textarea, a {
+            touch-action: manipulation;
         }
 
         input[type="text"]:focus, input[type="number"]:focus, input[type="url"]:focus, select:focus, textarea:focus {

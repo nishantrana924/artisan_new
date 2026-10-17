@@ -83,4 +83,13 @@ class Category extends Model
     {
         return $value ?: null;
     }
+
+    /**
+     * Automatically clear catalog cache whenever a category is saved or deleted.
+     */
+    protected static function booted(): void
+    {
+        static::saved(fn() => \App\Services\CelebrationCatalogService::clearCache());
+        static::deleted(fn() => \App\Services\CelebrationCatalogService::clearCache());
+    }
 }

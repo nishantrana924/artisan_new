@@ -44,4 +44,13 @@ class Subcategory extends Model
     {
         return $this->belongsToMany(Package::class, 'package_subcategory')->withTimestamps();
     }
+
+    /**
+     * Automatically clear catalog cache whenever a subcategory is saved or deleted.
+     */
+    protected static function booted(): void
+    {
+        static::saved(fn() => \App\Services\CelebrationCatalogService::clearCache());
+        static::deleted(fn() => \App\Services\CelebrationCatalogService::clearCache());
+    }
 }

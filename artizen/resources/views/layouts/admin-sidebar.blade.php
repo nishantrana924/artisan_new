@@ -199,18 +199,25 @@
                     ['id' => 'testimonials',   'label' => 'FAQs',          'icon' => 'fa-solid fa-circle-question', 'route' => 'admin.faqs'],
                 ],
                 'Website CMS' => [
-                    ['id' => 'hero-manager',   'label' => 'Hero Slider',   'icon' => 'fa-solid fa-images',          'route' => 'admin.hero'],
-                    ['id' => 'legal-manager',  'label' => 'Legal Pages',   'icon' => 'fa-solid fa-scale-balanced',  'route' => 'admin.legal'],
-                    ['id' => 'settings',       'label' => 'Settings',      'icon' => 'fa-solid fa-user-gear',       'route' => 'admin.settings'],
+                    ['id' => 'hero-manager',           'label' => 'Hero Banners',    'icon' => 'fa-solid fa-images',          'route' => 'admin.hero'],
+                    ['id' => 'offers-manager',         'label' => 'Offers Section',  'icon' => 'fa-solid fa-tags',            'route' => 'admin.offers'],
+                    ['id' => 'promise-banner-manager', 'label' => 'Promise Banner',  'icon' => 'fa-solid fa-gem',             'route' => 'admin.promise-banner'],
+                    ['id' => 'legal-manager',          'label' => 'Legal Pages',     'icon' => 'fa-solid fa-scale-balanced',  'route' => 'admin.legal'],
+                    ['id' => 'settings',               'label' => 'Settings',        'icon' => 'fa-solid fa-user-gear',       'route' => 'admin.settings'],
                 ]
             ];
 
-            // Count pending bookings for badge
+            // Count pending bookings for badge efficiently with 60-second cache
             $pendingBookingsCount = 0;
             try {
-                $allBookings = \App\Services\JsonStorageService::read('bookings.json', []);
-                $pendingBookingsCount = count(array_filter($allBookings, fn($b) => ($b['status'] ?? '') === 'pending'));
-            } catch (\Exception $e) {}
+                $pendingBookingsCount = \Illuminate\Support\Facades\Cache::remember('admin_pending_bookings_count', 60, function () {
+                    if (config('artizen.storage_driver') === 'database') {
+                        return \App\Models\Booking::whereRaw('LOWER(status) = ?', ['pending'])->count();
+                    }
+                    $allBookings = \App\Services\JsonStorageService::read('bookings.json', []);
+                    return count(array_filter($allBookings, fn($b) => strtolower($b['status'] ?? '') === 'pending'));
+                });
+            } catch (\Throwable $e) {}
         @endphp
 
         @foreach($sections as $sectionName => $items)

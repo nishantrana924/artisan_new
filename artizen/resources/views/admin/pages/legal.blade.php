@@ -1900,7 +1900,7 @@
         }
 
         // Dynamic About Cards management
-        let aboutCardCount = {{ count($cms['about']['cards']) }};
+        let aboutCardCount = {{ count($cms['about']['cards'] ?? []) }};
 
         function addNewAboutCard() {
             const container = document.getElementById('about-cards-grid');

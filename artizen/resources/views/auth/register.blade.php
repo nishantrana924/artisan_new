@@ -69,6 +69,20 @@
                         </ul>
                     </div>
                 @endif
+ 
+                @if (session('error'))
+                    <div class="mb-4 p-3.5 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400 text-xs font-semibold text-left flex items-start gap-2.5">
+                        <i class="fa-solid fa-circle-exclamation text-xs mt-0.5 shrink-0"></i>
+                        <span class="leading-relaxed">{{ session('error') }}</span>
+                    </div>
+                @endif
+
+                @if (session('success'))
+                    <div class="mb-4 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-semibold text-left flex items-start gap-2.5">
+                        <i class="fa-solid fa-circle-check text-xs mt-0.5 shrink-0"></i>
+                        <span class="leading-relaxed">{{ session('success') }}</span>
+                    </div>
+                @endif
 
                 <!-- One-Click Google Signup -->
                 <div class="mb-4">
@@ -102,44 +116,35 @@
 
                     <!-- Full Name -->
                     <div>
-                        <label for="reg-name" class="block text-xs font-bold uppercase tracking-wider text-[#171719] dark:text-gray-300 mb-1.5">
-                            Full Name <span class="text-[#FFD600]">*</span>
-                        </label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-400 dark:text-gray-500">
                                 <i class="fa-solid fa-user text-xs"></i>
                             </span>
-                            <input type="text" id="reg-name" name="name" value="{{ old('name') }}" required autofocus placeholder="Nishant Rana"
-                                class="w-full pl-9 pr-3.5 py-2.5 bg-[#FAF9F6] dark:bg-[#1E1E24] border border-[#E6E2D8] dark:border-white/10 rounded-xl text-xs text-[#171719] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600] transition-all">
+                            <input type="text" id="reg-name" name="name" value="{{ old('name') }}" required autofocus placeholder="Enter your full name" aria-label="Full Name"
+                                class="w-full pl-9 pr-3.5 py-3 bg-[#FAF9F6] dark:bg-[#1E1E24] border border-[#E6E2D8] dark:border-white/10 rounded-xl text-xs text-[#171719] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600] transition-all">
                         </div>
                     </div>
 
                     <!-- Email Address -->
                     <div>
-                        <label for="reg-email" class="block text-xs font-bold uppercase tracking-wider text-[#171719] dark:text-gray-300 mb-1.5">
-                            Email Address <span class="text-[#FFD600]">*</span>
-                        </label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-400 dark:text-gray-500">
                                 <i class="fa-solid fa-envelope text-xs"></i>
                             </span>
-                            <input type="email" id="reg-email" name="email" value="{{ old('email') }}" required placeholder="you@example.com"
-                                class="w-full pl-9 pr-3.5 py-2.5 bg-[#FAF9F6] dark:bg-[#1E1E24] border border-[#E6E2D8] dark:border-white/10 rounded-xl text-xs text-[#171719] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600] transition-all">
+                            <input type="email" id="reg-email" name="email" value="{{ old('email') }}" required placeholder="Enter your email address" aria-label="Email Address"
+                                class="w-full pl-9 pr-3.5 py-3 bg-[#FAF9F6] dark:bg-[#1E1E24] border border-[#E6E2D8] dark:border-white/10 rounded-xl text-xs text-[#171719] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600] transition-all">
                         </div>
                     </div>
 
                     <!-- Password -->
                     <div>
-                        <label for="reg-password" class="block text-xs font-bold uppercase tracking-wider text-[#171719] dark:text-gray-300 mb-1.5">
-                            Password <span class="text-[#FFD600]">*</span>
-                        </label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-400 dark:text-gray-500">
                                 <i class="fa-solid fa-lock text-xs"></i>
                             </span>
-                            <input type="password" id="reg-password" name="password" required placeholder="Minimum 8 characters"
-                                class="w-full pl-9 pr-10 py-2.5 bg-[#FAF9F6] dark:bg-[#1E1E24] border border-[#E6E2D8] dark:border-white/10 rounded-xl text-xs text-[#171719] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600] transition-all">
-                            <button type="button" onclick="toggleVisibility('reg-password', 'reg-eye-1')" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-400 hover:text-[#FFD600] cursor-pointer">
+                            <input type="password" id="reg-password" name="password" required placeholder="Create a password (min. 8 characters)" aria-label="Password"
+                                class="w-full pl-9 pr-10 py-3 bg-[#FAF9F6] dark:bg-[#1E1E24] border border-[#E6E2D8] dark:border-white/10 rounded-xl text-xs text-[#171719] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600] transition-all">
+                            <button type="button" onclick="toggleVisibility('reg-password', 'reg-eye-1')" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-400 hover:text-[#FFD600] cursor-pointer" aria-label="Toggle password visibility">
                                 <i id="reg-eye-1" class="fa-solid fa-eye text-xs"></i>
                             </button>
                         </div>
@@ -147,16 +152,13 @@
 
                     <!-- Confirm Password -->
                     <div>
-                        <label for="reg-password-confirm" class="block text-xs font-bold uppercase tracking-wider text-[#171719] dark:text-gray-300 mb-1.5">
-                            Confirm Password <span class="text-[#FFD600]">*</span>
-                        </label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-400 dark:text-gray-500">
                                 <i class="fa-solid fa-lock text-xs"></i>
                             </span>
-                            <input type="password" id="reg-password-confirm" name="password_confirmation" required placeholder="Re-enter password"
-                                class="w-full pl-9 pr-10 py-2.5 bg-[#FAF9F6] dark:bg-[#1E1E24] border border-[#E6E2D8] dark:border-white/10 rounded-xl text-xs text-[#171719] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600] transition-all">
-                            <button type="button" onclick="toggleVisibility('reg-password-confirm', 'reg-eye-2')" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-400 hover:text-[#FFD600] cursor-pointer">
+                            <input type="password" id="reg-password-confirm" name="password_confirmation" required placeholder="Confirm your password" aria-label="Confirm Password"
+                                class="w-full pl-9 pr-10 py-3 bg-[#FAF9F6] dark:bg-[#1E1E24] border border-[#E6E2D8] dark:border-white/10 rounded-xl text-xs text-[#171719] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600] transition-all">
+                            <button type="button" onclick="toggleVisibility('reg-password-confirm', 'reg-eye-2')" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-400 hover:text-[#FFD600] cursor-pointer" aria-label="Toggle password visibility">
                                 <i id="reg-eye-2" class="fa-solid fa-eye text-xs"></i>
                             </button>
                         </div>

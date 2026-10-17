@@ -33,7 +33,31 @@ class RegisterController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                'unique:users,email',
+                function ($attribute, $value, $fail) {
+                    $normalized = strtolower(trim((string) $value));
+                    $reservedPrefixes = ['admin@', 'administrator@', 'superadmin@', 'root@'];
+                    $isReserved = str_ends_with($normalized, '@artizen.com');
+
+                    if (! $isReserved) {
+                        foreach ($reservedPrefixes as $prefix) {
+                            if (str_starts_with($normalized, $prefix)) {
+                                $isReserved = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($isReserved) {
+                        $fail('The selected email address is reserved and cannot be registered.');
+                    }
+                },
+            ],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
             'name.required' => 'Full name is required.',
@@ -56,7 +80,6 @@ class RegisterController extends Controller
                 'name' => trim($request->name),
                 'email' => strtolower(trim($request->email)),
                 'password' => Hash::make($request->password),
-                'is_admin' => false,
             ]);
 
             Auth::login($user);

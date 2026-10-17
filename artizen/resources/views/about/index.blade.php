@@ -54,20 +54,58 @@
             
             <!-- Main Featured Celebration Visual (Left 6 Columns, Full Height) -->
             <div class="lg:col-span-6 rounded-2xl overflow-hidden border border-[#E8DFC8] bg-white min-h-[300px] sm:min-h-[400px]">
-                <img src="{{ $hero['main_image'] }}" 
-                     alt="Artizen Celebration Setup Indore" 
-                     class="w-full h-full object-cover block" 
-                     loading="lazy">
+                @php
+                    $cleanHeroMain = ltrim(parse_url($hero['main_image'], PHP_URL_PATH) ?? '', '/');
+                    $optHeroMain = preg_replace('/\.webp$/i', '.opt.webp', $cleanHeroMain);
+                    $hasOptHeroMain = ($optHeroMain !== $cleanHeroMain && file_exists(public_path($optHeroMain)));
+                @endphp
+                @if($hasOptHeroMain)
+                    <picture>
+                        <source srcset="{{ asset($optHeroMain) }}" type="image/webp">
+                        <img src="{{ $hero['main_image'] }}" 
+                             alt="Artizen Celebration Setup Indore" 
+                             class="w-full h-full object-cover block" 
+                             loading="lazy"
+                             width="1000"
+                             height="747">
+                    </picture>
+                @else
+                    <img src="{{ $hero['main_image'] }}" 
+                         alt="Artizen Celebration Setup Indore" 
+                         class="w-full h-full object-cover block" 
+                         loading="lazy"
+                         width="1000"
+                         height="747">
+                @endif
             </div>
 
             <!-- Curated Celebration Grid (Right 6 Columns - 2x2 Grid, Completely Fills Height) -->
             <div class="lg:col-span-6 grid grid-cols-2 gap-3.5 sm:gap-4">
                 @foreach($hero['gallery'] as $img)
                     <div class="rounded-2xl overflow-hidden border border-[#E8DFC8] bg-white aspect-[4/3]">
-                        <img src="{{ $img }}" 
-                             alt="Indore Celebration Setup" 
-                             class="w-full h-full object-cover block" 
-                             loading="lazy">
+                        @php
+                            $cleanGalImg = ltrim(parse_url($img, PHP_URL_PATH) ?? '', '/');
+                            $optGalImg = preg_replace('/\.webp$/i', '.opt.webp', $cleanGalImg);
+                            $hasOptGal = ($optGalImg !== $cleanGalImg && file_exists(public_path($optGalImg)));
+                        @endphp
+                        @if($hasOptGal)
+                            <picture>
+                                <source srcset="{{ asset($optGalImg) }}" type="image/webp">
+                                <img src="{{ $img }}" 
+                                     alt="Indore Celebration Setup" 
+                                     class="w-full h-full object-cover block" 
+                                     loading="lazy"
+                                     width="1000"
+                                     height="750">
+                            </picture>
+                        @else
+                            <img src="{{ $img }}" 
+                                 alt="Indore Celebration Setup" 
+                                 class="w-full h-full object-cover block" 
+                                 loading="lazy"
+                                 width="1000"
+                                 height="750">
+                        @endif
                     </div>
                 @endforeach
             </div>
@@ -211,10 +249,32 @@
                 @foreach($spaces as $space)
                     <div class="bg-white border border-[#E8DFC8] rounded-2xl overflow-hidden text-left flex flex-col justify-between">
                         <div class="aspect-[4/3] w-full overflow-hidden bg-gray-100">
-                            <img src="{{ $space['image'] }}" 
-                                 alt="{{ $space['title'] }} Indore" 
-                                 class="w-full h-full object-cover block" 
-                                 loading="lazy">
+                            @php
+                                $cleanSpaceImg = ltrim(parse_url($space['image'], PHP_URL_PATH) ?? '', '/');
+                                $optSpaceImg   = preg_replace('/\.webp$/i', '.opt.webp', $cleanSpaceImg);
+                                $hasOptSpace   = ($optSpaceImg !== $cleanSpaceImg && file_exists(public_path($optSpaceImg)));
+                                $isBanner      = str_contains($cleanSpaceImg, 'custom_warm_reception');
+                                $spaceWidth    = 1000;
+                                $spaceHeight   = $isBanner ? 375 : 558;
+                            @endphp
+                            @if($hasOptSpace)
+                                <picture>
+                                    <source srcset="{{ asset($optSpaceImg) }}" type="image/webp">
+                                    <img src="{{ $space['image'] }}" 
+                                         alt="{{ $space['title'] }} Indore" 
+                                         class="w-full h-full object-cover block" 
+                                         loading="lazy"
+                                         width="{{ $spaceWidth }}"
+                                         height="{{ $spaceHeight }}">
+                                </picture>
+                            @else
+                                <img src="{{ $space['image'] }}" 
+                                     alt="{{ $space['title'] }} Indore" 
+                                     class="w-full h-full object-cover block" 
+                                     loading="lazy"
+                                     width="{{ $spaceWidth }}"
+                                     height="{{ $spaceHeight }}">
+                            @endif
                         </div>
                         <div class="p-4 sm:p-5">
                             <h3 class="font-heading font-bold text-xs sm:text-sm text-gray-950 mb-1">

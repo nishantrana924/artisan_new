@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\JsonStorageService;
 use App\Services\CelebrationCatalogService;
+use App\Models\Booking;
+use App\Models\Customer;
 use Illuminate\Support\Str;
 
 class BookingController extends Controller
@@ -181,9 +183,19 @@ class BookingController extends Controller
         $verifiedBasePrice = 0;
         $matchedCategoryTitle = trim($request->input('category', 'Event Setup'));
         $matchedImage = '/assets/images/hero/1.jpg';
+        $matchedPackageId = null;
 
         foreach ($allPackages as $p) {
             if (strcasecmp($p['title'] ?? '', $submittedPkgTitle) === 0 || str_contains(strtolower($submittedPkgTitle), strtolower($p['title'] ?? ''))) {
+                $rawPkgId = $p['db_id'] ?? $p['id'] ?? null;
+                if (is_numeric($rawPkgId)) {
+                    $matchedPackageId = (int)$rawPkgId;
+                } elseif (is_string($rawPkgId) && str_starts_with($rawPkgId, 'pkg-')) {
+                    $matchedPackageId = (int)substr($rawPkgId, 4);
+                }
+                if ($matchedPackageId && !\App\Models\Package::where('id', $matchedPackageId)->exists()) {
+                    $matchedPackageId = null;
+                }
                 $matchedCategoryTitle = $p['category_name'] ?? $matchedCategoryTitle;
                 $matchedImage = $p['image'] ?? $matchedImage;
 
@@ -285,27 +297,39 @@ class BookingController extends Controller
         $booking = \Illuminate\Support\Facades\DB::transaction(function() use (
             $request, $submittedPkgTitle, $matchedCategoryTitle, $submittedTierName, 
             $verifiedBasePrice, $verifiedAddonsTotal, $grandTotal, $matchedImage, 
-            $verifiedAddonsList, $finalNotes, $userId, $userEmail
+            $verifiedAddonsList, $finalNotes, $userId, $userEmail, $matchedPackageId
         ) {
-            $bookings = JsonStorageService::read('bookings.json', []);
-            
+            // Find or create customer atomically (enforcing mobile uniqueness)
+            $phone = preg_replace('/[^0-9]/', '', $request->input('mobile') ?? $request->input('whatsapp') ?? '');
+            if (empty($phone)) $phone = '9131668156';
+
+            $customer = Customer::firstOrCreate(
+                ['mobile' => $phone],
+                [
+                    'name' => trim($request->input('name')),
+                    'whatsapp' => trim($request->input('whatsapp', $phone)),
+                    'email' => $userEmail ?: null,
+                    'address' => trim($request->input('address')),
+                    'area' => trim($request->input('area')),
+                    'city' => trim($request->input('city', 'Indore')),
+                    'state' => trim($request->input('state', 'Madhya Pradesh')),
+                    'pincode' => trim($request->input('pincode')),
+                ]
+            );
+
+            // Generate collision-resistant unique Booking ID (2+ billion combinations)
             do {
-                $newId = 'BK-' . rand(1000, 9999);
-                $idExists = false;
-                foreach ($bookings as $b) {
-                    if (($b['id'] ?? '') === $newId) {
-                        $idExists = true;
-                        break;
-                    }
-                }
-            } while ($idExists);
+                $newId = 'BK-' . strtoupper(Str::random(6));
+            } while (Booking::where('id', $newId)->exists());
 
             $newBooking = [
                 'id' => $newId,
                 'user_id' => $userId,
+                'customer_id' => $customer->id,
+                'package_id' => $matchedPackageId,
                 'name' => trim($request->input('name')),
-                'mobile' => trim($request->input('mobile')),
-                'whatsapp' => trim($request->input('whatsapp')),
+                'mobile' => $phone,
+                'whatsapp' => trim($request->input('whatsapp', $phone)),
                 'email' => trim($userEmail),
                 'package' => $submittedPkgTitle,
                 'category' => $matchedCategoryTitle,
@@ -329,13 +353,49 @@ class BookingController extends Controller
                 'created_at' => date('d M Y, h:i A')
             ];
 
-            $bookings[] = $newBooking;
-            JsonStorageService::write('bookings.json', $bookings);
+            // 1. Direct Eloquent insert: Single record, zero full-table rewrites
+            Booking::create([
+                'id' => $newId,
+                'user_id' => $userId,
+                'customer_id' => $customer->id,
+                'package_id' => $matchedPackageId,
+                'customer_name' => trim($request->input('name')),
+                'customer_mobile' => $phone,
+                'customer_whatsapp' => trim($request->input('whatsapp', $phone)),
+                'customer_email' => $userEmail ?: null,
+                'package_name' => $submittedPkgTitle,
+                'category_name' => $matchedCategoryTitle,
+                'tier_name' => $submittedTierName,
+                'event_date' => $request->input('event_date'),
+                'event_time' => $request->input('event_time'),
+                'guest_count' => (int)$request->input('guest_count', 25),
+                'address' => trim($request->input('address')),
+                'landmark' => trim($request->input('landmark', '')),
+                'area' => trim($request->input('area')),
+                'city' => trim($request->input('city', 'Indore')),
+                'state' => trim($request->input('state', 'Madhya Pradesh')),
+                'pincode' => trim($request->input('pincode')),
+                'notes' => $finalNotes,
+                'addons' => $verifiedAddonsList,
+                'package_price' => $verifiedBasePrice,
+                'surcharge_amount' => $verifiedAddonsTotal,
+                'total_amount' => $grandTotal,
+                'status' => 'Pending',
+                'notifications_sent' => ['creation'],
+            ]);
+
+            // Update customer totals atomically
+            $customer->increment('total_bookings');
+            $customer->increment('total_spend', $grandTotal);
+
+            // 2. Synchronize single booking to JSON fallback without rewriting all DB rows
+            JsonStorageService::appendBookingRecord($newBooking);
 
             return $newBooking;
         });
 
         $newId = $booking['id'];
+        \Illuminate\Support\Facades\Cache::forget('admin_pending_bookings_count');
 
         // Store in session for instant order history lookup
         session([

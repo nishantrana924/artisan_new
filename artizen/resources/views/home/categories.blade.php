@@ -80,19 +80,38 @@
                             $recipientUrl = is_array($recipient) 
                                 ? route('events.index', ['for' => $recipient['slug']]) 
                                 : $recipient->target_url;
+
+                            // Resolve optimized sibling WebP if present (e.g. husband.opt.webp)
+                            $rawImgPath = is_array($recipient) ? $recipient['image'] : ($recipient->image ?? '');
+                            $cleanRelPath = ltrim(parse_url($rawImgPath, PHP_URL_PATH) ?? '', '/');
+                            $optRelPath = preg_replace('/\.webp$/i', '.opt.webp', $cleanRelPath);
+                            $optSibling = ($optRelPath !== $cleanRelPath && file_exists(public_path($optRelPath))) ? asset($optRelPath) : null;
                         @endphp
                         <div class="swiper-slide">
-                            <a href="{{ $recipientUrl }}" 
+                            <a href="{{ $recipientUrl }}"
                                draggable="false"
                                class="group/item flex flex-col items-center w-full cursor-pointer text-decoration-none">
                                 
                                 <!-- Card Image Box (Matching Reference: Rounded rectangular with pastel backdrop) -->
                                 <div class="w-full aspect-[16/10.5] rounded-2xl overflow-hidden bg-[#FFF5F5] border border-black/5 shadow-2xs relative transition-transform duration-200 group-hover/item:scale-[1.02]">
+                                    @if($optSibling)
+                                    <picture>
+                                        <source srcset="{{ $optSibling }}" type="image/webp">
+                                        <img src="{{ $recipientImage }}" 
+                                             alt="{{ $recipientName }}" 
+                                             class="w-full h-full object-cover select-none pointer-events-none" 
+                                             draggable="false"
+                                             width="800"
+                                             height="537"
+                                             loading="eager">
+                                    </picture>
+                                    @else
                                     <img src="{{ $recipientImage }}" 
                                          alt="{{ $recipientName }}" 
                                          class="w-full h-full object-cover select-none pointer-events-none" 
                                          draggable="false"
                                          loading="eager">
+                                    @endif
                                 </div>
 
                                 <!-- Label Below Card -->

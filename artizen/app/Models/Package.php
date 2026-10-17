@@ -51,4 +51,13 @@ class Package extends Model
     {
         return $this->belongsToMany(Subcategory::class, 'package_subcategory')->withTimestamps();
     }
+
+    /**
+     * Automatically clear catalog cache whenever a package is saved or deleted.
+     */
+    protected static function booted(): void
+    {
+        static::saved(fn() => \App\Services\CelebrationCatalogService::clearCache());
+        static::deleted(fn() => \App\Services\CelebrationCatalogService::clearCache());
+    }
 }

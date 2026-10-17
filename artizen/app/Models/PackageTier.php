@@ -32,4 +32,13 @@ class PackageTier extends Model
     {
         return $this->belongsTo(Package::class);
     }
+
+    /**
+     * Automatically clear catalog cache whenever a package tier is saved or deleted.
+     */
+    protected static function booted(): void
+    {
+        static::saved(fn() => \App\Services\CelebrationCatalogService::clearCache());
+        static::deleted(fn() => \App\Services\CelebrationCatalogService::clearCache());
+    }
 }

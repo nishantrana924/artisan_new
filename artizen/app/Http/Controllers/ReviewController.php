@@ -278,7 +278,7 @@ class ReviewController extends Controller
                     $existingReview->review = $body;
                     $existingReview->rating = (int)$validated['rating'];
                     $existingReview->is_verified = true;
-                    $existingReview->is_active = true;
+                    $existingReview->is_active = false;
                     $existingReview->show_on_home = false;
                     $existingReview->show_on_reviews_page = true;
                     $existingReview->show_on_event_details = true;
@@ -352,7 +352,7 @@ class ReviewController extends Controller
             'rating'                => (int)$validated['rating'],
             'avatar'                => '',
             'is_verified'           => true,
-            'is_active'             => true,
+            'is_active'             => false,
             'show_on_home'          => false,
             'show_on_reviews_page'  => true,
             'show_on_event_details' => true,
@@ -371,23 +371,22 @@ class ReviewController extends Controller
             'created_at'   => $newReviewModel->created_at ? $newReviewModel->created_at->format('d M Y') : date('d M Y'),
             'avatar'       => '',
             'is_verified'  => true,
+            'is_active'    => false,
         ];
 
-        // Prepend new review to persistent storage and sync
-        $storedReviews = JsonStorageService::read('testimonials.json', []);
-        array_unshift($storedReviews, $newReview);
-        JsonStorageService::write('testimonials.json', $storedReviews);
+        // Prepend new review to JSON fallback under exclusive file lock without DB full-table rewrite
+        JsonStorageService::prependTestimonialRecord($newReview);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'is_edit' => false,
-                'message' => 'Thank you! Your review for ' . ($newReview['event_type']) . ' has been published successfully.',
+                'message' => 'Thank you! Your review for ' . ($newReview['event_type']) . ' has been submitted and is pending administrator moderation.',
                 'review' => $newReview
             ]);
         }
 
-        return redirect()->back()->with('review_success', 'Thank you! Your review has been submitted successfully.');
+        return redirect()->back()->with('review_success', 'Thank you! Your review has been submitted and will appear on the site once approved by our team.');
     }
 
     /**

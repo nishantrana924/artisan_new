@@ -24,7 +24,6 @@ class User extends Authenticatable
         'password',
         'avatar',
         'google_id',
-        'is_admin',
     ];
 
     /**
@@ -70,5 +69,13 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return (bool) $this->is_admin;
+    }
+
+    /**
+     * Customer bookings relationship.
+     */
+    public function bookings(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Booking::class);
     }
 }

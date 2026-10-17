@@ -62,4 +62,47 @@
     scrollbar-width: none;
 }
 
+/* Prevent automatic zoom-in on iPhone/iOS mobile inputs & disable double-tap/pinch zoom */
+@media screen and (max-width: 899px) {
+    html body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+    html body select,
+    html body textarea,
+    html body input[class],
+    html body select[class],
+    html body textarea[class],
+    input.text-xs,
+    select.text-xs,
+    textarea.text-xs,
+    input.text-sm,
+    select.text-sm,
+    textarea.text-sm {
+        font-size: 16px !important;
+    }
+}
+
+html, body, button, input, select, textarea, a {
+    touch-action: manipulation;
+}
+
+/* Hero Banner High Contrast & Color Protection across all themes */
+.hero-banner-swiper h2,
+.hero-banner-swiper .hero-banner-title,
+[data-theme="light"] .hero-banner-swiper h2,
+[data-theme="light"] .hero-banner-swiper h2.text-white,
+[data-theme="light"] .hero-banner-swiper .hero-banner-title,
+[data-theme="dark"] .hero-banner-swiper h2,
+[data-theme="dark"] .hero-banner-swiper h2.text-white {
+    color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 2px 8px rgba(0, 0, 0, 0.75) !important;
+}
+.hero-banner-swiper p,
+.hero-banner-swiper .hero-banner-desc,
+[data-theme="light"] .hero-banner-swiper p,
+[data-theme="light"] .hero-banner-swiper p.text-white,
+[data-theme="dark"] .hero-banner-swiper p {
+    color: rgba(255, 255, 255, 0.95) !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85) !important;
+}
+
+
 

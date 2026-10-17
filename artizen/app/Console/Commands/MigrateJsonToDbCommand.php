@@ -290,7 +290,7 @@ class MigrateJsonToDbCommand extends Command
             if ($hasIsAdminColumn) {
                 $userData['is_admin'] = true;
             }
-            \App\Models\User::create($userData);
+            \App\Models\User::forceCreate($userData);
         } else {
             if ($hasIsAdminColumn) {
                 $adminUser->is_admin = true;

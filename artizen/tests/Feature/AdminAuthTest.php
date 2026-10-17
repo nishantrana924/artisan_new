@@ -113,6 +113,10 @@ class AdminAuthTest extends TestCase
         $this->assertAuthenticatedAs($admin);
         $this->assertTrue(session('admin_logged_in'));
         $response->assertRedirect('/admin/dashboard');
+
+        $dashboardResponse = $this->get('/admin/dashboard');
+        $dashboardResponse->assertStatus(200);
+        $dashboardResponse->assertSee('Dashboard');
     }
 
     /**
@@ -154,4 +158,31 @@ class AdminAuthTest extends TestCase
         $this->assertGuest();
         $response->assertRedirect(route('home'));
     }
+
+    /**
+     * Test login and register pages render with improved placeholders and without input labels.
+     */
+    public function test_auth_pages_have_improved_placeholders_and_no_field_labels(): void
+    {
+        // Login Page checks
+        $loginRes = $this->get('/login');
+        $loginRes->assertStatus(200);
+        $loginRes->assertSee('placeholder="Enter your email address"', false);
+        $loginRes->assertSee('placeholder="Enter your password"', false);
+        $loginRes->assertDontSee('<label for="login-email">', false);
+        $loginRes->assertDontSee('<label for="login-password">', false);
+
+        // Register Page checks
+        $regRes = $this->get('/register');
+        $regRes->assertStatus(200);
+        $regRes->assertSee('placeholder="Enter your full name"', false);
+        $regRes->assertSee('placeholder="Enter your email address"', false);
+        $regRes->assertSee('placeholder="Create a password (min. 8 characters)"', false);
+        $regRes->assertSee('placeholder="Confirm your password"', false);
+        $regRes->assertDontSee('<label for="reg-name">', false);
+        $regRes->assertDontSee('<label for="reg-email">', false);
+        $regRes->assertDontSee('<label for="reg-password">', false);
+        $regRes->assertDontSee('<label for="reg-password-confirm">', false);
+    }
 }
+

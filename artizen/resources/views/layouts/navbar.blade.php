@@ -89,7 +89,10 @@
             
             <!-- Brand Logo (Left - Clean, Crisp & Vertically Centered - No Hover Scaling) -->
             <a href="{{ route('home') }}" class="flex items-center shrink-0 text-left">
-                <img src="{{ asset('assets/images/logo/artizen.png') }}" alt="Artizen Logo" class="h-10 sm:h-11 md:h-12 w-auto object-contain block">
+                <picture>
+                    <source srcset="{{ asset('assets/images/logo/artizen.webp') }}" type="image/webp">
+                    <img src="{{ asset('assets/images/logo/artizen.png') }}" alt="Artizen Logo" class="h-10 sm:h-11 md:h-12 w-auto object-contain block" width="447" height="500">
+                </picture>
             </a>
 
             <!-- Omnisearch Bar with Autocomplete Suggestions & Clear Icon (Expanded & Centered) -->
@@ -370,7 +373,19 @@
                                     </div>
                                     <div class="w-72 xl:w-84 2xl:w-92 self-stretch relative shrink-0 block border-l border-[#E6E2D8] dark:border-[#2E2E33] bg-gray-100 dark:bg-[#202024] overflow-hidden">
                                         @if($cat->dropdown_image)
-                                            <img src="{{ asset($cat->dropdown_image) }}" alt="{{ $cat->title }}" class="w-full h-full object-cover block" loading="lazy">
+                                            @php
+                                                $cleanNavDrop = ltrim(parse_url($cat->dropdown_image, PHP_URL_PATH) ?? '', '/');
+                                                $optNavDrop = preg_replace('/\.webp$/i', '.opt.webp', $cleanNavDrop);
+                                                $hasOptNavDrop = ($optNavDrop !== $cleanNavDrop && file_exists(public_path($optNavDrop)));
+                                            @endphp
+                                            @if($hasOptNavDrop)
+                                                <picture>
+                                                    <source srcset="{{ asset($optNavDrop) }}" type="image/webp">
+                                                    <img src="{{ asset($cat->dropdown_image) }}" alt="{{ $cat->title }}" class="w-full h-full object-cover block" loading="lazy" width="800" height="800">
+                                                </picture>
+                                            @else
+                                                <img src="{{ asset($cat->dropdown_image) }}" alt="{{ $cat->title }}" class="w-full h-full object-cover block" loading="lazy" width="800" height="800">
+                                            @endif
                                         @else
                                             <div class="w-full h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-6 text-center">
                                                 <i class="fa-regular fa-image text-3xl mb-2 opacity-50"></i>
@@ -398,7 +413,10 @@
     <!-- 1. Drawer Header (Pinned at Top) -->
     <div class="shrink-0 px-5 py-3.5 border-b border-[#E6E2D8] dark:border-[#292929] flex items-center justify-between bg-white dark:bg-[#171719]">
         <a href="{{ route('home') }}" class="flex items-center">
-            <img src="{{ asset('assets/images/logo/artizen.png') }}" alt="Artizen Logo" class="h-10 w-auto object-contain rounded-md">
+            <picture>
+                <source srcset="{{ asset('assets/images/logo/artizen.webp') }}" type="image/webp">
+                <img src="{{ asset('assets/images/logo/artizen.png') }}" alt="Artizen Logo" class="h-10 w-auto object-contain rounded-md" width="447" height="500">
+            </picture>
         </a>
         <div class="flex items-center gap-2">
             <!-- Quick Theme Switch -->

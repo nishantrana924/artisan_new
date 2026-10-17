@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\JsonStorageService;
+use App\Models\Enquiry;
+use Illuminate\Support\Str;
 
 class ContactController extends Controller
 {
@@ -36,19 +38,21 @@ class ContactController extends Controller
             'message' => 'required|string|max:2000'
         ]);
 
-        $enquiries = JsonStorageService::read('enquiries.json');
-
-        // Generate unique Enquiry ID (ENQ-XXXX)
-        do {
-            $newId = 'ENQ-' . rand(1000, 9999);
-            $idExists = false;
-            foreach ($enquiries as $e) {
-                if (($e['id'] ?? '') === $newId) {
-                    $idExists = true;
-                    break;
-                }
+        // Duplicate submission debounce (prevents exact duplicate submissions within 60 seconds)
+        $debounceKey = 'contact_debounce_' . md5($request->ip() . '|' . $request->input('email') . '|' . $request->input('message'));
+        if (\Illuminate\Support\Facades\Cache::has($debounceKey)) {
+            $msg = 'Your inquiry has already been received. Our team will reach out to you shortly.';
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => true, 'message' => $msg]);
             }
-        } while ($idExists);
+            return redirect()->route('contact.index')->with('success', $msg);
+        }
+        \Illuminate\Support\Facades\Cache::put($debounceKey, true, 60);
+
+        // Generate unique, collision-resistant Enquiry ID (ENQ-XXXXXX)
+        do {
+            $newId = 'ENQ-' . strtoupper(Str::random(6));
+        } while (Enquiry::where('id', $newId)->exists());
 
         $enquiry = [
             'id' => $newId,
@@ -61,8 +65,19 @@ class ContactController extends Controller
             'created_at' => date('d M Y, h:i A')
         ];
 
-        $enquiries[] = $enquiry;
-        JsonStorageService::write('enquiries.json', $enquiries);
+        // 1. Direct Eloquent insertion
+        Enquiry::create([
+            'id' => $newId,
+            'name' => $enquiry['name'],
+            'phone' => $enquiry['phone'],
+            'email' => $enquiry['email'] ?: null,
+            'subject' => $enquiry['subject'],
+            'message' => $enquiry['message'],
+            'status' => 'Unread',
+        ]);
+
+        // 2. Synchronize single record to JSON fallback under exclusive flock
+        JsonStorageService::appendEnquiryRecord($enquiry);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([

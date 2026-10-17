@@ -76,7 +76,12 @@ class JsonStorageService
                     default => null
                 };
             } catch (\Throwable $e) {
-                // Safe DB sync logging
+                \Illuminate\Support\Facades\Log::error("Database sync failed for {$filename}: " . $e->getMessage(), [
+                    'filename' => $filename,
+                    'error_code' => $e->getCode(),
+                    'exception' => get_class($e),
+                ]);
+                return false;
             }
         }
 
@@ -138,16 +143,39 @@ class JsonStorageService
 
     protected static function readBookingsFromDb(array $default): array
     {
-        $bookings = Booking::orderBy('created_at', 'desc')->get();
+        $bookings = Booking::with('customer')->orderBy('created_at', 'desc')->get();
         if ($bookings->isEmpty()) return self::readJsonFile('bookings.json', $default);
 
         return $bookings->map(function($b) {
+            $customer = $b->customer;
+            $name = $b->customer_name ?: ($customer?->name ?? 'Guest Customer');
+            $mobile = $b->customer_mobile ?: ($customer?->mobile ?? '');
+            $whatsapp = $b->customer_whatsapp ?: ($customer?->whatsapp ?? $mobile);
+            $email = $b->customer_email ?: ($customer?->email ?? '');
+
             return [
                 'id' => $b->id,
-                'name' => $b->customer_name,
-                'mobile' => $b->customer_mobile,
-                'whatsapp' => $b->customer_whatsapp,
-                'email' => $b->customer_email,
+                'user_id' => $b->user_id,
+                'customer_id' => $b->customer_id,
+                'package_id' => $b->package_id,
+                'name' => $name,
+                'mobile' => $mobile,
+                'whatsapp' => $whatsapp,
+                'email' => $email,
+                'customer_name' => $name,
+                'customer_mobile' => $mobile,
+                'customer_whatsapp' => $whatsapp,
+                'customer_email' => $email,
+                'customer_profile' => $customer ? [
+                    'id' => $customer->id,
+                    'name' => $customer->name,
+                    'mobile' => $customer->mobile,
+                    'whatsapp' => $customer->whatsapp,
+                    'email' => $customer->email,
+                    'address' => $customer->address,
+                    'area' => $customer->area,
+                    'city' => $customer->city,
+                ] : null,
                 'package' => $b->package_name,
                 'category' => $b->category_name,
                 'tier' => $b->tier_name,
@@ -263,63 +291,79 @@ class JsonStorageService
 
     protected static function readCmsFromDb(array $default): array
     {
-        $slides = CmsSlide::orderBy('display_order')->get();
-        $heroSlides = $slides->map(function($s) {
-            return [
-                'image' => $s->image,
-                'badge' => $s->badge,
-                'title' => $s->title,
-                'desc' => $s->description,
-                'link1' => $s->button1_link,
-                'btn1Text' => $s->button1_text,
-                'link2' => $s->button2_link,
-                'btn2Text' => $s->button2_text
-            ];
-        })->toArray();
+        $cmsData = self::readJsonFile('cms.json', $default);
 
-        $defaultHero = [
-            [
-                'image' => '/assets/images/hero/1.jpg',
-                'badge' => 'PLAN, BOOK & RELAX',
-                'title' => 'ELEVATE YOUR CELEBRATIONS',
-                'desc' => 'Book complete premium decor, sound, and lighting setups instantly for birthdays, house parties, and sangeet.',
-                'link1' => '/events',
-                'btn1Text' => 'Explore Packages',
-                'link2' => 'https://wa.me/919131668156',
-                'btn2Text' => 'WhatsApp Inquiry'
-            ],
-            [
-                'image' => '/assets/images/hero/2.jpg',
-                'badge' => 'SOUNDS OF ARTIZEN',
-                'title' => 'HIGH-BASS PARTY RIGS',
-                'desc' => 'Professional active speaker columns, live DJs, strobes, and concert fog delivered directly to your venue.',
-                'link1' => '/events',
-                'btn1Text' => 'View DJ Setups',
-                'link2' => 'https://wa.me/919131668156',
-                'btn2Text' => 'Book Instant'
-            ],
-            [
-                'image' => '/assets/images/hero/3.jpg',
-                'badge' => 'ROMANTIC MEMORIES',
-                'title' => 'ROYAL STAGES & DECORS',
-                'desc' => 'Exquisite wedding mandaps, traditional haldi Urli setups, and premium anniversary flower panels.',
-                'link1' => '/events',
-                'btn1Text' => 'View Weddings',
-                'link2' => 'https://wa.me/919131668156',
-                'btn2Text' => 'Contact Planner'
-            ]
-        ];
+        // 1. Hero Slides from MySQL
+        try {
+            $slides = CmsSlide::orderBy('display_order')->get();
+            if ($slides->isNotEmpty()) {
+                $heroSlides = $slides->map(function($s) {
+                    return [
+                        'id' => $s->id,
+                        'image' => $s->image,
+                        'title' => $s->title,
+                        'desc' => $s->description,
+                        'link1' => $s->button1_link,
+                        'btn1Text' => $s->button1_text,
+                        'link2' => $s->button2_link,
+                        'btn2Text' => $s->button2_text,
+                        'display_order' => $s->display_order,
+                        'is_active' => (bool)$s->is_active,
+                    ];
+                })->toArray();
 
-        if (empty($heroSlides)) {
-            $fromFile = self::readJsonFile('cms.json', $default);
-            if (!empty($fromFile) && isset($fromFile['hero_slides'])) {
-                return $fromFile;
+                $cmsData['hero_slides'] = $heroSlides;
+            } elseif (!isset($cmsData['hero_slides'])) {
+                $cmsData['hero_slides'] = $default['hero_slides'] ?? [];
             }
+        } catch (\Throwable $e) {
+            // Safe fallback to JSON
         }
 
-        return [
-            'hero_slides' => !empty($heroSlides) ? $heroSlides : ($default['hero_slides'] ?? $defaultHero),
-        ];
+        // 2. Offers Section from MySQL
+        try {
+            $offerSetting = \App\Models\CmsOfferSetting::first();
+            $offers = \App\Models\CmsOffer::orderBy('display_order')->get();
+            if ($offers->isNotEmpty() || $offerSetting) {
+                $cmsData['offers'] = [
+                    'section_title' => $offerSetting?->section_title ?? ($cmsData['offers']['section_title'] ?? 'Save More with Offers'),
+                    'is_active'     => $offerSetting ? (bool)$offerSetting->is_active : ($cmsData['offers']['is_active'] ?? true),
+                    'items'         => $offers->map(function($o) {
+                        return [
+                            'id'             => $o->id,
+                            'category_name'  => $o->category_name,
+                            'icon'           => $o->icon,
+                            'icon_color'     => $o->icon_color,
+                            'subheading'     => $o->subheading,
+                            'discount_title' => $o->discount_title,
+                            'terms'          => $o->terms,
+                            'link'           => $o->link,
+                            'display_order'  => (int)$o->display_order,
+                            'is_active'      => (bool)$o->is_active,
+                        ];
+                    })->toArray(),
+                ];
+            }
+        } catch (\Throwable $e) {
+            // Safe fallback to JSON
+        }
+
+        // 3. Promise Banner from MySQL
+        try {
+            $pb = \App\Models\CmsPromiseBanner::first();
+            if ($pb) {
+                $cmsData['promise_banner'] = [
+                    'image'     => $pb->image,
+                    'title'     => $pb->title,
+                    'link'      => $pb->link,
+                    'is_active' => (bool)$pb->is_active,
+                ];
+            }
+        } catch (\Throwable $e) {
+            // Safe fallback to JSON
+        }
+
+        return $cmsData;
     }
 
     protected static function readSettingsFromDb(array $default): array
@@ -432,8 +476,9 @@ class JsonStorageService
             Booking::updateOrCreate(
                 ['id' => $b['id']],
                 [
+                    'user_id' => $b['user_id'] ?? null,
                     'customer_id' => $customer->id,
-                    'package_id' => null,
+                    'package_id' => $b['package_id'] ?? null,
                     'customer_name' => trim($b['name'] ?? 'Guest Customer'),
                     'customer_mobile' => $phone,
                     'customer_whatsapp' => $b['whatsapp'] ?? $phone,
@@ -563,21 +608,97 @@ class JsonStorageService
 
     protected static function writeCmsToDb(array $data): void
     {
-        foreach ($data['hero_slides'] ?? [] as $idx => $s) {
-            CmsSlide::updateOrCreate(
-                ['title' => trim($s['title'] ?? 'Slide')],
-                [
-                    'badge' => $s['badge'] ?? null,
+        // 1. Hero Slides
+        if (isset($data['hero_slides']) && is_array($data['hero_slides'])) {
+            $processedIds = [];
+            foreach ($data['hero_slides'] as $idx => $s) {
+                $slideId = !empty($s['id']) ? (int)$s['id'] : null;
+                $slideAttributes = [
+                    'title' => trim($s['title'] ?? 'Slide'),
                     'description' => $s['desc'] ?? null,
                     'image' => $s['image'] ?? '/assets/images/hero/1.jpg',
                     'button1_text' => $s['btn1Text'] ?? null,
                     'button1_link' => $s['link1'] ?? null,
                     'button2_text' => $s['btn2Text'] ?? null,
                     'button2_link' => $s['link2'] ?? null,
-                    'display_order' => $idx,
-                    'is_active' => true,
-                ]
-            );
+                    'display_order' => (int)($s['display_order'] ?? $idx),
+                    'is_active' => isset($s['is_active']) ? (bool)$s['is_active'] : true,
+                ];
+
+                if (!empty($slideId) && CmsSlide::where('id', $slideId)->exists()) {
+                    $slide = CmsSlide::find($slideId);
+                    $slide->update($slideAttributes);
+                    $processedIds[] = $slide->id;
+                } else {
+                    $slide = CmsSlide::create($slideAttributes);
+                    $processedIds[] = $slide->id;
+                }
+            }
+
+            if (!empty($processedIds)) {
+                CmsSlide::whereNotIn('id', $processedIds)->delete();
+            }
+        }
+
+        // 2. Offers Section
+        if (isset($data['offers']) && is_array($data['offers'])) {
+            $offersData = $data['offers'];
+            if (\Illuminate\Support\Facades\Schema::hasTable('cms_offer_settings')) {
+                \App\Models\CmsOfferSetting::updateOrCreate(
+                    ['id' => 1],
+                    [
+                        'section_title' => trim($offersData['section_title'] ?? 'Save More with Offers'),
+                        'is_active'     => isset($offersData['is_active']) ? (bool)$offersData['is_active'] : true,
+                    ]
+                );
+            }
+
+            if (isset($offersData['items']) && is_array($offersData['items']) && \Illuminate\Support\Facades\Schema::hasTable('cms_offers')) {
+                $processedOfferIds = [];
+                foreach ($offersData['items'] as $idx => $item) {
+                    $offerId = !empty($item['id']) ? (int)$item['id'] : null;
+                    $offerAttributes = [
+                        'category_name'  => trim($item['category_name'] ?? 'Celebration Offer'),
+                        'icon'           => trim($item['icon'] ?? 'fa-solid fa-cake-candles'),
+                        'icon_color'     => trim($item['icon_color'] ?? 'text-amber-600'),
+                        'subheading'     => trim($item['subheading'] ?? ''),
+                        'discount_title' => trim($item['discount_title'] ?? 'Special Offer'),
+                        'terms'          => trim($item['terms'] ?? ''),
+                        'link'           => trim($item['link'] ?? '/events'),
+                        'display_order'  => (int)($item['display_order'] ?? $idx),
+                        'is_active'      => isset($item['is_active']) ? (bool)$item['is_active'] : true,
+                    ];
+
+                    if (!empty($offerId) && \App\Models\CmsOffer::where('id', $offerId)->exists()) {
+                        $offer = \App\Models\CmsOffer::find($offerId);
+                        $offer->update($offerAttributes);
+                        $processedOfferIds[] = $offer->id;
+                    } else {
+                        $offer = \App\Models\CmsOffer::create($offerAttributes);
+                        $processedOfferIds[] = $offer->id;
+                    }
+                }
+
+                if (!empty($processedOfferIds)) {
+                    \App\Models\CmsOffer::whereNotIn('id', $processedOfferIds)->delete();
+                }
+            }
+        }
+
+        // 3. Promise Banner
+        if (isset($data['promise_banner']) && is_array($data['promise_banner'])) {
+            $pbData = $data['promise_banner'];
+            if (\Illuminate\Support\Facades\Schema::hasTable('cms_promise_banners')) {
+                \App\Models\CmsPromiseBanner::updateOrCreate(
+                    ['id' => 1],
+                    [
+                        'image'     => $pbData['image'] ?? '/images/banners/artizen-promise-banner.webp',
+                        'title'     => trim($pbData['title'] ?? 'Artizen Promise'),
+                        'link'      => trim($pbData['link'] ?? '/events'),
+                        'is_active' => isset($pbData['is_active']) ? (bool)$pbData['is_active'] : true,
+                    ]
+                );
+            }
         }
     }
 
@@ -656,5 +777,102 @@ class JsonStorageService
         }
 
         return $success;
+    }
+
+    /**
+     * Atomically mutate a JSON file under an exclusive file lock (flock).
+     */
+    public static function updateJsonFileAtomic(string $filename, callable $modifier): array
+    {
+        $path = storage_path('app/' . ltrim($filename, '/'));
+        $lockFile = storage_path('app/.' . basename($filename) . '.lock');
+
+        $lockDir = dirname($lockFile);
+        if (!File::isDirectory($lockDir)) {
+            File::makeDirectory($lockDir, 0755, true, true);
+        }
+
+        $fp = fopen($lockFile, 'c+');
+        if (!$fp) {
+            $currentData = self::readJsonFile($filename, []);
+            $updatedData = $modifier($currentData);
+            self::writeJsonFile($filename, $updatedData);
+            return $updatedData;
+        }
+
+        try {
+            flock($fp, LOCK_EX);
+
+            $currentData = self::readJsonFile($filename, []);
+            $updatedData = $modifier($currentData);
+            self::writeJsonFile($filename, $updatedData);
+
+            flock($fp, LOCK_UN);
+            return $updatedData;
+        } finally {
+            fclose($fp);
+        }
+    }
+
+    /**
+     * Atomically append a single booking record to bookings.json under flock without DB full rewrite.
+     */
+    public static function appendBookingRecord(array $newBooking): bool
+    {
+        self::updateJsonFileAtomic('bookings.json', function(array $bookings) use ($newBooking) {
+            $filtered = array_filter($bookings, fn($b) => ($b['id'] ?? '') !== ($newBooking['id'] ?? ''));
+            $filtered[] = $newBooking;
+            return array_values($filtered);
+        });
+
+        return true;
+    }
+
+    /**
+     * Atomically update a single booking record in bookings.json under flock without touching unrelated bookings.
+     */
+    public static function updateBookingRecord(string $id, array $updates): ?array
+    {
+        $updatedTarget = null;
+        self::updateJsonFileAtomic('bookings.json', function(array $bookings) use ($id, $updates, &$updatedTarget) {
+            foreach ($bookings as &$b) {
+                if (($b['id'] ?? '') === $id) {
+                    $b = array_merge($b, $updates);
+                    $updatedTarget = $b;
+                    break;
+                }
+            }
+            return $bookings;
+        });
+
+        return $updatedTarget;
+    }
+
+    /**
+     * Atomically append a single enquiry record to enquiries.json under flock.
+     */
+    public static function appendEnquiryRecord(array $newEnquiry): bool
+    {
+        self::updateJsonFileAtomic('enquiries.json', function(array $enquiries) use ($newEnquiry) {
+            $filtered = array_filter($enquiries, fn($e) => ($e['id'] ?? '') !== ($newEnquiry['id'] ?? ''));
+            $filtered[] = $newEnquiry;
+            return array_values($filtered);
+        });
+
+        return true;
+    }
+
+    /**
+     * Atomically prepend a single review to testimonials.json under flock.
+     */
+    public static function prependTestimonialRecord(array $newReview): bool
+    {
+        self::updateJsonFileAtomic('testimonials.json', function(array $reviews) use ($newReview) {
+            $filtered = array_filter($reviews, fn($r) => ($r['id'] ?? '') !== ($newReview['id'] ?? ''));
+            array_unshift($filtered, $newReview);
+            return array_values($filtered);
+        });
+
+        return true;
     }
 }

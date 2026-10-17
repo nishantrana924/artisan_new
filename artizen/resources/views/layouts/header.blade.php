@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -140,16 +140,38 @@
     <script src="{{ asset('js/main.js') }}"></script>
 
     <style>
-        /* Smooth native scrolling without jump on refresh & prevent mobile horizontal overflow */
+        /* Smooth native scrolling without jump on refresh & prevent mobile horizontal overflow while preserving sticky positioning */
         html {
             scroll-behavior: smooth;
             max-width: 100%;
-            overflow-x: hidden;
+            overflow-x: clip;
         }
 
         body {
             max-width: 100%;
-            overflow-x: hidden;
+            overflow-x: clip;
+        }
+
+        /* Prevent automatic zoom-in on iPhone/iOS inputs & disable double-tap/pinch zoom */
+        @media screen and (max-width: 899px) {
+            html body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+            html body select,
+            html body textarea,
+            html body input[class],
+            html body select[class],
+            html body textarea[class],
+            input.text-xs,
+            select.text-xs,
+            textarea.text-xs,
+            input.text-sm,
+            select.text-sm,
+            textarea.text-sm {
+                font-size: 16px !important;
+            }
+        }
+
+        html, body, button, input, select, textarea, a {
+            touch-action: manipulation;
         }
 
         /* Direct adjustments allowed by editing the variables in :root inside style.css */

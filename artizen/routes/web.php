@@ -18,7 +18,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about-us', [AboutController::class, 'index'])->name('about-us');
 Route::get('/about', [AboutController::class, 'index'])->name('about');
 Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews.index');
-Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store')->middleware('throttle:10,1');
+Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store')->middleware('throttle:reviews');
 Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
 Route::redirect('/faqs', '/faq');
 
@@ -38,7 +38,7 @@ Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery.index
 
 Route::get('/booking', [BookingController::class, 'index'])->name('booking.index');
 Route::get('/booking/success', [BookingController::class, 'success'])->name('booking.success');
-Route::post('/booking/save', [BookingController::class, 'store'])->name('booking.save')->middleware('throttle:10,1');
+Route::post('/booking/save', [BookingController::class, 'store'])->name('booking.save')->middleware('throttle:booking_submit');
 
 use App\Http\Controllers\BookingTrackerController;
 use App\Http\Controllers\CustomerOrderController;
@@ -50,10 +50,10 @@ Route::get('/order-history', [CustomerOrderController::class, 'index'])->name('o
 
 // Public Booking Status Tracker (Lookup by Reference ID + Mobile)
 Route::get('/track-booking', [BookingTrackerController::class, 'showForm'])->name('booking.track');
-Route::post('/track-booking/search', [BookingTrackerController::class, 'search'])->name('booking.track.search')->middleware('throttle:15,1');
+Route::post('/track-booking/search', [BookingTrackerController::class, 'search'])->name('booking.track.search')->middleware('throttle:booking_track');
 
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
-Route::post('/contact/send', [ContactController::class, 'store'])->name('contact.store')->middleware('throttle:10,1');
+Route::post('/contact/send', [ContactController::class, 'store'])->name('contact.store')->middleware('throttle:contact_enquiry');
 
 Route::get('/event-details.html', function (\Illuminate\Http\Request $request) {
     $id = (string)$request->query('id', 1);
@@ -82,20 +82,22 @@ use App\Http\Controllers\Auth\GoogleAuthController;
 
 // User Authentication Routes
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-Route::post('/register', [RegisterController::class, 'register'])->name('register.submit')->middleware('throttle:10,1');
+Route::post('/register', [RegisterController::class, 'register'])->name('register.submit')->middleware('throttle:register');
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+Route::post('/login', [LoginController::class, 'login'])->name('login.submit')->middleware('throttle:login');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Google Social Authentication Routes
-Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
-Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google')->middleware('throttle:oauth');
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback')->middleware('throttle:oauth');
 
 // Admin Authentication Redirect Routes (Unified Authentication on /login)
 Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
-Route::post('/admin/login', [LoginController::class, 'login'])->name('admin.login.submit')->middleware('throttle:5,1');
+Route::post('/admin/login', [LoginController::class, 'login'])->name('admin.login.submit')->middleware('throttle:login');
 Route::get('/admin/forgot-password', [AdminAuthController::class, 'showForgotPasswordForm'])->name('admin.password.request');
 Route::post('/admin/forgot-password', [AdminAuthController::class, 'handleForgotPassword'])->name('admin.password.reset')->middleware('throttle:5,1');
+Route::post('/admin/forgot-password/send-otp', [AdminAuthController::class, 'sendResetOtp'])->name('admin.password.send-otp')->middleware('throttle:admin_otp_send');
+Route::post('/admin/forgot-password/verify-otp', [AdminAuthController::class, 'verifyResetOtp'])->name('admin.password.verify-otp')->middleware('throttle:admin_otp_verify');
 Route::match(['get', 'post'], '/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');
 
 use App\Http\Controllers\Admin\AdminPageController;
@@ -110,16 +112,24 @@ Route::middleware('admin')->prefix('admin')->group(function () {
     Route::get('/categories',          [AdminPageController::class, 'categories'])->name('admin.categories');
     Route::get('/categories/create',   [AdminPageController::class, 'categoryCreate'])->name('admin.categories.create');
     Route::get('/categories/{id}/edit', [AdminPageController::class, 'categoryEdit'])->name('admin.categories.edit');
-    Route::get('/customers',    [AdminPageController::class, 'customers'])->name('admin.customers');
-    Route::get('/faq-reviews',  [AdminPageController::class, 'testimonials'])->name('admin.testimonials');
+    Route::get('/customers',        [AdminPageController::class, 'customers'])->name('admin.customers');
+    Route::get('/customers/{id}',   [AdminPageController::class, 'customerDetail'])->name('admin.customers.show');
+    Route::get('/faq-reviews',      [AdminPageController::class, 'testimonials'])->name('admin.testimonials');
     Route::get('/faqs',         [AdminPageController::class, 'testimonials'])->name('admin.faqs');
-    Route::get('/hero-slider',  [AdminPageController::class, 'hero'])->name('admin.hero');
-    Route::redirect('/about',   '/admin/dashboard');
-    Route::get('/legal-pages',  [AdminPageController::class, 'legal'])->name('admin.legal');
-    Route::get('/settings',     [AdminPageController::class, 'settings'])->name('admin.settings');
+    Route::get('/hero-slider',        [AdminPageController::class, 'hero'])->name('admin.hero');
+    Route::post('/hero-slider/save',  [DashboardController::class, 'saveHeroSlides'])->name('admin.hero.save');
+    Route::get('/offers',             [AdminPageController::class, 'offers'])->name('admin.offers');
+    Route::post('/offers/save',        [DashboardController::class, 'saveOffers'])->name('admin.offers.save');
+    Route::get('/promise-banner',     [AdminPageController::class, 'promiseBanner'])->name('admin.promise-banner');
+    Route::post('/promise-banner/save', [DashboardController::class, 'savePromiseBanner'])->name('admin.promise-banner.save');
+    Route::redirect('/about',         '/admin/dashboard');
+    Route::get('/legal-pages',        [AdminPageController::class, 'legal'])->name('admin.legal');
+    Route::get('/settings',           [AdminPageController::class, 'settings'])->name('admin.settings');
     Route::post('/settings/profile',         [AdminPageController::class, 'updateProfile'])->name('admin.settings.profile');
-    Route::post('/settings/password',        [AdminPageController::class, 'updatePassword'])->name('admin.settings.password');
-    Route::post('/settings/emergency-reset', [AdminPageController::class, 'emergencyPasswordReset'])->name('admin.settings.emergency-reset');
+    Route::post('/settings/password',        [AdminPageController::class, 'updatePassword'])->name('admin.settings.password')->middleware('throttle:5,1');
+    Route::post('/settings/send-otp',        [AdminPageController::class, 'sendResetOtp'])->name('admin.settings.send-otp')->middleware('throttle:admin_otp_send');
+    Route::post('/settings/verify-otp',      [AdminPageController::class, 'verifyResetOtp'])->name('admin.settings.verify-otp')->middleware('throttle:admin_otp_verify');
+    Route::post('/settings/emergency-reset', [AdminPageController::class, 'emergencyPasswordReset'])->name('admin.settings.emergency-reset')->middleware('throttle:3,1');
     
     // CMS Settings & Assets
     Route::post('/cms/save', [DashboardController::class, 'saveCms'])->name('admin.cms.save');
@@ -137,7 +147,7 @@ Route::middleware('admin')->prefix('admin')->group(function () {
     Route::post('/packages/destroy/{id}', [DashboardController::class, 'destroyPackage'])->name('admin.packages.destroy');
     
     // Bookings Status Management
-    Route::post('/bookings/update-status', [DashboardController::class, 'updateBookingStatus'])->name('admin.bookings.update-status');
+    Route::post('/bookings/update-status', [DashboardController::class, 'updateBookingStatus'])->name('admin.bookings.update-status')->middleware('throttle:admin_booking_status');
     
     // Artists Management
     Route::post('/artists/save', [DashboardController::class, 'saveArtist'])->name('admin.artists.save');

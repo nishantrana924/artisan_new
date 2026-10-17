@@ -72,23 +72,6 @@ class LoginController extends Controller
               ->onlyInput('email');
         }
 
-        // Auto-provision master admin (admin@artizen.com) if not created yet
-        if ($credentials['email'] === 'admin@artizen.com') {
-            $adminUser = \App\Models\User::where('email', 'admin@artizen.com')->first();
-            if (!$adminUser) {
-                try {
-                    \App\Models\User::create([
-                        'name' => 'Artizen Admin',
-                        'email' => 'admin@artizen.com',
-                        'password' => \Illuminate\Support\Facades\Hash::make($credentials['password']),
-                        'is_admin' => true,
-                    ]);
-                } catch (\Throwable $e) {
-                    // Continue to attempt
-                }
-            }
-        }
-
         $remember = $request->boolean('remember');
 
         // 2. Attempt authentication
@@ -102,12 +85,7 @@ class LoginController extends Controller
             $user = Auth::user();
 
             // Check if user is an Administrator
-            $isAdmin = false;
-            if (method_exists($user, 'isAdmin') && $user->isAdmin()) {
-                $isAdmin = true;
-            } elseif (!empty($user->is_admin) || strcasecmp($user->email, 'admin@artizen.com') === 0) {
-                $isAdmin = true;
-            }
+            $isAdmin = $user && $user->isAdmin();
 
             if ($isAdmin) {
                 session([

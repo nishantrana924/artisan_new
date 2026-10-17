@@ -90,7 +90,20 @@
                         
                         <!-- Circular Thumbnail -->
                         <span class="w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-[#E0D2B8] p-0.5 bg-white shrink-0 shadow-2xs pointer-events-none">
-                            <img src="{{ $cat['img'] }}" alt="{{ $cat['alt'] }}" class="w-full h-full object-cover rounded-full pointer-events-none" draggable="false">
+                            @php
+                                $catImgSrc = $cat['img'];
+                                $cleanCatPath = ltrim(parse_url($catImgSrc, PHP_URL_PATH) ?? '', '/');
+                                $optCatPath = preg_replace('/\.webp$/i', '.opt.webp', $cleanCatPath);
+                                $hasOptCat = ($optCatPath !== $cleanCatPath && file_exists(public_path($optCatPath)));
+                            @endphp
+                            @if($hasOptCat)
+                                <picture>
+                                    <source srcset="{{ asset($optCatPath) }}" type="image/webp">
+                                    <img src="{{ $cat['img'] }}" alt="{{ $cat['alt'] }}" class="w-full h-full object-cover rounded-full pointer-events-none" draggable="false" width="800" height="800">
+                                </picture>
+                            @else
+                                <img src="{{ $cat['img'] }}" alt="{{ $cat['alt'] }}" class="w-full h-full object-cover rounded-full pointer-events-none" draggable="false" width="800" height="800">
+                            @endif
                         </span>
                         
                         <!-- Label -->
@@ -129,11 +142,32 @@
                                 
                                 <!-- Image Box (Aspect 4/3.8 Crisp & Clean, No Hover Zoom) -->
                                 <div class="relative w-full aspect-[4/3.8] overflow-hidden bg-[#FAF7F2] shrink-0">
-                                    <img src="{{ $item['image'] }}" 
-                                         alt="{{ $item['title'] }}" 
-                                         class="w-full h-full object-cover select-none pointer-events-none" 
-                                         draggable="false"
-                                         loading="lazy">
+                                    @php
+                                        $itemImgSrc = $item['image'];
+                                        $cleanItemPath = ltrim(parse_url($itemImgSrc, PHP_URL_PATH) ?? '', '/');
+                                        $optItemPath = preg_replace('/\.webp$/i', '.opt.webp', $cleanItemPath);
+                                        $hasOptItem = ($optItemPath !== $cleanItemPath && file_exists(public_path($optItemPath)));
+                                    @endphp
+                                    @if($hasOptItem)
+                                        <picture>
+                                            <source srcset="{{ asset($optItemPath) }}" type="image/webp">
+                                            <img src="{{ $item['image'] }}" 
+                                                 alt="{{ $item['title'] }}" 
+                                                 class="w-full h-full object-cover select-none pointer-events-none" 
+                                                 draggable="false"
+                                                 loading="lazy"
+                                                 width="1000"
+                                                 height="750">
+                                        </picture>
+                                    @else
+                                        <img src="{{ $item['image'] }}" 
+                                             alt="{{ $item['title'] }}" 
+                                             class="w-full h-full object-cover select-none pointer-events-none" 
+                                             draggable="false"
+                                             loading="lazy"
+                                             width="1000"
+                                             height="750">
+                                    @endif
                                     
                                     <!-- Rating Badge Top-Right -->
                                     <span class="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-xs px-2 py-0.5 rounded text-[11px] font-bold text-gray-900 flex items-center gap-1 shadow-2xs z-20">

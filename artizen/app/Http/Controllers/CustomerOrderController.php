@@ -27,22 +27,67 @@ class CustomerOrderController extends Controller
         $userEmail = strtolower(trim((string)($user ? $user->email : session('user_email', ''))));
         $userName = $user ? $user->name : session('user_name', 'Customer');
 
-        // Load all bookings
-        $allBookings = JsonStorageService::read('bookings.json', []);
+        // Load customer bookings using targeted query
+        $userBookings = [];
+        $allBookings = [];
 
-        // Filter bookings belonging to this customer
-        $userBookings = array_values(array_filter($allBookings, function ($b) use ($userId, $userEmail) {
-            $bUserId = $b['user_id'] ?? null;
-            $bEmail = strtolower(trim((string)($b['email'] ?? ($b['customer_email'] ?? ''))));
-            
-            if ($userId && $bUserId && (string)$bUserId === (string)$userId) {
-                return true;
+        if (config('artizen.storage_driver') === 'database') {
+            try {
+                $query = \App\Models\Booking::query();
+                $query->where(function($q) use ($userId, $userEmail) {
+                    if ($userId) {
+                        $q->where('user_id', $userId);
+                    }
+                    if (!empty($userEmail)) {
+                        $q->orWhere('customer_email', $userEmail);
+                    }
+                });
+                $dbUserBookings = $query->orderBy('created_at', 'desc')->get();
+                if ($dbUserBookings->isNotEmpty()) {
+                    $userBookings = $dbUserBookings->map(function($b) {
+                        return [
+                            'id' => $b->id,
+                            'user_id' => $b->user_id,
+                            'customer_id' => $b->customer_id,
+                            'name' => $b->customer_name,
+                            'mobile' => $b->customer_mobile,
+                            'whatsapp' => $b->customer_whatsapp,
+                            'email' => $b->customer_email,
+                            'package' => $b->package_name,
+                            'category' => $b->category_name,
+                            'tier' => $b->tier_name,
+                            'date' => $b->event_date,
+                            'time' => $b->event_time,
+                            'address' => $b->address,
+                            'area' => $b->area,
+                            'total' => (int)$b->total_amount,
+                            'status' => $b->status,
+                            'notes' => $b->notes,
+                            'created_at' => $b->created_at ? $b->created_at->format('d M Y, h:i A') : date('d M Y'),
+                        ];
+                    })->toArray();
+                }
+            } catch (\Throwable $e) {
+                // Fallback below
             }
-            if (!empty($userEmail) && !empty($bEmail) && $bEmail === $userEmail) {
-                return true;
-            }
-            return false;
-        }));
+        }
+
+        // Fallback to JSON storage if database query returned no results or driver is JSON
+        if (empty($userBookings)) {
+            $allBookings = JsonStorageService::read('bookings.json', []);
+            $userBookings = array_values(array_filter($allBookings, function ($b) use ($userId, $userEmail) {
+                $bUserId = $b['user_id'] ?? null;
+                $bEmail = strtolower(trim((string)($b['email'] ?? ($b['customer_email'] ?? ''))));
+                
+                if ($userId && $bUserId && (string)$bUserId === (string)$userId) {
+                    return true;
+                }
+                if (!empty($userEmail) && !empty($bEmail) && $bEmail === $userEmail) {
+                    return true;
+                }
+                return false;
+            }));
+        }
 
         // Fallback: If user created a booking in current session
         if (session()->has('last_booking_id')) {
@@ -57,7 +102,11 @@ class CustomerOrderController extends Controller
             if (!$hasLast) {
                 foreach ($allBookings as $b) {
                     if (($b['id'] ?? '') === $lastId) {
-                        array_unshift($userBookings, $b);
+                        $bEmail = strtolower(trim((string)($b['email'] ?? ($b['customer_email'] ?? ''))));
+                        $bUserId = $b['user_id'] ?? null;
+                        if ((!empty($userEmail) && $bEmail === $userEmail) || (!empty($userId) && (string)$bUserId === (string)$userId)) {
+                            array_unshift($userBookings, $b);
+                        }
                         break;
                     }
                 }

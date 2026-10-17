@@ -229,6 +229,7 @@
                     <div class="flex items-center gap-2"><i class="fa-solid fa-phone text-gray-400 w-4"></i> <span id="drawer-customer-mobile">--</span></div>
                     <div class="flex items-center gap-2"><i class="fa-brands fa-whatsapp text-emerald-600 w-4"></i> <a id="drawer-whatsapp-link" href="#" target="_blank" class="text-emerald-700 font-semibold hover:underline">Chat on WhatsApp</a></div>
                     <div class="flex items-center gap-2"><i class="fa-solid fa-envelope text-gray-400 w-4"></i> <span id="drawer-customer-email">--</span></div>
+                    <div id="drawer-customer-link-container" class="mt-1 pt-1.5 border-t border-gray-100"></div>
                 </div>
             </div>
 
@@ -834,7 +835,10 @@
                                 <span class="block text-[11px] text-gray-400 font-sans font-normal mt-0.5">${b.created_at || b.date}</span>
                             </td>
                             <td class="py-3.5 px-4">
-                                <span class="font-bold text-gray-900 block">${b.name}</span>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-bold text-gray-900 block">${b.name}</span>
+                                    ${b.customer_id ? `<a href="{{ route('admin.customers') }}?search=${encodeURIComponent(b.customer_id)}" title="Linked Customer CUST-${b.customer_id}" class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200">CUST-${b.customer_id}</a>` : ''}
+                                </div>
                                 <a href="https://wa.me/91${b.mobile || b.whatsapp || ''}" target="_blank" class="text-[11px] text-emerald-600 font-semibold hover:underline inline-flex items-center gap-1 mt-0.5">
                                     <i class="fa-brands fa-whatsapp"></i> +91 ${b.mobile || b.whatsapp || ''}
                                 </a>
@@ -978,6 +982,15 @@
             
             const waLink = document.getElementById('drawer-whatsapp-link');
             if (waLink) waLink.href = `https://wa.me/91${b.mobile || b.whatsapp || ''}`;
+
+            const linkContainer = document.getElementById('drawer-customer-link-container');
+            if (linkContainer) {
+                if (b.customer_id) {
+                    linkContainer.innerHTML = `<a href="{{ route('admin.customers') }}?search=${encodeURIComponent(b.customer_id)}" class="inline-flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-bold hover:underline"><i class="fa-solid fa-address-card"></i> View Linked Customer Profile (CUST-${b.customer_id})</a>`;
+                } else {
+                    linkContainer.innerHTML = `<span class="text-gray-400 text-[11px]">Direct / Guest Booking</span>`;
+                }
+            }
 
             document.getElementById('drawer-package-title').textContent = b.package;
             document.getElementById('drawer-package-tier').textContent = `${b.tier || 'Standard'} (${getBookingCategoryName(getBookingCategorySlug(b))})`;
@@ -1982,7 +1995,7 @@
         }
 
         // Dynamic About Cards management
-        let aboutCardCount = {{ count($cms['about']['cards']) }};
+        let aboutCardCount = {{ count($cms['about']['cards'] ?? []) }};
 
         function addNewAboutCard() {
             const container = document.getElementById('about-cards-grid');

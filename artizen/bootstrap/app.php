@@ -11,6 +11,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $trusted = env('TRUSTED_PROXIES');
+        if (!empty($trusted)) {
+            $proxies = array_filter(array_map('trim', explode(',', $trusted)));
+            if (!empty($proxies)) {
+                $middleware->trustProxies(at: count($proxies) === 1 && $proxies[0] === '*' ? '*' : $proxies);
+            }
+        }
         $middleware->web(append: [
             \App\Http\Middleware\SecurityHeaders::class,
         ]);

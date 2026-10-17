@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Services\JsonStorageService;
+use App\Models\Booking;
 
 class BookingTrackerController extends Controller
 {
@@ -12,24 +14,50 @@ class BookingTrackerController extends Controller
      */
     public function showForm(Request $request)
     {
-        $bookingId = trim($request->query('id', ''));
+        $bookingId = strtoupper(trim($request->query('id', '')));
         $mobile = trim($request->query('mobile', ''));
         $booking = null;
         $searched = false;
 
-        // If both ID and mobile provided in query
+        // 1. If both ID and mobile provided in query
         if (!empty($bookingId) && !empty($mobile)) {
             $booking = $this->findBooking($bookingId, $mobile);
             $searched = true;
         } elseif (!empty($bookingId)) {
-            // If ID provided (e.g., from confirmation page or notification link)
-            $booking = $this->findBookingById($bookingId);
-            if ($booking) {
-                $searched = true;
+            // Check session ownership (user just completed checkout in current session)
+            $sessionBookingId = strtoupper(trim((string)session('last_booking_id', '')));
+            $isSessionOwner = (!empty($sessionBookingId) && $sessionBookingId === $bookingId);
+
+            // Check authenticated user ownership or admin privilege
+            $isAuthOwner = false;
+            if (Auth::check()) {
+                $user = Auth::user();
+                if ($user->isAdmin()) {
+                    $isAuthOwner = true;
+                } else {
+                    $candidate = $this->findBookingById($bookingId);
+                    if ($candidate && (
+                        (!empty($candidate['email']) && strcasecmp($candidate['email'], $user->email) === 0) ||
+                        (!empty($candidate['user_id']) && (string)$candidate['user_id'] === (string)$user->id)
+                    )) {
+                        $isAuthOwner = true;
+                    }
+                }
+            }
+
+            if ($isSessionOwner || $isAuthOwner) {
+                $booking = $this->findBookingById($bookingId);
+                if ($booking) {
+                    $searched = true;
+                }
+            } else {
+                // Do NOT reveal private booking details to unauthenticated third parties!
+                // Leave $booking = null and $searched = false so the lookup form is shown with $bookingId prefilled
+                session()->flash('info', 'Please verify your registered mobile number to view this booking.');
             }
         } elseif (session()->has('last_booking_id')) {
             // If user previously booked in current session
-            $sessionBookingId = (string)session('last_booking_id');
+            $sessionBookingId = strtoupper(trim((string)session('last_booking_id')));
             $booking = $this->findBookingById($sessionBookingId);
             if ($booking) {
                 $bookingId = $sessionBookingId;
@@ -70,9 +98,23 @@ class BookingTrackerController extends Controller
         $booking = $this->findBooking($bookingId, $mobile);
 
         if (!$booking) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No booking request found matching the provided Booking ID and Mobile Number.'
+                ]);
+            }
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'No booking request found matching the provided Booking ID and Mobile Number. Please double check your booking details.');
+        }
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'booking' => $booking
+            ]);
         }
 
         return view('booking.track', [
@@ -87,23 +129,62 @@ class BookingTrackerController extends Controller
      */
     private function findBooking(string $bookingId, string $mobile): ?array
     {
-        $bookings = JsonStorageService::read('bookings.json', []);
-        
+        $cleanBookingId = strtoupper(trim($bookingId));
         $cleanInputPhone = preg_replace('/[^0-9]/', '', $mobile);
         if (strlen($cleanInputPhone) > 10) {
             $cleanInputPhone = substr($cleanInputPhone, -10);
         }
 
-        if (empty($cleanInputPhone)) {
+        if (empty($cleanInputPhone) || empty($cleanBookingId)) {
             return null;
         }
 
+        // 1. Direct indexed database query
+        $dbBooking = Booking::where('id', $cleanBookingId)->first();
+        if ($dbBooking) {
+            $storedMobile = preg_replace('/[^0-9]/', '', (string)$dbBooking->customer_mobile);
+            $storedWhatsapp = preg_replace('/[^0-9]/', '', (string)$dbBooking->customer_whatsapp);
+
+            if (strlen($storedMobile) > 10) $storedMobile = substr($storedMobile, -10);
+            if (strlen($storedWhatsapp) > 10) $storedWhatsapp = substr($storedWhatsapp, -10);
+
+            if ($storedMobile === $cleanInputPhone || $storedWhatsapp === $cleanInputPhone) {
+                return [
+                    'id' => $dbBooking->id,
+                    'user_id' => $dbBooking->user_id,
+                    'name' => $dbBooking->customer_name,
+                    'mobile' => $dbBooking->customer_mobile,
+                    'whatsapp' => $dbBooking->customer_whatsapp,
+                    'email' => $dbBooking->customer_email,
+                    'package' => $dbBooking->package_name,
+                    'category' => $dbBooking->category_name,
+                    'tier' => $dbBooking->tier_name,
+                    'date' => $dbBooking->event_date,
+                    'time' => $dbBooking->event_time,
+                    'guest_count' => $dbBooking->guest_count,
+                    'address' => $dbBooking->address,
+                    'landmark' => $dbBooking->landmark,
+                    'area' => $dbBooking->area,
+                    'city' => $dbBooking->city,
+                    'state' => $dbBooking->state,
+                    'pincode' => $dbBooking->pincode,
+                    'notes' => $dbBooking->notes,
+                    'addons' => $dbBooking->addons ?? [],
+                    'package_price' => (int)$dbBooking->package_price,
+                    'surcharge' => (int)$dbBooking->surcharge_amount,
+                    'total' => (int)$dbBooking->total_amount,
+                    'status' => $dbBooking->status,
+                    'notifications_sent' => $dbBooking->notifications_sent ?? [],
+                    'created_at' => $dbBooking->created_at ? $dbBooking->created_at->format('d M Y, h:i A') : date('d M Y')
+                ];
+            }
+        }
+
+        // 2. Fallback to JSON for testing or legacy records
+        $bookings = JsonStorageService::read('bookings.json', []);
         foreach ($bookings as $b) {
             $storedId = strtoupper(trim($b['id'] ?? ''));
-            
-            // Check Booking ID exact match first
-            if ($storedId === $bookingId) {
-                // Now check Phone match (mobile or whatsapp)
+            if ($storedId === $cleanBookingId) {
                 $storedMobile = preg_replace('/[^0-9]/', '', $b['mobile'] ?? '');
                 $storedWhatsapp = preg_replace('/[^0-9]/', '', $b['whatsapp'] ?? '');
 
@@ -124,9 +205,44 @@ class BookingTrackerController extends Controller
      */
     private function findBookingById(string $bookingId): ?array
     {
-        $bookings = JsonStorageService::read('bookings.json', []);
         $cleanId = strtoupper(trim($bookingId));
+        if (empty($cleanId)) return null;
 
+        // 1. Direct indexed database query
+        $dbBooking = Booking::where('id', $cleanId)->first();
+        if ($dbBooking) {
+            return [
+                'id' => $dbBooking->id,
+                'user_id' => $dbBooking->user_id,
+                'name' => $dbBooking->customer_name,
+                'mobile' => $dbBooking->customer_mobile,
+                'whatsapp' => $dbBooking->customer_whatsapp,
+                'email' => $dbBooking->customer_email,
+                'package' => $dbBooking->package_name,
+                'category' => $dbBooking->category_name,
+                'tier' => $dbBooking->tier_name,
+                'date' => $dbBooking->event_date,
+                'time' => $dbBooking->event_time,
+                'guest_count' => $dbBooking->guest_count,
+                'address' => $dbBooking->address,
+                'landmark' => $dbBooking->landmark,
+                'area' => $dbBooking->area,
+                'city' => $dbBooking->city,
+                'state' => $dbBooking->state,
+                'pincode' => $dbBooking->pincode,
+                'notes' => $dbBooking->notes,
+                'addons' => $dbBooking->addons ?? [],
+                'package_price' => (int)$dbBooking->package_price,
+                'surcharge' => (int)$dbBooking->surcharge_amount,
+                'total' => (int)$dbBooking->total_amount,
+                'status' => $dbBooking->status,
+                'notifications_sent' => $dbBooking->notifications_sent ?? [],
+                'created_at' => $dbBooking->created_at ? $dbBooking->created_at->format('d M Y, h:i A') : date('d M Y')
+            ];
+        }
+
+        // 2. Fallback to JSON
+        $bookings = JsonStorageService::read('bookings.json', []);
         foreach ($bookings as $b) {
             if (strtoupper(trim($b['id'] ?? '')) === $cleanId) {
                 return $b;

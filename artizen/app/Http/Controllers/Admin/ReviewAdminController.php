@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Testimonial;
 use App\Services\CelebrationCatalogService;
 use App\Services\JsonStorageService;
+use App\Services\ImageOptimizationService;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
 class ReviewAdminController extends Controller
@@ -173,6 +175,7 @@ class ReviewAdminController extends Controller
             'review'                => 'required|string|max:3000',
             'rating'                => 'required|integer|min:1|max:5',
             'avatar'                => 'nullable|string|max:1000',
+            'avatar_file'           => 'nullable|file|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
             'sort_order'            => 'nullable|integer',
             'is_active'             => 'nullable',
             'show_on_home'          => 'nullable',
@@ -204,6 +207,21 @@ class ReviewAdminController extends Controller
         $showOnReviewsPage = $request->has('show_on_reviews_page') ? $request->boolean('show_on_reviews_page') : true;
         $showOnEventDetails = $request->has('show_on_event_details') ? $request->boolean('show_on_event_details') : false;
 
+        $avatarPath = $request->input('avatar');
+        if ($request->hasFile('avatar_file')) {
+            try {
+                $avatarPath = app(ImageOptimizationService::class)->optimize(
+                    file: $request->file('avatar_file'),
+                    targetSubdir: 'uploads',
+                    profile: 'review',
+                    prefix: 'review_avatar',
+                    quality: ImageOptimizationService::DEFAULT_QUALITY
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Review avatar optimization failed: ' . $e->getMessage());
+            }
+        }
+
         $data = [
             'author'                => $author,
             'email'                 => $email,
@@ -212,7 +230,7 @@ class ReviewAdminController extends Controller
             'package_slug'          => $packageSlug,
             'review'                => $reviewBody,
             'rating'                => $rating,
-            'avatar'                => $request->input('avatar'),
+            'avatar'                => $avatarPath,
             'is_verified'           => true,
             'is_active'             => $isActive,
             'show_on_home'          => $showOnHome,
