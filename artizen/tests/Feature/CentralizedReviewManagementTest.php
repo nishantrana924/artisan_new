@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\Testimonial;
 use App\Models\User;
 use Database\Seeders\ReviewSeeder;
-use Illuminate\Foundation\Testing\TestCase;
+use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class CentralizedReviewManagementTest extends TestCase
@@ -35,7 +35,7 @@ class CentralizedReviewManagementTest extends TestCase
      */
     public function test_admin_can_access_reviews_page(): void
     {
-        $response = $this->actingAs($this->admin)->get('/admin/reviews');
+        $response = $this->actingAsAdmin($this->admin)->get('/admin/reviews');
 
         $response->assertStatus(200);
         $response->assertSee('Total Stories');
@@ -49,7 +49,7 @@ class CentralizedReviewManagementTest extends TestCase
      */
     public function test_admin_can_access_create_review_page(): void
     {
-        $response = $this->actingAs($this->admin)->get('/admin/reviews/create');
+        $response = $this->actingAsAdmin($this->admin)->get('/admin/reviews/create');
 
         $response->assertStatus(200);
         $response->assertSee('Add New Review');
@@ -67,7 +67,7 @@ class CentralizedReviewManagementTest extends TestCase
     public function test_admin_can_access_edit_review_page(): void
     {
         $review = Testimonial::first();
-        $response = $this->actingAs($this->admin)->get("/admin/reviews/{$review->id}/edit");
+        $response = $this->actingAsAdmin($this->admin)->get("/admin/reviews/{$review->id}/edit");
 
         $response->assertStatus(200);
         $response->assertSee('Edit Review');
@@ -81,7 +81,7 @@ class CentralizedReviewManagementTest extends TestCase
      */
     public function test_admin_can_save_new_review_with_independent_visibility_flags(): void
     {
-        $response = $this->actingAs($this->admin)->post('/admin/reviews/save', [
+        $response = $this->actingAsAdmin($this->admin)->post('/admin/reviews/save', [
             'author'               => 'Vikram Singhania',
             'email'                => 'vikram.singhania@example.com',
             'location'             => 'Indore, MP',
@@ -121,7 +121,7 @@ class CentralizedReviewManagementTest extends TestCase
 
         // Toggle show_on_home
         $initialHome = (bool)$review->show_on_home;
-        $response = $this->actingAs($this->admin)->postJson('/admin/reviews/toggle-visibility', [
+        $response = $this->actingAsAdmin($this->admin)->postJson('/admin/reviews/toggle-visibility', [
             'id'    => $review->id,
             'field' => 'show_on_home',
         ]);
@@ -132,7 +132,7 @@ class CentralizedReviewManagementTest extends TestCase
         $this->assertEquals(!$initialHome, (bool)$review->show_on_home);
 
         // Revert toggle
-        $this->actingAs($this->admin)->postJson('/admin/reviews/toggle-visibility', [
+        $this->actingAsAdmin($this->admin)->postJson('/admin/reviews/toggle-visibility', [
             'id'    => $review->id,
             'field' => 'show_on_home',
         ]);
@@ -249,7 +249,7 @@ class CentralizedReviewManagementTest extends TestCase
             'is_active'            => 1,
         ]);
 
-        $deleteResp = $this->actingAs($this->admin)->post("/admin/reviews/delete/{$review->id}");
+        $deleteResp = $this->actingAsAdmin($this->admin)->post("/admin/reviews/delete/{$review->id}");
         $deleteResp->assertRedirect();
 
         $this->assertNull(Testimonial::find('TST-TO-DELETE'));
@@ -275,7 +275,7 @@ class CentralizedReviewManagementTest extends TestCase
             'created_at'           => now()->addHour(),
         ]);
 
-        $response = $this->actingAs($this->admin)->get('/admin/reviews');
+        $response = $this->actingAsAdmin($this->admin)->get('/admin/reviews');
         $response->assertStatus(200);
         $response->assertSee('Brand New VIP Customer');
 

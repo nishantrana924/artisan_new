@@ -6,21 +6,6 @@
 
 @section('content')
 
-{{-- ===================================================================
-     1. FLASH MESSAGES
-     =================================================================== --}}
-@if(session('success'))
-    <div class="mb-5 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded-2xl flex items-center gap-2 shadow-2xs">
-        <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-        <span>{{ session('success') }}</span>
-    </div>
-@endif
-@if(session('error'))
-    <div class="mb-5 px-4 py-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold rounded-2xl flex items-center gap-2 shadow-2xs">
-        <i class="fa-solid fa-triangle-exclamation text-rose-500 text-sm"></i>
-        <span>{{ session('error') }}</span>
-    </div>
-@endif
 
 @php
     $offersData = $offersConfig ?? ($cms['offers'] ?? []);
@@ -361,7 +346,7 @@
                     ['icon' => 'fa-solid fa-bell',               'name' => 'Bell / Alert',           'tags' => 'bell notification alert reminder sound call'],
                     ['icon' => 'fa-solid fa-calendar-check',     'name' => 'Booking Confirmed',      'tags' => 'calendar date booking schedule confirmed event reserve'],
                     ['icon' => 'fa-solid fa-guitar',             'name' => 'Acoustic Guitar',        'tags' => 'guitar acoustic live music singer instrument song'],
-                    ['icon' => 'fa-solid fa-bolt',               'name' => 'Flash / Lightning',      'tags' => 'bolt lightning flash instant speed quick rapid deal'],
+                    ['icon' => 'fa-solid fa-percent',            'name' => 'Special Discount / %',   'tags' => 'percent discount offer deal promo coupon save special'],
                     ['icon' => 'fa-solid fa-sun',                'name' => 'Sun / Day Event',        'tags' => 'sun daylight haldi outdoor terrace poolside'],
                     ['icon' => 'fa-solid fa-moon',               'name' => 'Moon / Night Party',     'tags' => 'moon night rooftop evening cocktails strobe'],
                     ['icon' => 'fa-solid fa-sparkles',           'name' => 'Sparkles / Confetti',    'tags' => 'sparkles confetti celebration fireworks glitter'],

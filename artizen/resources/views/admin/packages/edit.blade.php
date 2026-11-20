@@ -1100,7 +1100,7 @@
             { class: "fa-solid fa-trophy", name: "trophy winner best seller award first prize victory champion" },
             { class: "fa-solid fa-award", name: "award trophy prize reward winner badge medal certificate ribbon" },
             { class: "fa-solid fa-medal", name: "medal award badge honor winner gold star" },
-            { class: "fa-solid fa-shield-halved", name: "shield security guarantee verified safe protection trusted" },
+            { class: "fa-solid fa-handshake-simple", name: "handshake agreement guarantee verified safe deal trusted partnership" },
             { class: "fa-solid fa-certificate", name: "certificate badge verified authorized quality star" },
 
             // ⭐ Popularity & Ratings
@@ -1109,7 +1109,7 @@
             { class: "fa-solid fa-thumbs-up", name: "thumbs up recommend like approved top rated quality" },
             { class: "fa-solid fa-fire", name: "fire sparks hot popular trending sangeet pyro flame sparklers" },
             { class: "fa-solid fa-chart-line", name: "chart trending growth popular rank performance sales" },
-            { class: "fa-solid fa-bolt", name: "bolt flash instant fast express lightning quick speed" },
+            { class: "fa-solid fa-percent", name: "percent discount offer deal promo coupon save" },
             { class: "fa-solid fa-sparkles", name: "sparkles magic glow fairy lights entrance shiny decor" },
             { class: "fa-solid fa-wand-magic-sparkles", name: "magic wand sparkles entrance surprise pyro glow" },
 

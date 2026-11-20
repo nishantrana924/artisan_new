@@ -42,7 +42,7 @@
                 </div>
                 <span class="hidden sm:inline text-gray-300 dark:text-white/20">|</span>
                 <div class="hidden sm:inline-flex items-center gap-1.5 text-gray-600 dark:text-gray-300">
-                    <i id="header-feature-icon" class="fa-solid fa-bolt text-gray-600 dark:text-gray-400 text-[10px] shrink-0 transition-all duration-300"></i>
+                    <i id="header-feature-icon" class="fa-solid fa-sparkles text-gray-600 dark:text-gray-400 text-[10px] shrink-0 transition-all duration-300"></i>
                     <div class="relative h-[16px] overflow-hidden min-w-[190px] text-left">
                         <div id="header-feature-rotator" class="flex flex-col transition-transform duration-500 ease-in-out">
                             <span class="h-[16px] leading-[16px] whitespace-nowrap font-medium text-gray-700 dark:text-gray-300">500+ Celebrations in Indore</span>
@@ -247,7 +247,7 @@
                             <a href="{{ route('admin.dashboard') }}" 
                                class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors group">
                                 <span class="flex items-center gap-2.5">
-                                    <i class="fa-solid fa-shield-halved text-xs text-amber-500"></i>
+                                    <i class="fa-solid fa-gauge-high text-xs text-amber-500"></i>
                                     <span>Admin Panel</span>
                                 </span>
                                 <i class="fa-solid fa-chevron-right text-[9px] text-amber-300"></i>
@@ -878,7 +878,7 @@
         // 2. Feature / Guarantee Rotator
         const featRotator = document.getElementById('header-feature-rotator');
         const featIcon = document.getElementById('header-feature-icon');
-        const icons = ['fa-bolt', 'fa-shield-check', 'fa-handshake', 'fa-star', 'fa-music'];
+        const icons = ['fa-sparkles', 'fa-certificate', 'fa-handshake', 'fa-star', 'fa-music'];
         if (featRotator) {
             const featCount = featRotator.children.length;
             let currentFeat = 0;

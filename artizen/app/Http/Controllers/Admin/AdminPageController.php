@@ -219,8 +219,8 @@ class AdminPageController extends Controller
     // ---------------------------------------------------------------------------
     public function categories(Request $request)
     {
-        // Load categories with eager-loaded subcategories for the admin redesign
-        $categoriesWithSubs = \App\Models\Category::with(['subcategories'])->orderBy('display_order')->orderBy('id')->get();
+        // Load categories with eager-loaded subcategories and packages for the admin dashboard
+        $categoriesWithSubs = \App\Models\Category::with(['subcategories', 'packages'])->orderBy('display_order')->orderBy('id')->get();
         return view('admin.pages.categories', array_merge(
             $this->baseData(),
             [
@@ -303,7 +303,9 @@ class AdminPageController extends Controller
                 ];
             });
 
-            $totalSpend = $c->bookings->whereNotIn('status', ['Cancelled'])->sum('total_amount');
+            $totalSpend = $c->bookings->filter(function($b) {
+                return strtolower(trim($b->status ?? '')) !== 'cancelled';
+            })->sum('total_amount');
 
             return [
                 'id'             => $c->id,
@@ -791,21 +793,30 @@ class AdminPageController extends Controller
         $expiresAt   = session('admin_reset_otp_expires_at');
         $storedEmail = session('admin_reset_otp_email');
 
-        if (!$isVerified) {
-            if (!$storedOtp || !$expiresAt || now()->timestamp > $expiresAt || $storedEmail !== $admin->email) {
-                return back()->withErrors([
-                    'otp' => 'The verification code has expired or has not been requested yet. Please click "Send OTP Code".',
-                ])->withInput();
-            }
-
-            if (!$request->filled('otp') || !hash_equals((string) $storedOtp, trim($request->otp))) {
-                return back()->withErrors([
-                    'otp' => 'Please verify your OTP code before setting your new password.',
-                ])->withInput();
-            }
+        // Strict Security Enforcement: Must have an active, unexpired OTP for this exact administrator
+        if (!$storedOtp || !$expiresAt || now()->timestamp > $expiresAt || $storedEmail !== $admin->email) {
+            session()->forget([
+                'admin_reset_otp',
+                'admin_reset_otp_expires_at',
+                'admin_reset_otp_email',
+                'admin_reset_otp_verified',
+            ]);
+            return back()->withErrors([
+                'otp' => 'The verification code has expired or has not been requested yet. Please click "Send OTP Code".',
+            ])->withInput();
         }
 
-        // Clear all OTP session variables
+        // Must either be currently marked verified within expiry window, OR valid OTP provided in request
+        $otpProvided = trim((string)$request->input('otp', ''));
+        $otpMatches = !empty($otpProvided) && hash_equals((string)$storedOtp, $otpProvided);
+
+        if (!$isVerified && !$otpMatches) {
+            return back()->withErrors([
+                'otp' => 'Please verify your OTP code before setting your new password.',
+            ])->withInput();
+        }
+
+        // Clear all OTP session variables immediately to prevent replay
         session()->forget([
             'admin_reset_otp',
             'admin_reset_otp_expires_at',
@@ -819,4 +830,54 @@ class AdminPageController extends Controller
         return redirect()->route('admin.settings', ['#security'])
             ->with('success', 'Password reset successfully with OTP verification! Your new password is now active.');
     }
+
+    /**
+     * Real-time polling endpoint for Admin Toaster Notifications & Bell Dropdown.
+     */
+    public function notificationsPoll(Request $request)
+    {
+        $pendingCount = \App\Models\Booking::where('status', 'Pending')->count();
+
+        $lastCheckTime = $request->query('since');
+        $lastBookingId = $request->query('last_id');
+
+        $latestBookings = \App\Models\Booking::orderBy('created_at', 'desc')
+            ->take(8)
+            ->get(['id', 'customer_name', 'customer_mobile', 'package_name', 'category_name', 'total_amount', 'status', 'created_at'])
+            ->map(function ($b) {
+                return [
+                    'id'            => $b->id,
+                    'customer_name' => $b->customer_name ?: 'Valued Client',
+                    'mobile'        => $b->customer_mobile ?: '',
+                    'package_name'  => $b->package_name ?: 'Celebration Package',
+                    'category_name' => $b->category_name ?: 'Event',
+                    'total_amount'  => (float) $b->total_amount,
+                    'status'        => $b->status,
+                    'created_at'    => $b->created_at ? $b->created_at->format('d M, h:i A') : 'Just now',
+                    'created_diff'  => $b->created_at ? $b->created_at->diffForHumans() : 'Just now',
+                    'timestamp'     => $b->created_at ? $b->created_at->timestamp : time(),
+                ];
+            });
+
+        $newBookings = [];
+        if ($lastCheckTime) {
+            $sinceTimestamp = (int) $lastCheckTime;
+            $newBookings = $latestBookings->filter(function ($b) use ($sinceTimestamp, $lastBookingId) {
+                if ($lastBookingId && $b['id'] === $lastBookingId) {
+                    return false;
+                }
+                return $b['timestamp'] > $sinceTimestamp;
+            })->values();
+        }
+
+        return response()->json([
+            'success'         => true,
+            'pending_count'   => $pendingCount,
+            'latest_id'       => $latestBookings->first()['id'] ?? null,
+            'server_time'     => time(),
+            'latest_bookings' => $latestBookings,
+            'new_bookings'    => $newBookings,
+        ]);
+    }
 }
+

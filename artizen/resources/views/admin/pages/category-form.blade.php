@@ -22,15 +22,12 @@
         @if($isEdit)
         <div class="flex items-center gap-2">
             <span class="text-xs font-mono font-semibold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-lg">ID: #{{ $category->id }}</span>
-            <form action="{{ route('admin.categories.delete', $category->id) }}" method="POST" class="inline m-0">
-                @csrf
-                <button type="button" 
-                        onclick="confirmDelete(this, '{{ addslashes($category->title) }}')"
-                        class="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer">
-                    <i class="fa-solid fa-trash-can text-xs"></i>
-                    <span>Delete Category</span>
-                </button>
-            </form>
+            <button type="button" 
+                    onclick="openDeleteCategoryModal()"
+                    class="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+                <span>Delete Category</span>
+            </button>
         </div>
         @endif
     </div>
@@ -277,7 +274,7 @@
                                  class="flex items-center justify-between h-11 px-3.5 bg-emerald-50/50 border border-emerald-200 hover:border-emerald-300 rounded-xl cursor-pointer transition-all shadow-2xs select-none">
                                 <div class="flex items-center gap-2.5">
                                     <span id="cat-active-icon-badge" class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs shrink-0 transition-colors">
-                                        <i class="fa-solid fa-eye"></i>
+                                        <i class="fa-solid fa-circle-check"></i>
                                     </span>
                                     <span id="cat-active-label" class="text-xs font-bold text-emerald-950">Active & Published</span>
                                 </div>
@@ -661,6 +658,37 @@
         </div>
     </form>
 </div>
+
+@if($isEdit)
+{{-- Delete Confirmation Modal --}}
+<div id="delete-category-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl border border-gray-200 space-y-4 animate-scale-in">
+        <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-base border border-rose-100">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+            <h3 class="text-sm font-bold text-gray-900">Delete Event Category?</h3>
+            <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+                Are you sure you want to delete <span class="font-bold text-gray-800">"{{ $category->title }}"</span>? This will also remove its associated subcategories.
+            </p>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-2">
+            <button type="button" 
+                    onclick="closeDeleteCategoryModal()" 
+                    class="px-3.5 py-2 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+                Cancel
+            </button>
+            <form method="POST" action="{{ route('admin.categories.delete', $category->id) }}">
+                @csrf
+                <button type="submit" 
+                        class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-xs">
+                    Yes, Delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
 
 @push('page_scripts')
 <script>
@@ -1168,7 +1196,7 @@
                 badge.className = 'w-6 h-6 rounded-md bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs shrink-0 transition-colors';
             }
             if (icon) {
-                icon.className = 'fa-solid fa-eye text-emerald-600';
+                icon.className = 'fa-solid fa-circle-check text-emerald-600';
             }
             if (label) {
                 label.textContent = 'Active & Published';
@@ -1189,7 +1217,7 @@
                 badge.className = 'w-6 h-6 rounded-md bg-gray-200 text-gray-500 flex items-center justify-center text-xs shrink-0 transition-colors';
             }
             if (icon) {
-                icon.className = 'fa-solid fa-eye-slash text-gray-500';
+                icon.className = 'fa-solid fa-circle-pause text-gray-500';
             }
             if (label) {
                 label.textContent = 'Hidden (Draft)';
@@ -1218,6 +1246,16 @@
             updateVisibilityCard(activeCheckbox.checked);
         }
     });
+
+    function openDeleteCategoryModal() {
+        const modal = document.getElementById('delete-category-modal');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeDeleteCategoryModal() {
+        const modal = document.getElementById('delete-category-modal');
+        if (modal) modal.classList.add('hidden');
+    }
 </script>
 @endpush
 @endsection

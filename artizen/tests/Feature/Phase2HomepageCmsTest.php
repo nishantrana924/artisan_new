@@ -78,12 +78,13 @@ class Phase2HomepageCmsTest extends TestCase
     /**
      * Helper to authenticate as admin
      */
-    protected function actingAsAdmin()
+    protected function actingAsAdmin($admin = null)
     {
-        return $this->actingAs($this->admin)
+        $target = $admin ?: $this->admin;
+        return $this->actingAs($target)
             ->withSession([
                 'admin_logged_in' => true,
-                'admin_email'     => $this->admin->email,
+                'admin_email'     => $target->email,
             ]);
     }
 

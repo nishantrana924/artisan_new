@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Artizen PDF Generator Test</title></head>
+<body>
+<button id="download-pdf-btn">Download PDF</button>
+<div id="status">Testing...</div>
+
+<script src="./js/html2canvas.min.js"></script>
+<script src="./js/jspdf.umd.min.js"></script>
+<script src="./js/artizen-pdf.js"></script>
+<script>
+window.addEventListener('load', async () => {
+    const sampleBooking = {
+        id: 'BK-N6PJJZ',
+        name: 'Artizen Admin',
+        mobile: '8817724275',
+        whatsapp: '8817724275',
+        email: 'admin@artizen.com',
+        package: 'Neon Sign Ring Arch Setup',
+        category: 'Birthdays',
+        tier: 'Standard Setup',
+        date: '2026-11-09',
+        time: 'Evening (04:00 PM - 08:00 PM)',
+        guest_count: 30,
+        address: '224 Ambika Pinnacle Mall Lajamani Chowk Mota Varachha Surat Gujarat 394101SURAT, GujaratIndia - 394101',
+        landmark: 'Near kaskdjfh',
+        area: 'Vijay Nagar',
+        city: 'Indore',
+        state: 'Madhya Pradesh',
+        pincode: '452010',
+        package_price: 4499,
+        total: 4499,
+        status: 'Pending Review',
+        created_at: '07 Nov 2026'
+    };
+
+    try {
+        const btn = document.getElementById('download-pdf-btn');
+        const start = performance.now();
+        await window.ArtizenPDF.download(sampleBooking, btn);
+        const duration = Math.round(performance.now() - start);
+        document.getElementById('status').innerText = 'SUCCESS: Generated and downloaded in ' + duration + 'ms';
+    } catch (e) {
+        document.getElementById('status').innerText = 'ERROR: ' + e.message;
+    }
+});
+</script>
+</body>
+</html>

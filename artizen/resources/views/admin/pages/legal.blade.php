@@ -27,7 +27,7 @@
                         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center font-bold text-xs">
-                                    <i class="fa-solid fa-shield-halved"></i>
+                                    <i class="fa-solid fa-user-lock"></i>
                                 </div>
                                 <div>
                                     <h3 class="text-base font-bold text-gray-900">1. Privacy Policy</h3>
@@ -55,7 +55,7 @@
                             <div class="flex items-center justify-between">
                                 <label class="text-xs text-gray-700 font-bold uppercase tracking-wider">Policy Content</label>
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[10px] font-bold text-amber-700">
-                                    <i class="fa-solid fa-eye text-[9px]"></i> Live Preview — styled like public page
+                                    <i class="fa-solid fa-display text-[9px]"></i> Live Preview — styled like public page
                                 </span>
                             </div>
                             <p class="text-[11px] text-gray-400 font-normal -mt-0.5">Use <strong class="text-gray-600">Section Heading (H2)</strong> for main sections, <strong class="text-gray-600">Sub Heading (H3)</strong> for sub-sections, and <strong class="text-gray-600">Paragraph</strong> for body text.</p>
@@ -96,7 +96,7 @@
                             <div class="flex items-center justify-between">
                                 <label class="text-xs text-gray-700 font-bold uppercase tracking-wider">Policy Content</label>
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-[10px] font-bold text-indigo-700">
-                                    <i class="fa-solid fa-eye text-[9px]"></i> Live Preview — styled like public page
+                                    <i class="fa-solid fa-display text-[9px]"></i> Live Preview — styled like public page
                                 </span>
                             </div>
                             <p class="text-[11px] text-gray-400 font-normal -mt-0.5">Use <strong class="text-gray-600">Section Heading (H2)</strong> for main sections, <strong class="text-gray-600">Sub Heading (H3)</strong> for sub-sections, and <strong class="text-gray-600">Paragraph</strong> for body text.</p>
@@ -137,7 +137,7 @@
                             <div class="flex items-center justify-between">
                                 <label class="text-xs text-gray-700 font-bold uppercase tracking-wider">Policy Content</label>
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] font-bold text-emerald-700">
-                                    <i class="fa-solid fa-eye text-[9px]"></i> Live Preview — styled like public page
+                                    <i class="fa-solid fa-display text-[9px]"></i> Live Preview — styled like public page
                                 </span>
                             </div>
                             <p class="text-[11px] text-gray-400 font-normal -mt-0.5">Use <strong class="text-gray-600">Section Heading (H2)</strong> for main sections, <strong class="text-gray-600">Sub Heading (H3)</strong> for sub-sections, and <strong class="text-gray-600">Paragraph</strong> for body text.</p>
@@ -178,7 +178,7 @@
                             <div class="flex items-center justify-between">
                                 <label class="text-xs text-gray-700 font-bold uppercase tracking-wider">Policy Content</label>
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-[10px] font-bold text-rose-700">
-                                    <i class="fa-solid fa-eye text-[9px]"></i> Live Preview — styled like public page
+                                    <i class="fa-solid fa-display text-[9px]"></i> Live Preview — styled like public page
                                 </span>
                             </div>
                             <p class="text-[11px] text-gray-400 font-normal -mt-0.5">Use <strong class="text-gray-600">Section Heading (H2)</strong> for main sections, <strong class="text-gray-600">Sub Heading (H3)</strong> for sub-sections, and <strong class="text-gray-600">Paragraph</strong> for body text.</p>
@@ -1973,7 +1973,7 @@
             { class: "fa-solid fa-trophy", name: "trophy winner best seller award first prize victory champion" },
             { class: "fa-solid fa-award", name: "award trophy prize reward winner badge medal certificate ribbon" },
             { class: "fa-solid fa-medal", name: "medal award badge honor winner gold star" },
-            { class: "fa-solid fa-shield-halved", name: "shield security guarantee verified safe protection trusted" },
+            { class: "fa-solid fa-handshake-simple", name: "handshake agreement guarantee verified safe deal trusted partnership" },
             { class: "fa-solid fa-certificate", name: "certificate badge verified authorized quality star" },
 
             // ⭐ Popularity & Ratings
@@ -1982,7 +1982,7 @@
             { class: "fa-solid fa-thumbs-up", name: "thumbs up recommend like approved top rated quality" },
             { class: "fa-solid fa-fire", name: "fire sparks hot popular trending sangeet pyro flame sparklers" },
             { class: "fa-solid fa-chart-line", name: "chart trending growth popular rank performance sales" },
-            { class: "fa-solid fa-bolt", name: "bolt flash instant fast express lightning quick speed" },
+            { class: "fa-solid fa-percent", name: "percent discount offer deal promo coupon save" },
             { class: "fa-solid fa-sparkles", name: "sparkles magic glow fairy lights entrance shiny decor" },
             { class: "fa-solid fa-wand-magic-sparkles", name: "magic wand sparkles entrance surprise pyro glow" },
 

@@ -24,7 +24,7 @@
                 <p class="text-xs text-[#777777] mt-0.5">Indore On-Site Setup • Pay Offline Post-Setup • Zero Advance</p>
             </div>
             <div class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-neutral-700 bg-white border border-[#E8E5DF] px-3 py-1 rounded-full self-start sm:self-auto">
-                <i class="fa-solid fa-shield-halved text-neutral-800 text-xs"></i> 100% Offline Settlement
+                <i class="fa-solid fa-handshake-simple text-neutral-800 text-xs"></i> 100% Offline Settlement
             </div>
         </div>
 
@@ -357,6 +357,9 @@
                                 </span>
                             </div>
                         </div>
+
+                        <!-- Cloudflare Turnstile Verification -->
+                        <x-turnstile action="booking" />
 
                         <!-- Place Order Button -->
                         <div class="mt-4 pt-3 border-t border-[#E8E5DF]">

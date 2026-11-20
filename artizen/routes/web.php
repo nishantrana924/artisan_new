@@ -12,6 +12,14 @@ use App\Http\Controllers\FaqController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\AdminCategoryController;
+use App\Http\Controllers\Admin\AdminPackageController;
+use App\Http\Controllers\Admin\AdminCmsController;
+use App\Http\Controllers\WhatsAppWebhookController;
+
+// Meta WhatsApp Cloud API Webhook (Verification Handshake & Status Ingestion)
+Route::get('/webhook/whatsapp', [WhatsAppWebhookController::class, 'verify'])->name('webhook.whatsapp.verify');
+Route::post('/webhook/whatsapp', [WhatsAppWebhookController::class, 'handle'])->name('webhook.whatsapp.handle');
 
 // Public Front-end Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -83,6 +91,9 @@ use App\Http\Controllers\Auth\GoogleAuthController;
 // User Authentication Routes
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register'])->name('register.submit')->middleware('throttle:register');
+Route::get('/verify-email', [RegisterController::class, 'showVerifyEmailForm'])->name('verification.notice');
+Route::post('/verify-email', [RegisterController::class, 'verifyOtp'])->name('verification.verify')->middleware('throttle:6,1');
+Route::post('/verify-email/resend', [RegisterController::class, 'resendOtp'])->name('verification.resend')->middleware('throttle:3,1');
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.submit')->middleware('throttle:login');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
@@ -117,11 +128,11 @@ Route::middleware('admin')->prefix('admin')->group(function () {
     Route::get('/faq-reviews',      [AdminPageController::class, 'testimonials'])->name('admin.testimonials');
     Route::get('/faqs',         [AdminPageController::class, 'testimonials'])->name('admin.faqs');
     Route::get('/hero-slider',        [AdminPageController::class, 'hero'])->name('admin.hero');
-    Route::post('/hero-slider/save',  [DashboardController::class, 'saveHeroSlides'])->name('admin.hero.save');
+    Route::post('/hero-slider/save',  [AdminCmsController::class, 'saveHeroSlides'])->name('admin.hero.save');
     Route::get('/offers',             [AdminPageController::class, 'offers'])->name('admin.offers');
-    Route::post('/offers/save',        [DashboardController::class, 'saveOffers'])->name('admin.offers.save');
+    Route::post('/offers/save',        [AdminCmsController::class, 'saveOffers'])->name('admin.offers.save');
     Route::get('/promise-banner',     [AdminPageController::class, 'promiseBanner'])->name('admin.promise-banner');
-    Route::post('/promise-banner/save', [DashboardController::class, 'savePromiseBanner'])->name('admin.promise-banner.save');
+    Route::post('/promise-banner/save', [AdminCmsController::class, 'savePromiseBanner'])->name('admin.promise-banner.save');
     Route::redirect('/about',         '/admin/dashboard');
     Route::get('/legal-pages',        [AdminPageController::class, 'legal'])->name('admin.legal');
     Route::get('/settings',           [AdminPageController::class, 'settings'])->name('admin.settings');
@@ -132,22 +143,29 @@ Route::middleware('admin')->prefix('admin')->group(function () {
     Route::post('/settings/emergency-reset', [AdminPageController::class, 'emergencyPasswordReset'])->name('admin.settings.emergency-reset')->middleware('throttle:3,1');
     
     // CMS Settings & Assets
-    Route::post('/cms/save', [DashboardController::class, 'saveCms'])->name('admin.cms.save');
+    Route::post('/cms/save', [AdminCmsController::class, 'saveCms'])->name('admin.cms.save');
     Route::post('/settings/save', [AdminPageController::class, 'updateProfile'])->name('admin.settings.save');
     
     // Categories & Package CRUD
-    Route::post('/categories/save', [DashboardController::class, 'saveCategory'])->name('admin.categories.save');
-    Route::post('/categories/delete/{id}', [DashboardController::class, 'deleteCategory'])->name('admin.categories.delete');
+    Route::post('/categories/save', [AdminCategoryController::class, 'saveCategory'])->name('admin.categories.save');
+    Route::post('/categories/delete/{id}', [AdminCategoryController::class, 'deleteCategory'])->name('admin.categories.delete');
+    Route::post('/categories/bulk-delete', [AdminCategoryController::class, 'bulkDeleteCategories'])->name('admin.categories.bulk-delete');
+    Route::post('/categories/toggle-status/{id}', [AdminCategoryController::class, 'toggleCategoryStatus'])->name('admin.categories.toggle-status');
     Route::get('/packages/create', [AdminPageController::class, 'packageCreate'])->name('admin.packages.create');
     Route::get('/packages/{id}/edit', [AdminPageController::class, 'packageEdit'])->name('admin.packages.edit');
     Route::get('/packages/edit/{catId}/{tierIdx}', [AdminPageController::class, 'packageEditLegacy'])->name('admin.packages.edit.legacy');
-    Route::post('/packages/save', [DashboardController::class, 'savePackage'])->name('admin.packages.save');
-    Route::post('/packages/delete/{catId}/{tierIdx}', [DashboardController::class, 'deletePackage'])->name('admin.packages.delete');
-    Route::post('/packages/toggle-status/{id}', [DashboardController::class, 'togglePackageStatus'])->name('admin.packages.toggle-status');
-    Route::post('/packages/destroy/{id}', [DashboardController::class, 'destroyPackage'])->name('admin.packages.destroy');
+    Route::post('/packages/save', [AdminPackageController::class, 'savePackage'])->name('admin.packages.save');
+    Route::post('/packages/delete/{catId}/{tierIdx}', [AdminPackageController::class, 'deletePackage'])->name('admin.packages.delete');
+    Route::post('/packages/toggle-status/{id}', [AdminPackageController::class, 'togglePackageStatus'])->name('admin.packages.toggle-status');
+    Route::post('/packages/destroy/{id}', [AdminPackageController::class, 'destroyPackage'])->name('admin.packages.destroy');
     
-    // Bookings Status Management
+    // Bookings Status Management & Multiple Deletion
     Route::post('/bookings/update-status', [DashboardController::class, 'updateBookingStatus'])->name('admin.bookings.update-status')->middleware('throttle:admin_booking_status');
+    Route::post('/bookings/bulk-delete',   [DashboardController::class, 'bulkDeleteBookings'])->name('admin.bookings.bulk-delete');
+    Route::delete('/bookings/{id}',        [DashboardController::class, 'deleteBooking'])->name('admin.bookings.delete');
+    
+    // Real-time Notification Polling Endpoint
+    Route::get('/notifications/poll', [AdminPageController::class, 'notificationsPoll'])->name('admin.notifications.poll');
     
     // Artists Management
     Route::post('/artists/save', [DashboardController::class, 'saveArtist'])->name('admin.artists.save');
@@ -180,5 +198,5 @@ Route::middleware('admin')->prefix('admin')->group(function () {
     Route::post('/gallery/delete/{id}', [DashboardController::class, 'deleteGalleryItem'])->name('admin.gallery.delete');
 
     // Legal Pages Manager
-    Route::post('/legal/save', [DashboardController::class, 'saveLegalPages'])->name('admin.legal.save');
+    Route::post('/legal/save', [AdminCmsController::class, 'saveLegalPages'])->name('admin.legal.save');
 });

@@ -39,21 +39,22 @@ class Phase3CustomerBookingTest extends TestCase
 
     protected function tearDown(): void
     {
-        // Restore disk bookings.json
+        // Restore disk bookings.json if writable
         $bookingsPath = storage_path('app/bookings.json');
         if (!empty($this->originalBookingsJsonRaw)) {
-            File::put($bookingsPath, $this->originalBookingsJsonRaw);
+            @file_put_contents($bookingsPath, $this->originalBookingsJsonRaw);
         }
 
         parent::tearDown();
     }
 
-    protected function actingAsAdmin()
+    protected function actingAsAdmin($admin = null)
     {
-        return $this->actingAs($this->admin)
+        $target = $admin ?: $this->admin;
+        return $this->actingAs($target)
             ->withSession([
                 'admin_logged_in' => true,
-                'admin_email'     => $this->admin->email,
+                'admin_email'     => $target->email,
             ]);
     }
 

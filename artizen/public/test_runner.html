@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Test PDF Generation</title>
+</head>
+
+<body style="min-height: 2000px; padding-top: 800px;">
+    <h1>Scrolled Down Page Test</h1>
+    <button id="test-btn">Download</button>
+    <div id="result">Ready</div>
+
+    <script src="/js/html2canvas.min.js"></script>
+    <script src="/js/jspdf.umd.min.js"></script>
+    <script src="/js/artizen-pdf.js"></script>
+
+    <script>
+        window.addEventListener('load', async () => {
+            // Scroll down
+            window.scrollTo(0, 500);
+
+            const sampleBooking = {
+                id: 'BK-C4KC1H',
+                name: 'Artizen Admin',
+                mobile: '8817724275',
+                whatsapp: '8817724275',
+                email: 'admin@artizen.com',
+                package: 'Neon Sign Ring Arch Setup',
+                category: 'Birthdays',
+                tier: 'Standard Setup',
+                date: '2026-11-06',
+                time: 'Evening (04:00 PM - 08:00 PM)',
+                guest_count: 30,
+                address: '224 Ambika Pinnacle Mall Lajamani Chowk Mota Varachha Surat Gujarat 394101SURAT, GujaratIndia - 394101',
+                landmark: 'kaskdjfh',
+                area: 'Vijay Nagar',
+                city: 'Indore',
+                state: 'Madhya Pradesh',
+                pincode: '452010',
+                package_price: 4499,
+                total: 4499,
+                status: 'Pending',
+                created_at: '04 Nov 2026, 05:59 PM'
+            };
+
+            try {
+                document.getElementById('result').innerText = 'Generating...';
+
+                // Build element
+                const printWrap = document.createElement('div');
+                printWrap.id = 'artizen-official-invoice-print';
+                printWrap.style.position = 'fixed';
+                printWrap.style.top = '0';
+                printWrap.style.left = '0';
+                printWrap.style.width = '794px';
+                printWrap.style.height = '1122px';
+                printWrap.style.backgroundColor = '#FFFFFF';
+                printWrap.style.zIndex = '999999';
+                printWrap.innerHTML = window.ArtizenPDF.buildInvoiceHtml(sampleBooking);
+                document.body.appendChild(printWrap);
+
+                const canvas = await window.html2canvas(printWrap, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#FFFFFF',
+                    logging: true,
+                    scrollX: 0,
+                    scrollY: 0,
+                    x: 0,
+                    y: 0,
+                    width: 794,
+                    height: 1122,
+                    windowWidth: 794,
+                    windowHeight: 1122
+                });
+
+                // Check non-white pixels
+                const ctx = canvas.getContext('2d');
+                const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                let nonWhitePixels = 0;
+                for (let i = 0; i < imgData.data.length; i += 4) {
+                    const r = imgData.data[i];
+                    const g = imgData.data[i + 1];
+                    const b = imgData.data[i + 2];
+                    if (r < 250 || g < 250 || b < 250) {
+                        nonWhitePixels++;
+                    }
+                }
+
+                document.body.removeChild(printWrap);
+                document.getElementById('result').innerText = 'SUCCESS: nonWhitePixels=' + nonWhitePixels + ', canvasSize=' + canvas.width + 'x' + canvas.height;
+            } catch (e) {
+                document.getElementById('result').innerText = 'ERROR: ' + e.message;
+            }
+        });
+    </script>
+</body>
+
+</html>

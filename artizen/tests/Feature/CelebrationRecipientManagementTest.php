@@ -34,7 +34,7 @@ class CelebrationRecipientManagementTest extends TestCase
             'is_active'     => true,
         ]);
 
-        $response = $this->withSession(['admin_logged_in' => true])
+        $response = $this->actingAsAdmin()
             ->get(route('admin.recipients'));
 
         $response->assertStatus(200);
@@ -54,14 +54,14 @@ class CelebrationRecipientManagementTest extends TestCase
         ]);
 
         // Create form
-        $createResponse = $this->withSession(['admin_logged_in' => true])
+        $createResponse = $this->actingAsAdmin()
             ->get(route('admin.recipients.create'));
         $createResponse->assertStatus(200);
         $createResponse->assertSee('Persona Details');
         $createResponse->assertSee('Persona Name / Title');
 
         // Edit form
-        $editResponse = $this->withSession(['admin_logged_in' => true])
+        $editResponse = $this->actingAsAdmin()
             ->get(route('admin.recipients.edit', $recipient->id));
         $editResponse->assertStatus(200);
         $editResponse->assertSee('Edit Persona: For Mother');
@@ -80,7 +80,7 @@ class CelebrationRecipientManagementTest extends TestCase
             'image_file'    => $image,
         ];
 
-        $response = $this->withSession(['admin_logged_in' => true])
+        $response = $this->actingAsAdmin()
             ->post(route('admin.recipients.save'), $payload);
 
         $response->assertRedirect(route('admin.recipients'));
@@ -113,7 +113,7 @@ class CelebrationRecipientManagementTest extends TestCase
         ]);
 
         // Update
-        $response = $this->withSession(['admin_logged_in' => true])
+        $response = $this->actingAsAdmin()
             ->post(route('admin.recipients.save'), [
                 'id'            => $recipient->id,
                 'name'          => 'Colleague Updated',
@@ -129,7 +129,7 @@ class CelebrationRecipientManagementTest extends TestCase
         $this->assertEquals(route('events.index', ['for' => 'colleague']), $recipient->target_url);
 
         // Toggle Status via AJAX
-        $ajaxResponse = $this->withSession(['admin_logged_in' => true])
+        $ajaxResponse = $this->actingAsAdmin()
             ->postJson(route('admin.recipients.toggle-status', $recipient->id));
 
         $ajaxResponse->assertStatus(200);
@@ -147,7 +147,7 @@ class CelebrationRecipientManagementTest extends TestCase
             'is_active'     => true,
         ]);
 
-        $response = $this->withSession(['admin_logged_in' => true])
+        $response = $this->actingAsAdmin()
             ->delete(route('admin.recipients.delete', $recipient->id));
 
         $response->assertRedirect(route('admin.recipients'));
@@ -195,7 +195,7 @@ class CelebrationRecipientManagementTest extends TestCase
             'active'      => '1',
         ];
 
-        $response = $this->withSession(['admin_logged_in' => true])
+        $response = $this->actingAsAdmin()
             ->post(route('admin.packages.save'), $payload);
 
         $response->assertRedirect(route('admin.packages'));

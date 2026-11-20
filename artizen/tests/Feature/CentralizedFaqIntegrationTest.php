@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\Faq;
 use App\Models\User;
 use Database\Seeders\FaqSeeder;
-use Illuminate\Foundation\Testing\TestCase;
+use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class CentralizedFaqIntegrationTest extends TestCase
@@ -57,7 +57,7 @@ class CentralizedFaqIntegrationTest extends TestCase
      */
     public function test_admin_can_create_faq_with_homepage_visibility(): void
     {
-        $response = $this->actingAs($this->admin)->post('/admin/faqs/save', [
+        $response = $this->actingAsAdmin($this->admin)->post('/admin/faqs/save', [
             'q'                => 'Can I request bespoke lighting?',
             'a'                => 'Yes, Artizen provides custom fairy light and neon installations.',
             'category'         => 'customization',
@@ -148,7 +148,7 @@ class CentralizedFaqIntegrationTest extends TestCase
             'show_on_homepage' => false,
         ]);
 
-        $delResponse = $this->actingAs($this->admin)->post("/admin/faqs/delete/{$faq->id}");
+        $delResponse = $this->actingAsAdmin($this->admin)->post("/admin/faqs/delete/{$faq->id}");
         $delResponse->assertRedirect();
 
         $this->assertNull(Faq::find($faq->id));
@@ -192,7 +192,7 @@ class CentralizedFaqIntegrationTest extends TestCase
         $faqRes->assertSee('Button Toggle Behavior Test Question?');
 
         // State 2: Toggle Homepage ON via admin JSON request
-        $toggleHomeRes = $this->actingAs($this->admin)->postJson('/admin/faqs/save', [
+        $toggleHomeRes = $this->actingAsAdmin($this->admin)->postJson('/admin/faqs/save', [
             'id'               => $faq->id,
             'q'                => $faq->question,
             'a'                => $faq->answer,
@@ -207,7 +207,7 @@ class CentralizedFaqIntegrationTest extends TestCase
         $this->get('/faq')->assertSee('Button Toggle Behavior Test Question?');
 
         // State 3: Toggle Inactive via admin JSON request (is_active = 0)
-        $toggleInactiveRes = $this->actingAs($this->admin)->postJson('/admin/faqs/save', [
+        $toggleInactiveRes = $this->actingAsAdmin($this->admin)->postJson('/admin/faqs/save', [
             'id'               => $faq->id,
             'q'                => $faq->question,
             'a'                => $faq->answer,

@@ -728,7 +728,7 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center text-sm">
-                                <i class="fa-solid fa-eye"></i>
+                                <i class="fa-solid fa-store"></i>
                             </div>
                             <div>
                                 <h2 class="text-sm font-bold text-gray-900 tracking-tight">Storefront Visibility</h2>
@@ -764,7 +764,7 @@
                 <div class="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-2xs space-y-4">
                     <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                         <span class="text-xs font-bold text-gray-900 tracking-tight flex items-center gap-2">
-                            <i class="fa-solid fa-bolt text-amber-500"></i>
+                            <i class="fa-solid fa-sliders text-amber-600"></i>
                             Action Panel
                         </span>
                         <span class="text-[10px] font-mono px-2 py-0.5 rounded-md {{ $isEdit ? 'bg-purple-50 text-purple-700 border border-purple-200/60' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' }} font-bold">
@@ -851,7 +851,7 @@
                 <div class="space-y-2">
                     <div class="flex items-center justify-between px-1">
                         <span class="text-xs font-bold text-gray-700 tracking-tight uppercase tracking-wider text-[10px] flex items-center gap-1.5">
-                            <i class="fa-solid fa-eye text-amber-600"></i>
+                            <i class="fa-solid fa-display text-amber-600"></i>
                             Live Storefront Preview
                         </span>
                         <span class="text-[10px] font-semibold text-gray-400">Customer View</span>
@@ -933,7 +933,7 @@
                 {{-- Admin Context Notice --}}
                 <div class="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs text-amber-900 space-y-1">
                     <div class="flex items-center gap-2 font-bold text-amber-950">
-                        <i class="fa-solid fa-shield-halved text-amber-600"></i>
+                        <i class="fa-solid fa-handshake-simple text-amber-600"></i>
                         <span>Offline Event Booking Model</span>
                     </div>
                     <p class="text-[11px] text-amber-800/90 leading-relaxed">

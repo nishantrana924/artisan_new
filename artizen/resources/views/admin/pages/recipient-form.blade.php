@@ -179,7 +179,7 @@
                         </div>
                     </div>
                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
-                        <i class="fa-solid fa-bolt text-[9px]"></i> WebP Auto-Convert
+                        <i class="fa-solid fa-wand-magic-sparkles text-[9px]"></i> WebP Auto-Convert
                     </span>
                 </div>
 

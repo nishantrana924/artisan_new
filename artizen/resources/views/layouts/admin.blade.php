@@ -206,10 +206,44 @@
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <!-- Modern Notification Bell -->
-                    <div class="w-9 h-9 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors relative cursor-pointer shadow-2xs" title="Notifications">
-                        <i class="fa-solid fa-bell text-xs"></i>
-                        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white"></span>
+                    <!-- Modern Notification Bell & Real-time Dropdown -->
+                    <div class="relative" id="admin-notifications-container">
+                        <button type="button" 
+                                id="admin-notifications-trigger" 
+                                onclick="toggleAdminNotificationsDropdown(event)" 
+                                class="w-9 h-9 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors relative cursor-pointer shadow-2xs group outline-none" 
+                                title="Notifications"
+                                aria-expanded="false"
+                                aria-haspopup="true">
+                            <i class="fa-solid fa-bell text-xs group-hover:scale-110 transition-transform"></i>
+                            <span id="admin-bell-badge" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center ring-2 ring-white shadow-xs">0</span>
+                        </button>
+
+                        <!-- Notifications Dropdown Menu -->
+                        <div id="admin-notifications-menu" 
+                             class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl border border-gray-200 shadow-2xl py-2 z-50 transition-all duration-150 origin-top-right">
+                            <div class="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-extrabold text-gray-900">Live Notifications</span>
+                                    <span id="admin-notif-count-pill" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">0 Pending</span>
+                                </div>
+                                <span class="text-[10px] text-gray-400 font-medium">Real-time alerts</span>
+                            </div>
+                            
+                            <div id="admin-notifications-list" class="max-h-72 overflow-y-auto divide-y divide-gray-50 text-xs">
+                                <div class="p-6 text-center text-gray-400" id="admin-notif-empty">
+                                    <i class="fa-regular fa-bell text-gray-300 text-2xl mb-2 block"></i>
+                                    <p class="text-xs font-semibold text-gray-600">No new notifications</p>
+                                    <p class="text-[10px] text-gray-400 mt-0.5">New bookings and requests will appear here</p>
+                                </div>
+                            </div>
+
+                            <div class="p-2 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl">
+                                <a href="{{ route('admin.bookings') }}" class="block w-full py-2 text-center text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:bg-white rounded-xl transition-colors">
+                                    View All Bookings &rarr;
+                                </a>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Administrator Avatar & Dropdown Menu -->
@@ -281,17 +315,6 @@
         <!-- Main Page Content Area -->
         <div class="flex-grow p-6 md:p-8 overflow-y-auto">
 
-            @if(session('success'))
-                <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg text-sm font-semibold mb-6 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-check text-emerald-500"></i> {{ session('success') }}
-                </div>
-            @endif
-            @if(session('error'))
-                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm font-semibold mb-6 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-exclamation text-red-500"></i> {{ session('error') }}
-                </div>
-            @endif
-
             @yield('content')
 
         </div>
@@ -302,26 +325,288 @@
     {{-- Global Delete Confirmation Modal --}}
     @include('admin.components.delete-modal')
 
-    <!-- TOAST NOTIFICATION CONTAINER -->
-    <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-3"></div>
+    <!-- MODERN FLOATING TOASTER NOTIFICATION CONTAINER (Top Right) -->
+    <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none max-w-sm w-full px-4 sm:px-0"></div>
 
     <script>
-        function showToast(message, type = 'success') {
-            const colors = {
-                success: 'bg-emerald-600 text-white',
-                error:   'bg-red-600 text-white',
-                info:    'bg-blue-600 text-white',
+        /**
+         * Global Premium Interactive Toaster Notification Engine
+         */
+        window.showToast = function(message, type = 'success', duration = 4500, actionUrl = null) {
+            const configs = {
+                success: {
+                    title: 'Success',
+                    iconBg: 'bg-emerald-50 border border-emerald-200/80',
+                    iconColor: 'text-emerald-600',
+                    icon: 'fa-circle-check',
+                    accentBorder: 'border-l-4 border-l-emerald-500',
+                },
+                error: {
+                    title: 'Error',
+                    iconBg: 'bg-rose-50 border border-rose-200/80',
+                    iconColor: 'text-rose-600',
+                    icon: 'fa-triangle-exclamation',
+                    accentBorder: 'border-l-4 border-l-rose-500',
+                },
+                info: {
+                    title: 'Notice',
+                    iconBg: 'bg-indigo-50 border border-indigo-200/80',
+                    iconColor: 'text-indigo-600',
+                    icon: 'fa-bell',
+                    accentBorder: 'border-l-4 border-l-indigo-500',
+                },
+                warning: {
+                    title: 'Warning',
+                    iconBg: 'bg-amber-50 border border-amber-200/80',
+                    iconColor: 'text-amber-600',
+                    icon: 'fa-circle-exclamation',
+                    accentBorder: 'border-l-4 border-l-amber-500',
+                },
             };
-            const icons = { success: 'fa-circle-check', error: 'fa-circle-exclamation', info: 'fa-circle-info' };
+
+            const cfg = configs[type] || configs.success;
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
             const toast = document.createElement('div');
-            toast.className = `flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-semibold min-w-[260px] max-w-sm transition-all duration-300 opacity-0 translate-y-2 ${colors[type] || colors.success}`;
-            toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.success} shrink-0"></i><span>${message}</span>`;
-            document.getElementById('toast-container').prepend(toast);
-            requestAnimationFrame(() => { toast.classList.remove('opacity-0', 'translate-y-2'); });
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-2');
-                setTimeout(() => toast.remove(), 400);
-            }, 4000);
+            toast.className = `pointer-events-auto bg-white/95 backdrop-blur-md border border-gray-200/90 shadow-2xl rounded-2xl p-4 flex items-start gap-3.5 transition-all duration-300 transform translate-x-8 opacity-0 ${cfg.accentBorder} relative overflow-hidden select-none cursor-pointer group`;
+            
+            const linkBtn = actionUrl ? `<a href="${actionUrl}" class="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-indigo-600 hover:text-indigo-800 mt-2 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition-colors"><span>View Details</span> <i class="fa-solid fa-arrow-right text-[9px]"></i></a>` : '';
+
+            toast.innerHTML = `
+                <div class="w-8 h-8 rounded-xl ${cfg.iconBg} ${cfg.iconColor} flex items-center justify-center shrink-0 text-xs font-bold mt-0.5 shadow-2xs">
+                    <i class="fa-solid ${cfg.icon}"></i>
+                </div>
+                <div class="flex-grow min-w-0 pr-1">
+                    <div class="flex items-center justify-between gap-2">
+                        <h4 class="text-xs font-extrabold text-gray-900 tracking-tight">${cfg.title}</h4>
+                        <span class="text-[10px] text-gray-400 font-medium">Just now</span>
+                    </div>
+                    <p class="text-xs text-gray-600 font-semibold mt-0.5 leading-relaxed break-words">${message}</p>
+                    ${linkBtn}
+                </div>
+                <button type="button" class="w-6 h-6 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-400 hover:text-gray-700 flex items-center justify-center shrink-0 cursor-pointer transition-colors" title="Dismiss">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            `;
+
+            const closeBtn = toast.querySelector('button');
+            const dismiss = (e) => {
+                if (e) e.stopPropagation();
+                toast.classList.add('translate-x-8', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            };
+            if (closeBtn) closeBtn.onclick = dismiss;
+
+            if (actionUrl) {
+                toast.addEventListener('click', (e) => {
+                    if (e.target !== closeBtn && !closeBtn.contains(e.target)) {
+                        window.location.href = actionUrl;
+                    }
+                });
+            }
+
+            container.prepend(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-8', 'opacity-0');
+            });
+
+            if (duration > 0) {
+                setTimeout(dismiss, duration);
+            }
+        };
+
+        // Flash Session Toaster Auto-Triggers (Runs automatically on redirect or load)
+        function triggerSessionToasts() {
+            @if(session('success'))
+                showToast(@json(session('success')), 'success');
+            @endif
+            @if(session('error'))
+                showToast(@json(session('error')), 'error');
+            @endif
+            @if(session('info'))
+                showToast(@json(session('info')), 'info');
+            @endif
+            @if(session('warning'))
+                showToast(@json(session('warning')), 'warning');
+            @endif
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', triggerSessionToasts);
+        } else {
+            triggerSessionToasts();
+        }
+
+
+        /**
+         * Web Audio Notification Chime
+         */
+        function playNotificationChime() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5 note
+                osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1); // A5 note
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.45);
+            } catch (e) {
+                // AudioContext not allowed before user gesture or unavailable
+            }
+        }
+
+        /**
+         * Real-time Notifications Polling Engine
+         */
+        let lastNotificationCheckTime = Math.floor(Date.now() / 1000);
+        let lastKnownBookingId = null;
+        let isInitialPoll = true;
+
+        async function pollAdminNotifications() {
+            try {
+                let url = '{{ route("admin.notifications.poll") }}';
+                const params = new URLSearchParams();
+                if (!isInitialPoll && lastNotificationCheckTime) {
+                    params.append('since', lastNotificationCheckTime);
+                }
+                if (lastKnownBookingId) {
+                    params.append('last_id', lastKnownBookingId);
+                }
+                const fullUrl = url + (params.toString() ? '?' + params.toString() : '');
+                const res = await fetch(fullUrl, {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                
+                if (data.server_time) {
+                    lastNotificationCheckTime = data.server_time;
+                }
+
+                // Update bell badge
+                const badge = document.getElementById('admin-bell-badge');
+                const pill  = document.getElementById('admin-notif-count-pill');
+                if (badge) {
+                    if (data.pending_count > 0) {
+                        badge.textContent = data.pending_count > 99 ? '99+' : data.pending_count;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+                if (pill) {
+                    pill.textContent = `${data.pending_count} Pending`;
+                }
+
+                // Render list in dropdown
+                if (data.latest_bookings && data.latest_bookings.length > 0) {
+                    renderNotificationsList(data.latest_bookings);
+                    if (isInitialPoll && data.latest_id) {
+                        lastKnownBookingId = data.latest_id;
+                    }
+                }
+
+                // Show live toaster alert on new bookings
+                if (!isInitialPoll && data.new_bookings && data.new_bookings.length > 0) {
+                    data.new_bookings.forEach(b => {
+                        playNotificationChime();
+                        showToast(`🎉 New Booking: ${b.customer_name} booked ${b.package_name} (₹${Number(b.total_amount).toLocaleString('en-IN')})`, 'info', 8000, `{{ route('admin.bookings') }}?search=${encodeURIComponent(b.id)}`);
+                    });
+                    if (data.latest_id) {
+                        lastKnownBookingId = data.latest_id;
+                    }
+                }
+
+                isInitialPoll = false;
+            } catch (err) {
+                // Ignore transient network errors
+            }
+        }
+
+        function renderNotificationsList(bookings) {
+            const list = document.getElementById('admin-notifications-list');
+            if (!list) return;
+            if (!bookings || bookings.length === 0) {
+                list.innerHTML = `
+                    <div class="p-6 text-center text-gray-400">
+                        <i class="fa-regular fa-bell text-gray-300 text-2xl mb-2 block"></i>
+                        <p class="text-xs font-semibold text-gray-600">No new notifications</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5">New bookings and requests will appear here</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const statusColors = {
+                'Pending': 'bg-amber-50 text-amber-700 border-amber-200',
+                'Confirmed': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                'Completed': 'bg-blue-50 text-blue-700 border-blue-200',
+                'Cancelled': 'bg-rose-50 text-rose-700 border-rose-200',
+            };
+
+            list.innerHTML = bookings.map(b => {
+                const badgeClass = statusColors[b.status] || 'bg-gray-50 text-gray-700 border-gray-200';
+                return `
+                    <a href="{{ route('admin.bookings') }}?search=${encodeURIComponent(b.id)}" class="p-3.5 hover:bg-gray-50/80 transition-colors flex items-start gap-3 block border-b border-gray-50 last:border-b-0">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 text-xs font-bold mt-0.5 shadow-2xs">
+                            <i class="fa-solid fa-calendar-check"></i>
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <div class="flex items-center justify-between gap-1">
+                                <p class="font-extrabold text-gray-900 truncate text-xs">${b.customer_name}</p>
+                                <span class="text-[10px] text-gray-400 shrink-0 font-medium">${b.created_diff}</span>
+                            </div>
+                            <p class="text-[11px] text-gray-500 truncate mt-0.5">${b.package_name} • ₹${Number(b.total_amount).toLocaleString('en-IN')}</p>
+                            <div class="flex items-center gap-1.5 mt-1.5">
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold border ${badgeClass}">${b.status}</span>
+                                <span class="text-[9px] font-mono text-gray-400 font-bold">${b.id}</span>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+        }
+
+        // Start polling on load and repeat every 15 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            pollAdminNotifications();
+            setInterval(pollAdminNotifications, 15000);
+        });
+
+        /* Admin Notification Dropdown Toggle */
+        function toggleAdminNotificationsDropdown(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('admin-notifications-menu');
+            const trigger = document.getElementById('admin-notifications-trigger');
+            if (!menu) return;
+
+            // Close user dropdown if open
+            const userMenu = document.getElementById('admin-user-dropdown-menu');
+            const userChevron = document.getElementById('admin-dropdown-chevron');
+            const userTrigger = document.getElementById('admin-dropdown-trigger');
+            if (userMenu && !userMenu.classList.contains('hidden')) {
+                userMenu.classList.add('hidden');
+                if (userChevron) userChevron.classList.remove('rotate-180');
+                if (userTrigger) userTrigger.setAttribute('aria-expanded', 'false');
+            }
+            
+            const isHidden = menu.classList.contains('hidden');
+            if (isHidden) {
+                menu.classList.remove('hidden');
+                if (trigger) trigger.setAttribute('aria-expanded', 'true');
+            } else {
+                menu.classList.add('hidden');
+                if (trigger) trigger.setAttribute('aria-expanded', 'false');
+            }
         }
 
         /* Admin User Dropdown Toggle */
@@ -331,6 +616,14 @@
             const chevron = document.getElementById('admin-dropdown-chevron');
             const trigger = document.getElementById('admin-dropdown-trigger');
             if (!menu) return;
+
+            // Close notification menu if open
+            const notifMenu = document.getElementById('admin-notifications-menu');
+            const notifTrigger = document.getElementById('admin-notifications-trigger');
+            if (notifMenu && !notifMenu.classList.contains('hidden')) {
+                notifMenu.classList.add('hidden');
+                if (notifTrigger) notifTrigger.setAttribute('aria-expanded', 'false');
+            }
             
             const isHidden = menu.classList.contains('hidden');
             if (isHidden) {
@@ -345,13 +638,23 @@
         }
 
         document.addEventListener('click', function(event) {
-            const container = document.getElementById('admin-user-dropdown-container');
-            const menu = document.getElementById('admin-user-dropdown-menu');
+            const notifContainer = document.getElementById('admin-notifications-container');
+            const notifMenu = document.getElementById('admin-notifications-menu');
+            const notifTrigger = document.getElementById('admin-notifications-trigger');
+            if (notifContainer && !notifContainer.contains(event.target)) {
+                if (notifMenu && !notifMenu.classList.contains('hidden')) {
+                    notifMenu.classList.add('hidden');
+                    if (notifTrigger) notifTrigger.setAttribute('aria-expanded', 'false');
+                }
+            }
+
+            const userContainer = document.getElementById('admin-user-dropdown-container');
+            const userMenu = document.getElementById('admin-user-dropdown-menu');
             const chevron = document.getElementById('admin-dropdown-chevron');
             const trigger = document.getElementById('admin-dropdown-trigger');
-            if (container && !container.contains(event.target)) {
-                if (menu && !menu.classList.contains('hidden')) {
-                    menu.classList.add('hidden');
+            if (userContainer && !userContainer.contains(event.target)) {
+                if (userMenu && !userMenu.classList.contains('hidden')) {
+                    userMenu.classList.add('hidden');
                     if (chevron) chevron.classList.remove('rotate-180');
                     if (trigger) trigger.setAttribute('aria-expanded', 'false');
                 }
@@ -360,11 +663,18 @@
 
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
-                const menu = document.getElementById('admin-user-dropdown-menu');
+                const notifMenu = document.getElementById('admin-notifications-menu');
+                const notifTrigger = document.getElementById('admin-notifications-trigger');
+                if (notifMenu && !notifMenu.classList.contains('hidden')) {
+                    notifMenu.classList.add('hidden');
+                    if (notifTrigger) notifTrigger.setAttribute('aria-expanded', 'false');
+                }
+
+                const userMenu = document.getElementById('admin-user-dropdown-menu');
                 const chevron = document.getElementById('admin-dropdown-chevron');
                 const trigger = document.getElementById('admin-dropdown-trigger');
-                if (menu && !menu.classList.contains('hidden')) {
-                    menu.classList.add('hidden');
+                if (userMenu && !userMenu.classList.contains('hidden')) {
+                    userMenu.classList.add('hidden');
                     if (chevron) chevron.classList.remove('rotate-180');
                     if (trigger) trigger.setAttribute('aria-expanded', 'false');
                 }

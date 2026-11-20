@@ -36,7 +36,7 @@
                             <span>{{ count($categoryPackages) }} {{ count($categoryPackages) === 1 ? 'Package' : 'Packages Available' }}</span>
                         </div>
                         <div class="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 px-3.5 py-1.5 rounded-sm text-xs font-bold text-emerald-800 dark:text-emerald-400">
-                            <i class="fa-solid fa-shield-check"></i>
+                            <i class="fa-solid fa-calendar-check"></i>
                             <span>Instant Booking Indore</span>
                         </div>
                     </div>

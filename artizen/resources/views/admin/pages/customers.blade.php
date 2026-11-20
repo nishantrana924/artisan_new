@@ -7,24 +7,9 @@
 @section('content')
 
 {{-- ===================================================================
-     1. FLASH MESSAGES
-     =================================================================== --}}
-@if(session('success'))
-    <div class="mb-5 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded-2xl flex items-center gap-2 shadow-2xs">
-        <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-        <span>{{ session('success') }}</span>
-    </div>
-@endif
-@if(session('error'))
-    <div class="mb-5 px-4 py-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold rounded-2xl flex items-center gap-2 shadow-2xs">
-        <i class="fa-solid fa-triangle-exclamation text-rose-500 text-sm"></i>
-        <span>{{ session('error') }}</span>
-    </div>
-@endif
-
-{{-- ===================================================================
      2. PAGE HEADER BAR
      =================================================================== --}}
+
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200/80 pb-5 mb-6">
     <div>
         <h2 class="text-xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2.5">
@@ -301,12 +286,13 @@
                 if (!loc.includes('indore') && !loc.includes('madhya')) return false;
             }
             if (currentCustomerSearch) {
-                const query = currentCustomerSearch.toLowerCase();
+                const query = currentCustomerSearch.toLowerCase().trim();
+                const cleanQuery = query.replace(/^#/, '').replace(/^cust-/, '');
                 const matchName = (c.name || '').toLowerCase().includes(query);
-                const matchMobile = (c.mobile || '').includes(query);
+                const matchMobile = (c.mobile || '').replace(/[^0-9]/g, '').includes(query.replace(/[^0-9]/g, ''));
                 const matchEmail = (c.email || '').toLowerCase().includes(query);
-                const matchArea = ((c.area || '') + ' ' + (c.city || '')).toLowerCase().includes(query);
-                const matchId = String(c.id) === query || `cust-${c.id}`.toLowerCase() === query;
+                const matchArea = ((c.area || '') + ' ' + (c.city || '') + ' ' + (c.state || '')).toLowerCase().includes(query);
+                const matchId = String(c.id) === cleanQuery || `cust-${c.id}`.toLowerCase() === query;
                 if (!matchName && !matchMobile && !matchEmail && !matchArea && !matchId) return false;
             }
             return true;
@@ -340,6 +326,18 @@
                 ? `<span class="font-medium text-gray-900">${c.email}</span>` 
                 : `<span class="text-gray-400 font-normal italic">Not provided</span>`;
 
+            // Normalize mobile & WhatsApp
+            const rawMobile = String(c.mobile || '').replace(/[^0-9]/g, '');
+            const mobileDisplay = rawMobile.length === 12 && rawMobile.startsWith('91')
+                ? '+91 ' + rawMobile.substring(2)
+                : (rawMobile.length === 10 ? '+91 ' + rawMobile : (c.mobile ? '+91 ' + c.mobile : '--'));
+
+            const rawWa = String(c.whatsapp || c.mobile || '').replace(/[^0-9]/g, '');
+            const waClean = rawWa.length === 10 ? '91' + rawWa : rawWa;
+            const waUrl = waClean 
+                ? `https://wa.me/${waClean}?text=${encodeURIComponent('Hi ' + (c.name || 'there') + '! Artizen concierge team here. How may we assist with your celebrations?')}` 
+                : '#';
+
             const row = document.createElement('tr');
             row.className = "hover:bg-gray-50/75 transition-colors border-b border-gray-100 text-gray-800";
             row.innerHTML = `
@@ -359,10 +357,12 @@
                 </td>
                 <td class="py-3.5 px-4 font-mono font-medium">
                     <div class="flex flex-col gap-0.5">
-                        <span class="text-gray-900 font-bold">+91 ${c.mobile || '--'}</span>
-                        <a href="https://wa.me/91${c.whatsapp || c.mobile || ''}" target="_blank" class="text-[10px] text-emerald-600 font-semibold hover:underline inline-flex items-center gap-1">
-                            <i class="fa-brands fa-whatsapp text-xs"></i> WhatsApp
-                        </a>
+                        <span class="text-gray-900 font-bold">${mobileDisplay}</span>
+                        ${waClean ? `
+                            <a href="${waUrl}" target="_blank" class="text-[10px] text-emerald-600 font-semibold hover:underline inline-flex items-center gap-1">
+                                <i class="fa-brands fa-whatsapp text-xs"></i> WhatsApp
+                            </a>
+                        ` : ''}
                     </div>
                 </td>
                 <td class="py-3.5 px-4">
@@ -384,9 +384,11 @@
                         <button type="button" onclick="openCustomerDrawer(${c.id})" class="px-2.5 py-1.5 bg-gray-900 hover:bg-black text-white text-[11px] font-bold rounded-lg shadow-2xs transition-colors cursor-pointer flex items-center gap-1">
                             <i class="fa-solid fa-address-card text-[10px]"></i> Profile
                         </button>
-                        <a href="https://wa.me/91${c.whatsapp || c.mobile || ''}" target="_blank" title="WhatsApp Customer" class="px-2 py-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 rounded-lg text-xs font-semibold transition-all">
-                            <i class="fa-brands fa-whatsapp"></i>
-                        </a>
+                        ${waClean ? `
+                            <a href="${waUrl}" target="_blank" title="WhatsApp Customer" class="px-2 py-1.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 rounded-lg text-xs font-semibold transition-all">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </a>
+                        ` : ''}
                     </div>
                 </td>
             `;
@@ -436,18 +438,34 @@
         document.getElementById('cd-total-bookings').textContent = c.total_bookings || 0;
         document.getElementById('cd-total-spend').textContent = `₹${Number(c.total_spend || 0).toLocaleString('en-IN')}`;
 
+        // Normalize mobile & WhatsApp in drawer
+        const drawerRawMobile = String(c.mobile || '').replace(/[^0-9]/g, '');
+        const drawerMobileDisplay = drawerRawMobile.length === 12 && drawerRawMobile.startsWith('91')
+            ? '+91 ' + drawerRawMobile.substring(2)
+            : (drawerRawMobile.length === 10 ? '+91 ' + drawerRawMobile : (c.mobile ? '+91 ' + c.mobile : '--'));
+
+        const drawerRawWa = String(c.whatsapp || c.mobile || '').replace(/[^0-9]/g, '');
+        const drawerWaClean = drawerRawWa.length === 10 ? '91' + drawerRawWa : drawerRawWa;
+        const drawerWaUrl = drawerWaClean 
+            ? `https://wa.me/${drawerWaClean}?text=${encodeURIComponent('Hi ' + (c.name || 'there') + '! Artizen concierge team here. How may we assist with your celebrations?')}` 
+            : '#';
+
         document.getElementById('cd-profile-name').textContent = c.name || '--';
-        document.getElementById('cd-profile-mobile').textContent = `+91 ${c.mobile || '--'}`;
+        document.getElementById('cd-profile-mobile').textContent = drawerMobileDisplay;
 
         const waLink = document.getElementById('cd-profile-whatsapp');
         if (waLink) {
-            waLink.href = `https://wa.me/91${c.whatsapp || c.mobile || ''}`;
-            waLink.querySelector('span').textContent = `+91 ${c.whatsapp || c.mobile || '--'}`;
+            waLink.href = drawerWaUrl;
+            waLink.querySelector('span').textContent = drawerWaClean ? ('+' + drawerWaClean) : '--';
+            if (!drawerWaClean) waLink.classList.add('pointer-events-none', 'text-gray-400');
+            else waLink.classList.remove('pointer-events-none', 'text-gray-400');
         }
 
         const directWaBtn = document.getElementById('cd-whatsapp-direct-btn');
         if (directWaBtn) {
-            directWaBtn.href = `https://wa.me/91${c.whatsapp || c.mobile || ''}`;
+            directWaBtn.href = drawerWaUrl;
+            if (!drawerWaClean) directWaBtn.classList.add('opacity-50', 'pointer-events-none');
+            else directWaBtn.classList.remove('opacity-50', 'pointer-events-none');
         }
 
         document.getElementById('cd-profile-email').textContent = c.email || 'Not provided';

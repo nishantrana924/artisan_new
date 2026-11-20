@@ -119,6 +119,8 @@
                 form = formOrEvent.target.closest('form') || formOrEvent.currentTarget.closest('form');
             } else if (formOrEvent instanceof HTMLFormElement) {
                 form = formOrEvent;
+            } else if (formOrEvent instanceof HTMLElement) {
+                form = formOrEvent.closest('form');
             } else if (typeof formOrEvent === 'string') {
                 form = document.querySelector(formOrEvent);
             }

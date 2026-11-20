@@ -18,18 +18,22 @@ return new class extends Migration
                 $table->foreignId('user_id')->nullable()->after('id')->constrained('users')->onDelete('set null');
             }
 
-            // Composite index for rapid tracking and customer lookups
-            $table->index(['id', 'customer_mobile'], 'bookings_id_customer_mobile_index');
+            try {
+                $table->index(['id', 'customer_mobile'], 'bookings_id_customer_mobile_index');
+            } catch (\Throwable $e) {}
         });
 
         Schema::table('customers', function (Blueprint $table) {
-            // Enforce database-level uniqueness on customer mobile numbers
-            $table->unique('mobile', 'customers_mobile_unique');
+            try {
+                $table->unique('mobile', 'customers_mobile_unique');
+            } catch (\Throwable $e) {}
         });
 
         Schema::table('enquiries', function (Blueprint $table) {
             if (Schema::hasTable('enquiries')) {
-                $table->index('created_at', 'enquiries_created_at_index');
+                try {
+                    $table->index('created_at', 'enquiries_created_at_index');
+                } catch (\Throwable $e) {}
             }
         });
     }

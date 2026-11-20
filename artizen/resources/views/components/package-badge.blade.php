@@ -28,7 +28,7 @@
             $badgeIcon = 'fa-solid fa-gem text-emerald-200';
         } elseif (str_contains($upper, 'POPULAR')) {
             $badgeStyle = 'bg-indigo-600 text-white';
-            $badgeIcon = 'fa-solid fa-bolt text-yellow-300';
+            $badgeIcon = 'fa-solid fa-star text-amber-300';
         } elseif (str_contains($upper, 'HOT')) {
             $badgeStyle = 'bg-red-600 text-white';
             $badgeIcon = 'fa-solid fa-fire-flame-curved text-amber-200';

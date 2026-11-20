@@ -10,7 +10,7 @@
         <!-- Header -->
         <div class="border-b border-[#EFE7D8] pb-6 mb-8 text-left">
             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF7F2] border border-[#E8DFC8] text-[11px] font-heading font-extrabold text-gray-800 uppercase tracking-wider mb-3">
-                <i class="fa-solid fa-shield-halved text-amber-600 text-xs"></i> Trust & Security
+                <i class="fa-solid fa-lock text-amber-600 text-xs"></i> Trust & Security
             </span>
             <h1 class="font-heading font-extrabold text-3xl sm:text-4xl text-gray-950 tracking-tight mb-2">
                 {{ $page['title'] ?? 'Privacy Policy' }}

@@ -113,8 +113,12 @@
     ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) !!}
     </script>
 
-    <!-- Production Compiled Tailwind CSS & App Bundle via Vite -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- Production Compiled Tailwind CSS & App Bundle via Vite (if built or dev server active) -->
+    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @else
+        <script src="https://cdn.tailwindcss.com"></script>
+    @endif
 
     <!-- Google Fonts: Plus Jakarta Sans (600, 700, 800) & Inter (400, 500, 600) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -259,6 +263,13 @@
         window.eventCategories = @json($categories);
         window.hubSettings = @json($settings);
     </script>
+
+    @if(!empty(config('services.turnstile.site_key')))
+        <!-- Cloudflare Turnstile Anti-Bot Security -->
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    @endif
+
+    @stack('styles')
 </head>
 
 <body class="bg-main-bg text-main-text font-body selection:bg-main-text selection:text-main-bg">

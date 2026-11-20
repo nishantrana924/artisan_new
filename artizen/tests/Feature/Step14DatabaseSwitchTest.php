@@ -56,6 +56,8 @@ class Step14DatabaseSwitchTest extends TestCase
             'tier' => 'Standard',
             'date' => date('Y-m-d', strtotime('+5 days')),
             'time' => '18:00',
+            'event_date' => date('Y-m-d', strtotime('+5 days')),
+            'event_time' => '18:00',
             'guest_count' => 30,
             'address' => 'Vijay Nagar Square',
             'landmark' => 'Near C21 Mall',
@@ -66,10 +68,15 @@ class Step14DatabaseSwitchTest extends TestCase
             'notes' => 'Test MySQL creation',
             'package_price' => 4999,
             'surcharge' => 0,
-            'total' => 4999
+            'total' => 4999,
         ];
 
-        $response = $this->postJson('/booking/save', $bookingData);
+        $customer = User::factory()->create([
+            'name'  => 'MySQL Workflow Customer',
+            'email' => 'mysqlcustomer@artizen.com',
+        ]);
+
+        $response = $this->actingAs($customer)->postJson('/booking/save', $bookingData);
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
 

@@ -16,7 +16,7 @@ class AdminAnalyticsTest extends TestCase
     public function test_guest_cannot_access_analytics(): void
     {
         $response = $this->get('/admin/dashboard');
-        $response->assertRedirect('/admin/login');
+        $response->assertRedirect(route('login', ['redirect' => url('/admin/dashboard')]));
     }
 
     /**

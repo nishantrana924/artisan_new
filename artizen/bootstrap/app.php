@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 $middleware->trustProxies(at: count($proxies) === 1 && $proxies[0] === '*' ? '*' : $proxies);
             }
         }
+        $middleware->validateCsrfTokens(except: [
+            'webhook/whatsapp',
+        ]);
         $middleware->web(append: [
             \App\Http\Middleware\SecurityHeaders::class,
         ]);
@@ -26,5 +29,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json([
+                    'message' => 'CSRF token mismatch or session expired. Please refresh and try again.',
+                ], 419);
+            }
+
+            return redirect()->back()
+                ->withInput($request->except('password', 'password_confirmation', '_token', 'cf-turnstile-response'))
+                ->with('error', 'Your page session expired. Please log in again.');
+        });
     })->create();

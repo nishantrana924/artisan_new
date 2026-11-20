@@ -172,6 +172,7 @@ class BookingController extends Controller
             'package' => 'required|string|max:255',
             'tier' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:1000',
+            'cf-turnstile-response' => ['nullable', new \App\Rules\TurnstileRule],
         ]);
 
         $allPackages = \App\Services\CelebrationCatalogService::getAllPackages();
@@ -207,6 +208,10 @@ class BookingController extends Controller
                         $matchedImage = $tier['image'] ?? $matchedImage;
                         break;
                     }
+                }
+
+                if ($verifiedBasePrice <= 0 && !empty($p['price'])) {
+                    $verifiedBasePrice = (int)$p['price'];
                 }
                 break;
             }
@@ -416,23 +421,91 @@ class BookingController extends Controller
         }
 
         try {
-            $waSmsService = new \App\Services\WhatsAppSmsService();
-            $waSmsService->sendCustomerBookingReceived($booking);
-            $waSmsService->sendAdminNewBooking($booking);
+            \App\Jobs\SendWhatsAppBookingNotificationJob::dispatch($newId, 'admin_new_booking', $booking)->afterCommit();
+            \App\Jobs\SendWhatsAppBookingNotificationJob::dispatch($newId, 'customer_received', $booking)->afterCommit();
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('Booking creation WhatsApp/SMS notification error: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Booking creation WhatsApp/SMS queued notification error: ' . $e->getMessage());
         }
+
+        // 6. Construct Clean WhatsApp Project Brief (Zero corrupt emojis or unicode boxes)
+        $customerName = strip_tags($booking['name'] ?? 'Customer');
+        $mobile = $booking['mobile'] ?? '';
+        $whatsapp = $booking['whatsapp'] ?? $mobile;
+        $packageTitle = strip_tags($booking['package'] ?? $submittedPkgTitle);
+        $categoryTitle = strip_tags($booking['category'] ?? $matchedCategoryTitle);
+        $tierName = strip_tags($booking['tier'] ?? $submittedTierName);
+        $eventDate = $booking['date'] ?? '';
+        $eventTime = $booking['time'] ?? '';
+        $guestCount = (int)($booking['guest_count'] ?? 25);
+        $address = strip_tags($booking['address'] ?? '');
+        $area = strip_tags($booking['area'] ?? '');
+        $city = strip_tags($booking['city'] ?? 'Indore');
+        $state = strip_tags($booking['state'] ?? 'Madhya Pradesh');
+        $landmark = !empty($booking['landmark']) ? "Near " . strip_tags($booking['landmark']) . ", " : '';
+        $pincode = !empty($booking['pincode']) ? " - " . strip_tags($booking['pincode']) : '';
+        $fullVenue = trim("{$address}, {$landmark}{$area}, {$city}, {$state}{$pincode}");
+        $totalFormatted = number_format($grandTotal);
+        $pdfDownloadUrl = route('booking.success', ['id' => $newId, 'download_pdf' => 1]);
+
+        $adminWaNumber = config('services.whatsapp.admin_number') ?: '919131668156';
+        $adminWaNumber = preg_replace('/[^0-9]/', '', $adminWaNumber);
+        if (strlen($adminWaNumber) === 10) {
+            $adminWaNumber = '91' . $adminWaNumber;
+        }
+
+        $waLines = [
+            "NEW BOOKING REQUEST - ARTIZEN",
+            "----------------------------------------",
+            "Booking ID: #{$newId}",
+            "Customer Name: {$customerName}",
+            "Mobile: +91 {$mobile}",
+            "WhatsApp: +91 {$whatsapp}",
+            "Email: " . ($userEmail ?: 'N/A'),
+            "",
+            "EVENT & PACKAGE DETAILS:",
+            "- Package: {$packageTitle}" . (!empty($tierName) ? " ({$tierName})" : ""),
+            "- Category: {$categoryTitle}",
+            "- Event Date: {$eventDate}" . (!empty($eventTime) ? " - {$eventTime}" : ""),
+            "- Guest Count: {$guestCount} Guests",
+            "- Total Amount: Rs. {$totalFormatted} (100% Offline Payment)",
+        ];
+
+        if (!empty($addonsSummaryLines)) {
+            $waLines[] = "- Add-ons: " . implode(", ", $addonsSummaryLines);
+        }
+
+        $waLines[] = "";
+        $waLines[] = "VENUE ADDRESS:";
+        $waLines[] = "- {$fullVenue}";
+
+        if (!empty($customerNotes)) {
+            $waLines[] = "";
+            $waLines[] = "Special Notes: {$customerNotes}";
+        }
+
+        $waLines[] = "----------------------------------------";
+        $waLines[] = "OFFICIAL INVOICE & PROJECT BRIEF PDF:";
+        $waLines[] = $pdfDownloadUrl;
+        $waLines[] = "----------------------------------------";
+        $waLines[] = "Hi Artizen team! I have submitted my celebration booking above. Please review and connect with me to finalize coordination.";
+
+        $waMessage = implode("\n", $waLines);
+        $waUrl = "https://wa.me/{$adminWaNumber}?text=" . rawurlencode($waMessage);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'booking_id' => $newId,
                 'total' => $grandTotal,
-                'redirect' => route('booking.success', ['id' => $newId])
+                'redirect' => $waUrl,
+                'whatsapp_url' => $waUrl,
+                'orders_url' => route('orders.index'),
+                'success_url' => route('booking.success', ['id' => $newId]),
+                'pdf_url' => $pdfDownloadUrl,
             ]);
         }
 
-        return redirect()->route('booking.success', ['id' => $newId]);
+        return redirect()->away($waUrl);
     }
 
     /**

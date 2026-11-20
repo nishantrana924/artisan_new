@@ -49,7 +49,7 @@
                     <i class="fa-solid fa-boxes-stacked"></i>
                 </span>
             </div>
-            <span class="text-2xl font-extrabold text-gray-900 block mt-2">{{ $totalPackages }}</span>
+            <span id="metric-total-count" class="text-2xl font-extrabold text-gray-900 block mt-2">{{ $totalPackages }}</span>
             <span class="text-[11px] text-gray-400 mt-0.5 block">Catalog packages</span>
         </div>
 
@@ -61,7 +61,7 @@
                     <i class="fa-solid fa-circle-check"></i>
                 </span>
             </div>
-            <span class="text-2xl font-extrabold text-emerald-600 block mt-2">{{ $publishedCount }}</span>
+            <span id="metric-active-count" class="text-2xl font-extrabold text-emerald-600 block mt-2">{{ $publishedCount }}</span>
             <span class="text-[11px] text-gray-400 mt-0.5 block">Live on storefront</span>
         </div>
 
@@ -73,7 +73,7 @@
                     <i class="fa-solid fa-eye-slash"></i>
                 </span>
             </div>
-            <span class="text-2xl font-extrabold text-gray-400 block mt-2">{{ $draftCount }}</span>
+            <span id="metric-draft-count" class="text-2xl font-extrabold text-gray-400 block mt-2">{{ $draftCount }}</span>
             <span class="text-[11px] text-gray-400 mt-0.5 block">Draft / hidden</span>
         </div>
 
@@ -85,7 +85,7 @@
                     <i class="fa-solid fa-layer-group"></i>
                 </span>
             </div>
-            <span class="text-2xl font-extrabold text-purple-600 block mt-2">{{ $categoriesCount }}</span>
+            <span id="metric-categories-count" class="text-2xl font-extrabold text-purple-600 block mt-2">{{ $categoriesCount }}</span>
             <span class="text-[11px] text-gray-400 mt-0.5 block">Celebration categories</span>
         </div>
     </div>
@@ -142,13 +142,13 @@
         <!-- Filter Controls -->
         <div class="flex items-center gap-2.5 flex-wrap shrink-0">
             <!-- Status Filter -->
-            <div class="relative min-w-[130px]">
+            <div class="relative min-w-[140px]">
                 <select id="package-status-filter" 
                         onchange="handleStatusFilter(this.value)"
                         class="w-full h-10 bg-gray-50/70 hover:bg-gray-50 border border-gray-200/80 focus:border-gray-900 rounded-xl pl-3.5 pr-8 text-xs font-semibold text-gray-700 outline-none transition-all cursor-pointer appearance-none">
                     <option value="all">All Status</option>
-                    <option value="published">Published</option>
-                    <option value="draft">Draft</option>
+                    <option value="published">Active / Published</option>
+                    <option value="draft">Inactive / Draft</option>
                 </select>
                 <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none"></i>
             </div>
@@ -166,7 +166,7 @@
             <div class="inline-flex items-center gap-1.5 px-3 h-10 rounded-xl bg-gray-50/80 border border-gray-200/60 text-xs text-gray-500 font-medium shrink-0">
                 <span>Showing</span>
                 <span id="visible-count-number" class="font-bold text-gray-900">{{ $totalPackages }}</span>
-                <span>of {{ $totalPackages }}</span>
+                <span>of <span id="total-count-number">{{ $totalPackages }}</span></span>
             </div>
         </div>
     </div>
@@ -188,7 +188,31 @@
                     @forelse($dbPackages as $idx => $pkg)
                         @php
                             $cat = $pkg->category;
-                            $searchTerms = strtolower($pkg->title . ' ' . $pkg->slug . ' ' . ($cat->title ?? '') . ' ' . $pkg->tag . ' ' . ($pkg->badge ?? '') . ' ' . $pkg->subcategories->pluck('name')->implode(' '));
+                            $tierNames = $pkg->tiers ? $pkg->tiers->pluck('name')->implode(' ') : '';
+                            $tierPrices = $pkg->tiers ? $pkg->tiers->pluck('price')->implode(' ') : '';
+                            $tierInclusions = '';
+                            if ($pkg->tiers) {
+                                foreach ($pkg->tiers as $t) {
+                                    if (is_array($t->inclusions)) {
+                                        $tierInclusions .= ' ' . implode(' ', $t->inclusions);
+                                    } elseif (is_string($t->inclusions)) {
+                                        $tierInclusions .= ' ' . $t->inclusions;
+                                    }
+                                }
+                            }
+                            $subcatNames = $pkg->subcategories ? $pkg->subcategories->pluck('name')->implode(' ') : '';
+                            $searchTerms = strtolower(trim(
+                                $pkg->title . ' ' .
+                                $pkg->slug . ' ' .
+                                ($cat->title ?? '') . ' ' .
+                                ($pkg->tag ?? '') . ' ' .
+                                ($pkg->badge ?? '') . ' ' .
+                                $subcatNames . ' ' .
+                                $tierNames . ' ' .
+                                $tierPrices . ' ' .
+                                $tierInclusions . ' ' .
+                                ($pkg->price ? '₹' . (int)$pkg->price . ' ' . (int)$pkg->price : '')
+                            ));
                         @endphp
                         <tr class="package-row hover:bg-gray-50/70 transition-colors group"
                             data-package-id="{{ $pkg->id }}"
@@ -395,6 +419,9 @@
 
     // Status Filter
     function handleStatusFilter(status) {
+        status = (status || 'all').toLowerCase();
+        if (status === 'active') status = 'published';
+        if (status === 'inactive') status = 'draft';
         currentStatusFilter = status;
         applyFilters();
     }
@@ -503,6 +530,23 @@
                     if (text) text.textContent = 'Draft';
                     if (row) row.setAttribute('data-status', 'draft');
                 }
+
+                // Dynamically update Metric Cards
+                const allRows = document.querySelectorAll('.package-row');
+                let publishedTotal = 0;
+                let draftTotal = 0;
+                allRows.forEach(r => {
+                    if (r.getAttribute('data-status') === 'published') publishedTotal++;
+                    else draftTotal++;
+                });
+
+                const activeMetric = document.getElementById('metric-active-count');
+                const draftMetric = document.getElementById('metric-draft-count');
+                if (activeMetric) activeMetric.textContent = publishedTotal;
+                if (draftMetric) draftMetric.textContent = draftTotal;
+
+                // Re-apply filters in case user is currently filtering by status
+                applyFilters();
 
                 showToast(data.message || 'Status updated successfully');
             }

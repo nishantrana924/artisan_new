@@ -5,7 +5,7 @@
     <div class="flex items-start gap-3.5">
         <!-- Cookie / Privacy Badge Icon -->
         <div class="w-10 h-10 rounded-xl bg-[#FFF9D2] dark:bg-[#2A2610] text-[#9E8200] dark:text-[#FFD600] flex items-center justify-center shrink-0 text-base shadow-xs">
-            <i class="fa-solid fa-shield-halved"></i>
+            <i class="fa-solid fa-cookie-bite"></i>
         </div>
 
         <div class="flex-1 min-w-0">
@@ -14,9 +14,9 @@
             </h4>
             <p class="text-xs sm:text-[13px] text-gray-600 dark:text-gray-300 leading-relaxed font-normal mb-4">
                 We use cookies to personalize your event planning experience and analyze our traffic. By continuing, you agree to our 
-                <a href="{{ route('contact.index') }}" class="font-semibold text-black dark:text-[#FFD600] underline hover:no-underline">Terms &amp; Conditions</a> 
+                <a href="{{ route('legal.terms') }}" class="font-semibold text-black dark:text-[#FFD600] underline hover:no-underline">Terms &amp; Conditions</a> 
                 and 
-                <a href="{{ route('contact.index') }}" class="font-semibold text-black dark:text-[#FFD600] underline hover:no-underline">Privacy Policy</a>.
+                <a href="{{ route('legal.privacy') }}" class="font-semibold text-black dark:text-[#FFD600] underline hover:no-underline">Privacy Policy</a>.
             </p>
 
             <!-- Buttons -->
@@ -85,6 +85,10 @@
                 banner.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
                 banner.classList.add('opacity-0', 'translate-y-6', 'pointer-events-none');
             }
+        };
+
+        window.artizenHasCookieConsent = function () {
+            return localStorage.getItem(LOCAL_STORAGE_KEY) === 'true';
         };
 
         document.addEventListener('DOMContentLoaded', checkAndShowCookieBanner);

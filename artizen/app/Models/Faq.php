@@ -48,7 +48,15 @@ class Faq extends Model
      */
     public function scopeForHomepage($query)
     {
-        return $query->where('show_on_homepage', true);
+        if (\Illuminate\Support\Facades\Schema::hasColumn('faqs', 'show_on_homepage')) {
+            return $query->where('show_on_homepage', true);
+        }
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('faqs', 'show_on_home')) {
+            return $query->where('show_on_home', true);
+        }
+
+        return $query;
     }
 
     /**
@@ -56,7 +64,15 @@ class Faq extends Model
      */
     public function scopeOrdered($query)
     {
-        return $query->orderBy('sort_order', 'asc')->orderBy('id', 'asc');
+        if (\Illuminate\Support\Facades\Schema::hasColumn('faqs', 'sort_order')) {
+            return $query->orderBy('sort_order', 'asc')->orderBy('id', 'asc');
+        }
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('faqs', 'display_order')) {
+            return $query->orderBy('display_order', 'asc')->orderBy('id', 'asc');
+        }
+
+        return $query->orderBy('id', 'asc');
     }
 
     /* =========================================================================

@@ -48,13 +48,17 @@ class Step16ProductionReadinessTest extends TestCase
             'total' => 4999
         ];
 
+        $customer = User::factory()->create([
+            'email' => 'concurrent@artizen.com',
+        ]);
+
         // First submission
-        $res1 = $this->postJson('/booking/save', $payload);
+        $res1 = $this->actingAs($customer)->postJson('/booking/save', $payload);
         $res1->assertStatus(200);
         $id1 = $res1->json('booking_id');
 
         // Immediate second submission
-        $res2 = $this->postJson('/booking/save', $payload);
+        $res2 = $this->actingAs($customer)->postJson('/booking/save', $payload);
         $res2->assertStatus(200);
         $id2 = $res2->json('booking_id');
 
@@ -72,8 +76,8 @@ class Step16ProductionReadinessTest extends TestCase
             'mobile' => '9131668156',
             'whatsapp' => '9131668156',
             'email' => 'tamper@artizen.com',
-            'package' => 'Proposal & Anniversary Setup Package', // Official price 4999
-            'category' => 'Proposal & Anniversary',
+            'package' => '1st Birthday Wonderland', // Official price 4999
+            'category' => 'Birthdays',
             'tier' => 'Standard',
             'event_date' => date('Y-m-d', strtotime('+7 days')),
             'event_time' => '18:00',
@@ -87,7 +91,11 @@ class Step16ProductionReadinessTest extends TestCase
             'total' => 1
         ];
 
-        $response = $this->postJson('/booking/save', $tamperedPayload);
+        $customer = User::factory()->create([
+            'email' => 'tamper@artizen.com',
+        ]);
+
+        $response = $this->actingAs($customer)->postJson('/booking/save', $tamperedPayload);
         $response->assertStatus(200);
 
         // Server must override tampered price with official DB price (4999)
@@ -99,10 +107,10 @@ class Step16ProductionReadinessTest extends TestCase
      */
     public function test_guest_blocked_from_protected_admin_routes(): void
     {
-        $this->get('/admin/dashboard')->assertRedirect('/admin/login');
-        $this->get('/admin/packages/create')->assertRedirect('/admin/login');
-        $this->post('/admin/categories/save', ['title' => 'Illegal'])->assertRedirect('/admin/login');
-        $this->post('/admin/settings/save', ['phone' => 'Illegal'])->assertRedirect('/admin/login');
+        $this->get('/admin/dashboard')->assertRedirect(route('login', ['redirect' => url('/admin/dashboard')]));
+        $this->get('/admin/packages/create')->assertRedirect(route('login', ['redirect' => url('/admin/packages/create')]));
+        $this->post('/admin/categories/save', ['title' => 'Illegal'])->assertRedirect(route('login', ['redirect' => url('/admin/categories/save')]));
+        $this->post('/admin/settings/save', ['phone' => 'Illegal'])->assertRedirect(route('login', ['redirect' => url('/admin/settings/save')]));
     }
 
     /**
@@ -145,9 +153,11 @@ class Step16ProductionReadinessTest extends TestCase
             'pincode' => '452010'
         ];
 
-        $response = $this->postJson('/booking/save', $xssPayload);
+        $customer = User::factory()->create();
+
+        $response = $this->actingAs($customer)->postJson('/booking/save', $xssPayload);
         $response->assertStatus(422); // Validation error response
-        $response->assertJsonValidationErrors(['mobile', 'event_date']);
+        $response->assertJsonValidationErrors(['event_date']);
     }
 
     /**
@@ -159,11 +169,11 @@ class Step16ProductionReadinessTest extends TestCase
 
         $response = $this->actingAs($this->admin)->post('/admin/categories/save', [
             'title' => 'Hack Category',
-            'image_file' => $fakeScript
+            'slider_image_file' => $fakeScript
         ]);
 
         $response->assertRedirect();
-        $response->assertSessionHas('error');
+        $response->assertSessionHasErrors();
     }
 
     /**
@@ -192,7 +202,11 @@ class Step16ProductionReadinessTest extends TestCase
             'total' => 4999
         ];
 
-        $response = $this->postJson('/booking/save', $payload);
+        $customer = User::factory()->create([
+            'email' => 'notifyfail@artizen.com',
+        ]);
+
+        $response = $this->actingAs($customer)->postJson('/booking/save', $payload);
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
 

@@ -33,27 +33,10 @@ class BookingReceivedNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $id = $this->booking['id'] ?? 'BK-XXXX';
-        $name = $this->booking['name'] ?? 'Valued Customer';
-        $package = $this->booking['package'] ?? 'Event Package';
-        $date = $this->booking['date'] ?? 'Upcoming';
-        $time = $this->booking['time'] ?? 'Evening';
-        $total = number_format((int)($this->booking['total'] ?? 4999));
-        $venue = ($this->booking['area'] ?? '') . ', ' . ($this->booking['city'] ?? 'Indore');
+        $id = $this->booking['id'] ?? $this->booking['booking_id'] ?? 'BK-XXXX';
 
         return (new MailMessage)
-            ->subject("Artizen Booking Request Received — {$id}")
-            ->greeting("Hello {$name},")
-            ->line("Thank you for choosing Artizen! Your booking request has been received and registered under Reference ID: {$id}.")
-            ->line("--- Event Request Details ---")
-            ->line("• Package: {$package}")
-            ->line("• Event Date & Time: {$date} ({$time})")
-            ->line("• Venue Location: {$venue}")
-            ->line("• Estimated Total Amount: ₹{$total}")
-            ->line("• Current Status: PENDING REVIEW")
-            ->line("--- Important Note ---")
-            ->line("Our Artizen event manager will review your date availability and contact you on WhatsApp/Phone shortly to confirm your booking and offline payment.")
-            ->action('View Booking Details', route('booking.success', ['id' => $id]))
-            ->line('Thank you for celebrating with Artizen Event Platform!');
+            ->subject("✨ Celebration Request Received! Ref: #{$id} • Project Brief & Invoice PDF")
+            ->view('emails.booking-received', ['booking' => $this->booking]);
     }
 }

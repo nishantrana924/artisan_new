@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Custom icons for add-ons to look premium (Font Awesome 6)
     const iconSVGs = {
         extra_balloons: `<i class="fa-regular fa-lightbulb text-sm text-neutral-700 dark:text-neutral-300" aria-hidden="true"></i>`,
-        led_numbers: `<i class="fa-solid fa-bolt text-sm text-neutral-700 dark:text-neutral-300" aria-hidden="true"></i>`,
+        led_numbers: `<i class="fa-solid fa-hashtag text-sm text-neutral-700 dark:text-neutral-300" aria-hidden="true"></i>`,
         photographer: `<i class="fa-solid fa-camera text-sm text-neutral-700 dark:text-neutral-300" aria-hidden="true"></i>`,
         cake: `<i class="fa-solid fa-cake-candles text-sm text-neutral-700 dark:text-neutral-300" aria-hidden="true"></i>`,
         cold_pyro: `<i class="fa-solid fa-wand-magic-sparkles text-sm text-neutral-700 dark:text-neutral-300" aria-hidden="true"></i>`

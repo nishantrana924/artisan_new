@@ -33,19 +33,10 @@ class BookingCancelledNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $id = $this->booking['id'] ?? 'BK-XXXX';
-        $name = $this->booking['name'] ?? 'Customer';
-        $package = $this->booking['package'] ?? 'Event Setup';
+        $id = $this->booking['id'] ?? $this->booking['booking_id'] ?? 'BK-XXXX';
 
         return (new MailMessage)
-            ->subject("Artizen Booking Request Cancelled — {$id}")
-            ->greeting("Hello {$name},")
-            ->line("Your booking request (Ref ID: {$id}) for {$package} has been CANCELLED by the Artizen team.")
-            ->line("--- Booking Summary ---")
-            ->line("• Booking Reference ID: {$id}")
-            ->line("• Status: CANCELLED")
-            ->line("If you have any questions or wish to reschedule for a different date, please connect with our team on WhatsApp (+91 9131668156) or email info@artizenevents.com.")
-            ->action('Browse Other Packages', route('events.index'))
-            ->line('Thank you for considering Artizen.');
+            ->subject("Update on your Booking Request #{$id} • Artizen")
+            ->view('emails.booking-cancelled', ['booking' => $this->booking]);
     }
 }

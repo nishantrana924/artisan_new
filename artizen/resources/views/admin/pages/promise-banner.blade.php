@@ -6,21 +6,6 @@
 
 @section('content')
 
-{{-- ===================================================================
-     1. FLASH MESSAGES
-     =================================================================== --}}
-@if(session('success'))
-    <div class="mb-5 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded-2xl flex items-center gap-2 shadow-2xs">
-        <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-        <span>{{ session('success') }}</span>
-    </div>
-@endif
-@if(session('error'))
-    <div class="mb-5 px-4 py-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold rounded-2xl flex items-center gap-2 shadow-2xs">
-        <i class="fa-solid fa-triangle-exclamation text-rose-500 text-sm"></i>
-        <span>{{ session('error') }}</span>
-    </div>
-@endif
 
 @php
     $pb = $promiseBanner ?? ($cms['promise_banner'] ?? []);
@@ -191,7 +176,7 @@
 
                 <div class="p-4 bg-gray-50 rounded-xl border border-gray-200/80 flex flex-col gap-2 mt-2">
                     <span class="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                        <i class="fa-solid fa-shield-halved text-emerald-600 text-xs"></i>
+                        <i class="fa-solid fa-certificate text-emerald-600 text-xs"></i>
                         <span>Offline Execution Guarantee</span>
                     </span>
                     <p class="text-[11px] text-gray-600 leading-relaxed">

@@ -38,7 +38,7 @@ class Step18EndToEndAcceptanceTest extends TestCase
         $eventsRes->assertStatus(200);
 
         // Step 4: Views package details page
-        $detailsRes = $this->get('/events/1?tier=0');
+        $detailsRes = $this->get('/events/1st-birthday-wonderland?tier=0');
         $detailsRes->assertStatus(200);
 
         // Step 5 & 6: Submits booking form and receives BK-XXXX ID
@@ -64,7 +64,11 @@ class Step18EndToEndAcceptanceTest extends TestCase
             'total' => 4999
         ];
 
-        $checkoutRes = $this->postJson('/booking/save', $bookingPayload);
+        $customer = User::factory()->create([
+            'email' => 'e2ecustomer@artizen.com',
+        ]);
+
+        $checkoutRes = $this->actingAs($customer)->postJson('/booking/save', $bookingPayload);
         $checkoutRes->assertStatus(200);
         $checkoutRes->assertJson(['success' => true]);
 

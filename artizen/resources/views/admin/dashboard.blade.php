@@ -294,10 +294,44 @@
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <!-- Modern Notification Bell -->
-                    <div class="w-9 h-9 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors relative cursor-pointer shadow-2xs" title="Notifications">
-                        <i class="fa-solid fa-bell text-xs"></i>
-                        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white"></span>
+                    <!-- Modern Notification Bell & Real-time Dropdown -->
+                    <div class="relative" id="admin-notifications-container">
+                        <button type="button" 
+                                id="admin-notifications-trigger" 
+                                onclick="toggleAdminNotificationsDropdown(event)" 
+                                class="w-9 h-9 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors relative cursor-pointer shadow-2xs group outline-none" 
+                                title="Notifications"
+                                aria-expanded="false"
+                                aria-haspopup="true">
+                            <i class="fa-solid fa-bell text-xs group-hover:scale-110 transition-transform"></i>
+                            <span id="admin-bell-badge" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center ring-2 ring-white shadow-xs">0</span>
+                        </button>
+
+                        <!-- Notifications Dropdown Menu -->
+                        <div id="admin-notifications-menu" 
+                             class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl border border-gray-200 shadow-2xl py-2 z-50 transition-all duration-150 origin-top-right">
+                            <div class="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-extrabold text-gray-900">Live Notifications</span>
+                                    <span id="admin-notif-count-pill" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">0 Pending</span>
+                                </div>
+                                <span class="text-[10px] text-gray-400 font-medium">Real-time alerts</span>
+                            </div>
+                            
+                            <div id="admin-notifications-list" class="max-h-72 overflow-y-auto divide-y divide-gray-50 text-xs">
+                                <div class="p-6 text-center text-gray-400" id="admin-notif-empty">
+                                    <i class="fa-regular fa-bell text-gray-300 text-2xl mb-2 block"></i>
+                                    <p class="text-xs font-semibold text-gray-600">No new notifications</p>
+                                    <p class="text-[10px] text-gray-400 mt-0.5">New bookings and requests will appear here</p>
+                                </div>
+                            </div>
+
+                            <div class="p-2 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl">
+                                <a href="{{ route('admin.bookings') }}" class="block w-full py-2 text-center text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:bg-white rounded-xl transition-colors">
+                                    View All Bookings &rarr;
+                                </a>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Administrator Avatar & Dropdown Menu -->
@@ -365,44 +399,43 @@
         <!-- Main Inner Dashboard Area -->
         <div class="flex-grow p-6 md:p-8 overflow-y-auto" id="dashboard-content-area">
 
-            @if (session('success'))
-                <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg text-sm font-semibold mb-6 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-check text-emerald-500"></i> {{ session('success') }}
-                </div>
-            @endif
-
             <!-- ===================== PANEL 1: OVERVIEW & ANALYTICS ===================== -->
             <section id="panel-overview" class="tab-panel flex flex-col gap-6 text-left">
                 
                 <!-- Time Range Filter Header Bar -->
-                <div class="bg-white border border-gray-200 p-4 rounded-xl shadow-sm flex flex-wrap items-center justify-between gap-4">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-lg bg-[#EA741D]/15 text-[#EA741D] flex items-center justify-center font-bold text-xs">
+                <div class="bg-white border border-gray-200 px-4 py-3 rounded-xl shadow-xs flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-lg bg-[#EA741D]/15 text-[#EA741D] flex items-center justify-center font-bold text-xs">
                             <i class="fa-solid fa-chart-line"></i>
                         </div>
                         <div>
-                            <h3 class="font-heading font-bold text-sm text-gray-900 uppercase tracking-tight">Real-Time Analytics Control</h3>
-                            <p class="text-[11px] text-gray-500 font-medium">Computed dynamically from real JSON records</p>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-heading font-bold text-xs text-gray-900 uppercase tracking-wider">Analytics Overview</h3>
+                                <span class="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live Sync
+                                </span>
+                            </div>
+                            <p class="text-[10px] text-gray-400 font-medium">Computed dynamically from real JSON records</p>
                         </div>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex flex-wrap items-center gap-2">
                         <!-- Quick Links -->
-                        <div class="flex items-center gap-2">
-                            <a href="{{ route('admin.bookings') }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold rounded-lg transition-colors border border-gray-200">
-                                <i class="fa-solid fa-list-check text-xs text-gray-600"></i>
+                        <div class="flex items-center gap-1.5">
+                            <a href="{{ route('admin.bookings') }}" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-[11px] font-bold rounded-lg transition-colors border border-gray-200">
+                                <i class="fa-solid fa-list-check text-[10px] text-gray-500"></i>
                                 <span>Bookings ({{ number_format($analytics['total_bookings'] ?? 0) }})</span>
                             </a>
-                            <a href="{{ route('admin.customers') }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 text-xs font-bold rounded-lg transition-colors border border-indigo-200">
-                                <i class="fa-solid fa-users text-xs text-indigo-600"></i>
+                            <a href="{{ route('admin.customers') }}" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-700 text-[11px] font-bold rounded-lg transition-colors border border-indigo-200">
+                                <i class="fa-solid fa-users text-[10px] text-indigo-600"></i>
                                 <span>Customers ({{ number_format($analytics['total_customers'] ?? \App\Models\Customer::count()) }})</span>
                             </a>
                         </div>
 
                         <!-- Time Filter Dropdown Form -->
-                        <form action="{{ route('admin.dashboard') }}" method="GET" class="flex flex-wrap items-center gap-2">
+                        <form action="{{ route('admin.dashboard') }}" method="GET" class="flex flex-wrap items-center gap-1.5">
                             <label for="analytics-time-filter" class="sr-only">Time Range Filter</label>
-                            <select id="analytics-time-filter" name="time_filter" onchange="this.form.submit()" class="text-xs font-bold bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-1 focus:ring-[#1E1E24]">
+                            <select id="analytics-time-filter" name="time_filter" onchange="this.form.submit()" class="text-xs font-bold bg-white border border-gray-300 rounded-lg px-2.5 py-1.5 text-gray-800 focus:ring-1 focus:ring-gray-900 shadow-2xs">
                                 <option value="all" {{ ($analytics['time_filter'] ?? '') === 'all' ? 'selected' : '' }}>All Time</option>
                                 <option value="today" {{ ($analytics['time_filter'] ?? '') === 'today' ? 'selected' : '' }}>Today</option>
                                 <option value="7_days" {{ ($analytics['time_filter'] ?? '') === '7_days' ? 'selected' : '' }}>Last 7 Days</option>
@@ -412,190 +445,337 @@
                             </select>
 
                             @if(($analytics['time_filter'] ?? '') === 'custom')
-                                <input type="date" name="start_date" value="{{ $analytics['start_date'] ?? '' }}" class="text-xs py-1.5 px-2.5 border border-gray-300 rounded-lg">
+                                <input type="date" name="start_date" value="{{ $analytics['start_date'] ?? '' }}" class="text-xs py-1 px-2 border border-gray-300 rounded-lg">
                                 <span class="text-xs font-bold text-gray-400">to</span>
-                                <input type="date" name="end_date" value="{{ $analytics['end_date'] ?? '' }}" class="text-xs py-1.5 px-2.5 border border-gray-300 rounded-lg">
-                                <button type="submit" class="px-3 py-1.5 bg-[#1E1E24] text-white text-xs font-bold rounded-lg hover:bg-black transition-colors">Apply</button>
+                                <input type="date" name="end_date" value="{{ $analytics['end_date'] ?? '' }}" class="text-xs py-1 px-2 border border-gray-300 rounded-lg">
+                                <button type="submit" class="px-2.5 py-1 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-black transition-colors">Apply</button>
                             @endif
                         </form>
                     </div>
                 </div>
 
-                <!-- 9 Core Dynamic Metric Cards Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    <!-- Metric 1: Total Bookings -->
-                    <div class="bg-white border border-gray-200 p-4 rounded-xl flex flex-col justify-between shadow-sm">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Total Bookings</span>
-                                <span class="text-2xl font-black text-gray-900 block mt-1">{{ number_format($analytics['total_bookings'] ?? 0) }}</span>
-                            </div>
-                            <div class="w-9 h-9 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-700 text-xs">
-                                <i class="fa-solid fa-layer-group"></i>
-                            </div>
+                <!-- High-Density Executive Metrics (Symmetrical 5-Col x 2-Row Compact SaaS Grid) -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+                    
+                    <!-- 1. Confirmed Revenue -->
+                    <div class="bg-white border border-gray-200 hover:border-emerald-300 p-3 rounded-xl shadow-xs transition-all flex items-center justify-between group">
+                        <div class="min-w-0 pr-1">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500 block truncate">Confirmed Revenue</span>
+                            <span class="text-base sm:text-lg font-black text-emerald-700 block leading-tight mt-0.5">₹{{ number_format($analytics['confirmed_revenue'] ?? 0) }}</span>
+                            <span class="text-[9px] text-emerald-600 font-semibold block truncate">Confirmed + Completed</span>
                         </div>
-                        <span class="text-[10px] text-gray-500 font-semibold mt-2">All submitted requests</span>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200/80 text-emerald-600 flex items-center justify-center text-xs shrink-0 group-hover:bg-emerald-100 transition-colors">
+                            <i class="fa-solid fa-indian-rupee-sign"></i>
+                        </div>
                     </div>
 
-                    <!-- Metric 2: Pending Bookings -->
-                    <div class="bg-white border border-gray-200 p-4 rounded-xl flex flex-col justify-between shadow-sm">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Pending Requests</span>
-                                <span class="text-2xl font-black text-amber-600 block mt-1">{{ number_format($analytics['pending_count'] ?? 0) }}</span>
-                            </div>
-                            <div class="w-9 h-9 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 text-xs">
-                                <i class="fa-solid fa-clock-rotate-left"></i>
-                            </div>
+                    <!-- 2. Pipeline Value -->
+                    <div class="bg-white border border-gray-200 hover:border-blue-300 p-3 rounded-xl shadow-xs transition-all flex items-center justify-between group">
+                        <div class="min-w-0 pr-1">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500 block truncate">Pipeline Value</span>
+                            <span class="text-base sm:text-lg font-black text-blue-700 block leading-tight mt-0.5">₹{{ number_format($analytics['pipeline_value'] ?? 0) }}</span>
+                            <span class="text-[9px] text-blue-600 font-semibold block truncate">Pending + Confirmed</span>
                         </div>
-                        <span class="text-[10px] text-amber-700 font-bold mt-2 flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Requires admin review
-                        </span>
+                        <div class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200/80 text-blue-600 flex items-center justify-center text-xs shrink-0 group-hover:bg-blue-100 transition-colors">
+                            <i class="fa-solid fa-sack-dollar"></i>
+                        </div>
                     </div>
 
-                    <!-- Metric 3: Confirmed Bookings -->
-                    <div class="bg-white border border-gray-200 p-4 rounded-xl flex flex-col justify-between shadow-sm">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Confirmed Events</span>
-                                <span class="text-2xl font-black text-emerald-600 block mt-1">{{ number_format($analytics['confirmed_count'] ?? 0) }}</span>
-                            </div>
-                            <div class="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 text-xs">
-                                <i class="fa-solid fa-calendar-check"></i>
-                            </div>
+                    <!-- 3. Average Booking Value -->
+                    <div class="bg-white border border-gray-200 hover:border-[#EA741D]/40 p-3 rounded-xl shadow-xs transition-all flex items-center justify-between group">
+                        <div class="min-w-0 pr-1">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500 block truncate">Avg Booking Value</span>
+                            <span class="text-base sm:text-lg font-black text-[#EA741D] block leading-tight mt-0.5">₹{{ number_format($analytics['avg_booking_value'] ?? 0) }}</span>
+                            <span class="text-[9px] text-gray-400 font-semibold block truncate">Non-cancelled avg</span>
                         </div>
-                        <span class="text-[10px] text-emerald-700 font-bold mt-2">Scheduled for execution</span>
+                        <div class="w-8 h-8 rounded-lg bg-[#EA741D]/10 border border-[#EA741D]/20 text-[#EA741D] flex items-center justify-center text-xs shrink-0 group-hover:bg-[#EA741D]/20 transition-colors">
+                            <i class="fa-solid fa-scale-balanced"></i>
+                        </div>
                     </div>
 
-                    <!-- Metric 4: Completed Bookings -->
-                    <div class="bg-white border border-gray-200 p-4 rounded-xl flex flex-col justify-between shadow-sm">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Completed Events</span>
-                                <span class="text-2xl font-black text-purple-600 block mt-1">{{ number_format($analytics['completed_count'] ?? 0) }}</span>
-                            </div>
-                            <div class="w-9 h-9 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 text-xs">
-                                <i class="fa-solid fa-champagne-glasses"></i>
-                            </div>
+                    <!-- 4. Total Bookings (Clickable) -->
+                    <a href="{{ route('admin.bookings') }}" title="View All Bookings" class="bg-white border border-gray-200 hover:border-gray-400 p-3 rounded-xl shadow-xs transition-all flex items-center justify-between group">
+                        <div class="min-w-0 pr-1">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500 block truncate">Total Bookings</span>
+                            <span class="text-base sm:text-lg font-black text-gray-900 block leading-tight mt-0.5">{{ number_format($analytics['total_bookings'] ?? 0) }}</span>
+                            <span class="text-[9px] text-gray-400 font-semibold block truncate">All requests placed</span>
                         </div>
-                        <span class="text-[10px] text-purple-700 font-bold mt-2">Successfully delivered</span>
-                    </div>
+                        <div class="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 text-gray-700 flex items-center justify-center text-xs shrink-0 group-hover:bg-gray-200 transition-colors">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                    </a>
 
-                    <!-- Metric 5: Cancelled Bookings -->
-                    <div class="bg-white border border-gray-200 p-4 rounded-xl flex flex-col justify-between shadow-sm">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Cancelled Orders</span>
-                                <span class="text-2xl font-black text-red-600 block mt-1">{{ number_format($analytics['cancelled_count'] ?? 0) }}</span>
-                            </div>
-                            <div class="w-9 h-9 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center text-red-600 text-xs">
-                                <i class="fa-solid fa-ban"></i>
-                            </div>
+                    <!-- 5. Verified Customers (Clickable) -->
+                    <a href="{{ route('admin.customers') }}" title="View Customers Directory" class="bg-white border border-gray-200 hover:border-indigo-300 p-3 rounded-xl shadow-xs transition-all flex items-center justify-between group">
+                        <div class="min-w-0 pr-1">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500 block truncate">Verified Clients</span>
+                            <span class="text-base sm:text-lg font-black text-indigo-700 block leading-tight mt-0.5">{{ number_format($analytics['total_customers'] ?? \App\Models\Customer::count()) }}</span>
+                            <span class="text-[9px] text-indigo-600 font-semibold block truncate">Customer directory →</span>
                         </div>
-                        <span class="text-[10px] text-red-600 font-bold mt-2">Excluded from revenue</span>
-                    </div>
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200/80 text-indigo-600 flex items-center justify-center text-xs shrink-0 group-hover:bg-indigo-100 transition-colors">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                    </a>
 
-                    <!-- Metric 6: Pipeline Value -->
-                    <div class="bg-white border border-gray-200 p-4 rounded-xl flex flex-col justify-between shadow-sm">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Pipeline Value</span>
-                                <span class="text-2xl font-black text-blue-600 block mt-1">₹{{ number_format($analytics['pipeline_value'] ?? 0) }}</span>
-                            </div>
-                            <div class="w-9 h-9 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 text-xs">
-                                <i class="fa-solid fa-[#1E1E24] fa-sack-dollar"></i>
-                            </div>
+                    <!-- 6. Pending Requests (Clickable) -->
+                    <a href="{{ route('admin.bookings') }}?status=Pending" title="Review Pending Bookings" class="bg-amber-50/40 hover:bg-amber-50/80 border border-amber-200 hover:border-amber-300 p-3 rounded-xl shadow-xs transition-all flex items-center justify-between group">
+                        <div class="min-w-0 pr-1">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 block truncate">Pending Review</span>
+                            <span class="text-base sm:text-lg font-black text-amber-700 block leading-tight mt-0.5">{{ number_format($analytics['pending_count'] ?? 0) }}</span>
+                            <span class="inline-flex items-center gap-1 text-[9px] font-bold text-amber-700 truncate">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Action required
+                            </span>
                         </div>
-                        <span class="text-[10px] text-blue-700 font-bold mt-2">Pending + Confirmed value</span>
-                    </div>
+                        <div class="w-8 h-8 rounded-lg bg-amber-100 border border-amber-300 text-amber-700 flex items-center justify-center text-xs shrink-0 group-hover:bg-amber-200 transition-colors">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                        </div>
+                    </a>
 
-                    <!-- Metric 7: Confirmed Revenue -->
-                    <div class="bg-white border border-gray-200 p-4 rounded-xl flex flex-col justify-between shadow-sm">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Confirmed Revenue</span>
-                                <span class="text-2xl font-black text-emerald-700 block mt-1">₹{{ number_format($analytics['confirmed_revenue'] ?? 0) }}</span>
-                            </div>
-                            <div class="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 text-xs">
-                                <i class="fa-solid fa-indian-rupee-sign"></i>
-                            </div>
+                    <!-- 7. Confirmed Events (Clickable) -->
+                    <a href="{{ route('admin.bookings') }}?status=Confirmed" title="View Confirmed Events" class="bg-white border border-gray-200 hover:border-emerald-300 p-3 rounded-xl shadow-xs transition-all flex items-center justify-between group">
+                        <div class="min-w-0 pr-1">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500 block truncate">Confirmed Events</span>
+                            <span class="text-base sm:text-lg font-black text-emerald-600 block leading-tight mt-0.5">{{ number_format($analytics['confirmed_count'] ?? 0) }}</span>
+                            <span class="text-[9px] text-emerald-700 font-semibold block truncate">Scheduled setup</span>
                         </div>
-                        <span class="text-[10px] text-emerald-700 font-bold mt-2">Confirmed + Completed total</span>
-                    </div>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center text-xs shrink-0 group-hover:bg-emerald-100 transition-colors">
+                            <i class="fa-solid fa-calendar-check"></i>
+                        </div>
+                    </a>
 
-                    <!-- Metric 8: Average Booking Value -->
-                    <div class="bg-white border border-gray-200 p-4 rounded-xl flex flex-col justify-between shadow-sm">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Avg Booking Value</span>
-                                <span class="text-2xl font-black text-[#EA741D] block mt-1">₹{{ number_format($analytics['avg_booking_value'] ?? 0) }}</span>
-                            </div>
-                            <div class="w-9 h-9 rounded-lg bg-[#EA741D]/15 border border-[#EA741D]/30 flex items-center justify-center text-[#EA741D] text-xs">
-                                <i class="fa-solid fa-scale-balanced"></i>
-                            </div>
+                    <!-- 8. Completed Events (Clickable) -->
+                    <a href="{{ route('admin.bookings') }}?status=Completed" title="View Completed Events" class="bg-white border border-gray-200 hover:border-purple-300 p-3 rounded-xl shadow-xs transition-all flex items-center justify-between group">
+                        <div class="min-w-0 pr-1">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500 block truncate">Completed</span>
+                            <span class="text-base sm:text-lg font-black text-purple-600 block leading-tight mt-0.5">{{ number_format($analytics['completed_count'] ?? 0) }}</span>
+                            <span class="text-[9px] text-purple-700 font-semibold block truncate">Delivered successfully</span>
                         </div>
-                        <span class="text-[10px] text-gray-600 font-bold mt-2">Valid non-cancelled average</span>
-                    </div>
+                        <div class="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200 text-purple-600 flex items-center justify-center text-xs shrink-0 group-hover:bg-purple-100 transition-colors">
+                            <i class="fa-solid fa-champagne-glasses"></i>
+                        </div>
+                    </a>
 
-                    <!-- Metric 9: Upcoming Events -->
-                    <div class="bg-white border border-gray-200 p-4 rounded-xl flex flex-col justify-between shadow-sm">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Upcoming Events</span>
-                                <span class="text-2xl font-black text-teal-600 block mt-1">{{ number_format($analytics['upcoming_count'] ?? 0) }}</span>
-                            </div>
-                            <div class="w-9 h-9 rounded-lg bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-600 text-xs">
-                                <i class="fa-solid fa-calendar-days"></i>
-                            </div>
+                    <!-- 9. Upcoming Events (Clickable) -->
+                    <a href="{{ route('admin.bookings') }}" title="View Upcoming Schedule" class="bg-white border border-gray-200 hover:border-teal-300 p-3 rounded-xl shadow-xs transition-all flex items-center justify-between group">
+                        <div class="min-w-0 pr-1">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500 block truncate">Upcoming Events</span>
+                            <span class="text-base sm:text-lg font-black text-teal-600 block leading-tight mt-0.5">{{ number_format($analytics['upcoming_count'] ?? 0) }}</span>
+                            <span class="text-[9px] text-teal-700 font-semibold block truncate">Today onwards</span>
                         </div>
-                        <span class="text-[10px] text-teal-700 font-bold mt-2">Scheduled today onwards</span>
-                    </div>
+                        <div class="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200 text-teal-600 flex items-center justify-center text-xs shrink-0 group-hover:bg-teal-100 transition-colors">
+                            <i class="fa-solid fa-calendar-days"></i>
+                        </div>
+                    </a>
 
-                    <!-- Metric 10: Verified Customers -->
-                    <div class="bg-white border border-gray-200 p-4 rounded-xl flex flex-col justify-between shadow-sm">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Verified Customers</span>
-                                <span class="text-2xl font-black text-indigo-600 block mt-1">{{ number_format($analytics['total_customers'] ?? \App\Models\Customer::count()) }}</span>
-                            </div>
-                            <div class="w-9 h-9 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 text-xs">
-                                <i class="fa-solid fa-users"></i>
-                            </div>
+                    <!-- 10. Cancelled Orders (Clickable) -->
+                    <a href="{{ route('admin.bookings') }}?status=Cancelled" title="View Cancelled Orders" class="bg-white border border-gray-200 hover:border-rose-300 p-3 rounded-xl shadow-xs transition-all flex items-center justify-between group">
+                        <div class="min-w-0 pr-1">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500 block truncate">Cancelled</span>
+                            <span class="text-base sm:text-lg font-black text-rose-600 block leading-tight mt-0.5">{{ number_format($analytics['cancelled_count'] ?? 0) }}</span>
+                            <span class="text-[9px] text-rose-600 font-semibold block truncate">Excluded orders</span>
                         </div>
-                        <div class="flex items-center justify-between mt-2">
-                            <span class="text-[10px] text-indigo-700 font-bold">Client database</span>
-                            <a href="{{ route('admin.customers') }}" class="text-[10px] font-bold text-gray-900 hover:underline flex items-center gap-1">
-                                Directory <i class="fa-solid fa-arrow-right text-[8px]"></i>
-                            </a>
+                        <div class="w-8 h-8 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center text-xs shrink-0 group-hover:bg-rose-100 transition-colors">
+                            <i class="fa-solid fa-ban"></i>
                         </div>
-                    </div>
+                    </a>
+
                 </div>
 
                 <!-- Charts Section: Category Revenue & Booking Status Distribution -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     <!-- Left: Category Revenue Bar Chart (Spans 7 cols) -->
-                    <div class="lg:col-span-7 bg-white border border-gray-200 p-5 rounded-2xl shadow-sm">
-                        <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
-                            <div>
-                                <h4 class="font-heading font-bold text-xs uppercase tracking-wider text-gray-900">Category-Wise Revenue & Bookings</h4>
-                                <p class="text-[10px] text-gray-500 font-medium">Breakdown of earnings by event setup type</p>
+                    <div class="lg:col-span-7 bg-white border border-gray-200 p-5 rounded-2xl shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
+                                <div>
+                                    <h4 class="font-heading font-bold text-xs uppercase tracking-wider text-gray-900 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-chart-column text-[#EA741D]"></i> Category-Wise Revenue & Bookings
+                                    </h4>
+                                    <p class="text-[10px] text-gray-500 font-medium">Breakdown of earnings by event setup type</p>
+                                </div>
+                                <span class="text-[10px] font-bold text-[#EA741D] bg-[#EA741D]/10 px-2.5 py-1 rounded-full border border-[#EA741D]/20">
+                                    {{ count($analytics['category_stats'] ?? []) }} Categories
+                                </span>
+                            </div>
+                            <div class="h-64 sm:h-72 w-full relative mb-4">
+                                <canvas id="categoryRevenueChart"></canvas>
                             </div>
                         </div>
-                        <div class="h-64 w-full relative">
-                            <canvas id="categoryRevenueChart"></canvas>
+
+                        <!-- Category Performance Highlights (Fills the bottom empty space) -->
+                        @php
+                            $catStats = $analytics['category_stats'] ?? [];
+                            $topCategoryName = '--';
+                            $topCategoryRev = 0;
+                            $topCategoryBookings = 0;
+                            $totalCatRev = 0;
+                            $totalCatBookings = 0;
+                            foreach ($catStats as $cName => $cData) {
+                                $rev = (int)($cData['revenue'] ?? 0);
+                                $cnt = (int)($cData['count'] ?? 0);
+                                $totalCatRev += $rev;
+                                $totalCatBookings += $cnt;
+                                if ($rev > $topCategoryRev) {
+                                    $topCategoryRev = $rev;
+                                    $topCategoryName = $cName;
+                                    $topCategoryBookings = $cnt;
+                                }
+                            }
+                            $avgCatRev = count($catStats) > 0 ? (int)round($totalCatRev / count($catStats)) : 0;
+                        @endphp
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-3 border-t border-gray-100">
+                            <!-- 1. Top Earning Category -->
+                            <div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80 flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-700 text-xs flex-shrink-0">
+                                    <i class="fa-solid fa-trophy"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="text-[9px] font-bold text-amber-800 uppercase tracking-wider block">Top Earning</span>
+                                    <span class="text-xs font-black text-gray-900 block truncate" title="{{ $topCategoryName }}">{{ $topCategoryName }}</span>
+                                    <span class="text-[10px] font-bold text-[#EA741D]">₹{{ number_format($topCategoryRev) }} · {{ $topCategoryBookings }} orders</span>
+                                </div>
+                            </div>
+
+                            <!-- 2. Active Catalog Categories -->
+                            <div class="p-2.5 rounded-xl bg-indigo-50/70 border border-indigo-200/80 flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-100 border border-indigo-300 flex items-center justify-center text-indigo-700 text-xs flex-shrink-0">
+                                    <i class="fa-solid fa-layer-group"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="text-[9px] font-bold text-indigo-800 uppercase tracking-wider block">Active Catalog</span>
+                                    <span class="text-xs font-black text-gray-900 block truncate">{{ count($catStats) }} Categories</span>
+                                    <span class="text-[10px] font-semibold text-indigo-600">{{ $totalCatBookings }} total orders placed</span>
+                                </div>
+                            </div>
+
+                            <!-- 3. Category Benchmark Average -->
+                            <div class="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-700 text-xs flex-shrink-0">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="text-[9px] font-bold text-emerald-800 uppercase tracking-wider block">Average Revenue</span>
+                                    <span class="text-xs font-black text-gray-900 block truncate">₹{{ number_format($avgCatRev) }}</span>
+                                    <span class="text-[10px] font-semibold text-emerald-600">Avg per event category</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Right: Booking Status Doughnut Chart (Spans 5 cols) -->
-                    <div class="lg:col-span-5 bg-white border border-gray-200 p-5 rounded-2xl shadow-sm">
-                        <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
-                            <div>
-                                <h4 class="font-heading font-bold text-xs uppercase tracking-wider text-gray-900">Booking Status Distribution</h4>
-                                <p class="text-[10px] text-gray-500 font-medium">Proportion of order statuses</p>
+                    <div class="lg:col-span-5 bg-white border border-gray-200 p-5 rounded-2xl shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
+                                <div>
+                                    <h4 class="font-heading font-bold text-xs uppercase tracking-wider text-gray-900 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-chart-pie text-indigo-500"></i> Booking Status Distribution
+                                    </h4>
+                                    <p class="text-[10px] text-gray-500 font-medium">Real-time breakdown of booking pipeline & lifecycle</p>
+                                </div>
+                                <a href="{{ route('admin.bookings') }}" class="text-[10px] font-bold text-gray-700 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1">
+                                    All Bookings <i class="fa-solid fa-arrow-right text-[8px]"></i>
+                                </a>
+                            </div>
+
+                            <!-- Doughnut Canvas with centered total count -->
+                            <div class="h-64 sm:h-72 w-full relative mb-4">
+                                <canvas id="statusDistributionChart"></canvas>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                    <span class="text-2xl font-black text-gray-900 tracking-tight leading-none">{{ number_format($analytics['total_bookings'] ?? 0) }}</span>
+                                    <span class="text-[9px] font-bold uppercase tracking-wider text-gray-400 mt-1">Total Orders</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="h-64 w-full relative">
-                            <canvas id="statusDistributionChart"></canvas>
+
+                        <!-- Interactive Status KPI Badges (Symmetrical 2x3 grid, zero empty slots) -->
+                        @php
+                            $activePipelineCount = ($analytics['pending_count'] ?? 0) + ($analytics['contacted_count'] ?? 0) + ($analytics['confirmed_count'] ?? 0);
+                            $activePipelinePct = ($analytics['total_bookings'] ?? 0) > 0 ? round(($activePipelineCount / $analytics['total_bookings']) * 100, 1) : 0;
+                        @endphp
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-3 border-t border-gray-100">
+                            <!-- Pending -->
+                            <a href="{{ route('admin.bookings') }}?status=Pending" title="Filter Pending bookings" class="group p-2 rounded-xl bg-amber-50/60 hover:bg-amber-100/70 border border-amber-200/80 transition-all flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800">
+                                        <span class="w-2 h-2 rounded-full bg-amber-500 inline-block animate-pulse"></span> Pending
+                                    </span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[8px] text-amber-400 group-hover:text-amber-700 transition-colors"></i>
+                                </div>
+                                <div class="flex items-baseline justify-between mt-1">
+                                    <span class="text-sm font-black text-amber-900">{{ number_format($analytics['pending_count'] ?? 0) }}</span>
+                                    <span class="text-[9px] font-semibold text-amber-700">{{ $analytics['status_percentages']['pending'] ?? 0 }}%</span>
+                                </div>
+                            </a>
+
+                            <!-- Contacted -->
+                            <a href="{{ route('admin.bookings') }}?status=Contacted" title="Filter Contacted bookings" class="group p-2 rounded-xl bg-sky-50/60 hover:bg-sky-100/70 border border-sky-200/80 transition-all flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-sky-800">
+                                        <span class="w-2 h-2 rounded-full bg-sky-500 inline-block"></span> Contacted
+                                    </span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[8px] text-sky-400 group-hover:text-sky-700 transition-colors"></i>
+                                </div>
+                                <div class="flex items-baseline justify-between mt-1">
+                                    <span class="text-sm font-black text-sky-900">{{ number_format($analytics['contacted_count'] ?? 0) }}</span>
+                                    <span class="text-[9px] font-semibold text-sky-700">{{ $analytics['status_percentages']['contacted'] ?? 0 }}%</span>
+                                </div>
+                            </a>
+
+                            <!-- Confirmed -->
+                            <a href="{{ route('admin.bookings') }}?status=Confirmed" title="Filter Confirmed bookings" class="group p-2 rounded-xl bg-emerald-50/60 hover:bg-emerald-100/70 border border-emerald-200/80 transition-all flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> Confirmed
+                                    </span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[8px] text-emerald-400 group-hover:text-emerald-700 transition-colors"></i>
+                                </div>
+                                <div class="flex items-baseline justify-between mt-1">
+                                    <span class="text-sm font-black text-emerald-900">{{ number_format($analytics['confirmed_count'] ?? 0) }}</span>
+                                    <span class="text-[9px] font-semibold text-emerald-700">{{ $analytics['status_percentages']['confirmed'] ?? 0 }}%</span>
+                                </div>
+                            </a>
+
+                            <!-- Completed -->
+                            <a href="{{ route('admin.bookings') }}?status=Completed" title="Filter Completed bookings" class="group p-2 rounded-xl bg-indigo-50/60 hover:bg-indigo-100/70 border border-indigo-200/80 transition-all flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-800">
+                                        <span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span> Completed
+                                    </span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[8px] text-indigo-400 group-hover:text-indigo-700 transition-colors"></i>
+                                </div>
+                                <div class="flex items-baseline justify-between mt-1">
+                                    <span class="text-sm font-black text-indigo-900">{{ number_format($analytics['completed_count'] ?? 0) }}</span>
+                                    <span class="text-[9px] font-semibold text-indigo-700">{{ $analytics['status_percentages']['completed'] ?? 0 }}%</span>
+                                </div>
+                            </a>
+
+                            <!-- Cancelled -->
+                            <a href="{{ route('admin.bookings') }}?status=Cancelled" title="Filter Cancelled bookings" class="group p-2 rounded-xl bg-rose-50/60 hover:bg-rose-100/70 border border-rose-200/80 transition-all flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-800">
+                                        <span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span> Cancelled
+                                    </span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[8px] text-rose-400 group-hover:text-rose-700 transition-colors"></i>
+                                </div>
+                                <div class="flex items-baseline justify-between mt-1">
+                                    <span class="text-sm font-black text-rose-900">{{ number_format($analytics['cancelled_count'] ?? 0) }}</span>
+                                    <span class="text-[9px] font-semibold text-rose-700">{{ $analytics['status_percentages']['cancelled'] ?? 0 }}%</span>
+                                </div>
+                            </a>
+
+                            <!-- 6. In Pipeline -->
+                            <a href="{{ route('admin.bookings') }}" title="View all active bookings" class="group p-2 rounded-xl bg-purple-50/60 hover:bg-purple-100/70 border border-purple-200/80 transition-all flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-purple-800">
+                                        <i class="fa-solid fa-bars-progress text-purple-500 text-[9px]"></i> In Pipeline
+                                    </span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[8px] text-purple-400 group-hover:text-purple-700 transition-colors"></i>
+                                </div>
+                                <div class="flex items-baseline justify-between mt-1">
+                                    <span class="text-sm font-black text-purple-900">{{ number_format($activePipelineCount) }}</span>
+                                    <span class="text-[9px] font-semibold text-purple-700">{{ $activePipelinePct }}%</span>
+                                </div>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -604,84 +784,221 @@
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     
                     <!-- Left: Upcoming Events List (Spans 8 cols) -->
-                    <div class="lg:col-span-8 bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-                        <div class="px-5 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
-                            <div>
-                                <h4 class="font-heading font-bold text-xs uppercase tracking-wider text-gray-900">Upcoming Events Schedule</h4>
-                                <p class="text-[10px] text-gray-500 font-medium">Confirmed & Pending setups for upcoming dates</p>
+                    <div class="lg:col-span-8 bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between">
+                        <div>
+                            <div class="px-5 py-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-2 bg-gray-50/60">
+                                <div>
+                                    <h4 class="font-heading font-bold text-xs uppercase tracking-wider text-gray-900 flex items-center gap-2">
+                                        <i class="fa-solid fa-calendar-days text-[#EA741D]"></i> Upcoming Events Schedule
+                                    </h4>
+                                    <p class="text-[10px] text-gray-500 font-medium mt-0.5">Live setup timeline & active celebration bookings</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    @if (!empty($analytics['is_pipeline_fallback']))
+                                        <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 flex items-center gap-1.5" title="Displaying latest active bookings pipeline">
+                                            <i class="fa-solid fa-bars-progress text-amber-500"></i> Active Pipeline ({{ count($analytics['upcoming_events'] ?? []) }})
+                                        </span>
+                                    @else
+                                        <span class="text-[10px] font-bold text-[#EA741D] bg-[#EA741D]/10 px-2.5 py-1 rounded-full border border-[#EA741D]/20 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-circle-check text-[#EA741D]"></i> {{ count($analytics['upcoming_events'] ?? []) }} Scheduled
+                                        </span>
+                                    @endif
+                                    <a href="{{ route('admin.bookings') }}" class="text-[10px] font-bold text-gray-700 hover:text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1">
+                                        View All <i class="fa-solid fa-arrow-right text-[8px]"></i>
+                                    </a>
+                                </div>
                             </div>
-                            <span class="text-[10px] font-bold text-[#EA741D] bg-[#EA741D]/10 px-2.5 py-1 rounded-full border border-[#EA741D]/20">
-                                {{ count($analytics['upcoming_events'] ?? []) }} Events
-                            </span>
-                        </div>
-                        <div class="overflow-x-auto w-full">
-                            <table class="w-full text-left text-xs border-collapse">
-                                <thead>
-                                    <tr class="border-b border-gray-200 text-gray-600 font-bold bg-gray-50">
-                                        <th class="py-3 px-4 uppercase tracking-wider text-[10px]">ID</th>
-                                        <th class="py-3 px-4 uppercase tracking-wider text-[10px]">Customer</th>
-                                        <th class="py-3 px-4 uppercase tracking-wider text-[10px]">Package / Category</th>
-                                        <th class="py-3 px-4 uppercase tracking-wider text-[10px]">Date & Time</th>
-                                        <th class="py-3 px-4 uppercase tracking-wider text-[10px]">Status</th>
-                                        <th class="py-3 px-4 uppercase tracking-wider text-[10px] text-right">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-100 font-medium">
-                                    @forelse ($analytics['upcoming_events'] ?? [] as $ue)
-                                        <tr class="hover:bg-gray-50/80 transition-colors">
-                                            <td class="py-3 px-4 font-bold text-gray-900">{{ $ue['id'] }}</td>
-                                            <td class="py-3 px-4">
-                                                <span class="font-bold text-gray-900 block">{{ $ue['name'] }}</span>
-                                                <span class="text-[10px] text-gray-400">{{ $ue['mobile'] }}</span>
-                                            </td>
-                                            <td class="py-3 px-4">
-                                                <span class="font-bold text-gray-800 block">{{ $ue['package'] }}</span>
-                                                <span class="text-[10px] text-[#EA741D] font-semibold">{{ $ue['category'] }}</span>
-                                            </td>
-                                            <td class="py-3 px-4">
-                                                <span class="font-bold text-gray-900 block">{{ $ue['date'] }}</span>
-                                                <span class="text-[10px] text-gray-500">{{ $ue['time'] }}</span>
-                                            </td>
-                                            <td class="py-3 px-4">
-                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border {{ match(strtolower($ue['status'] ?? '')) { 'confirmed' => 'bg-emerald-50 text-emerald-700 border-emerald-200', 'completed' => 'bg-purple-50 text-purple-700 border-purple-200', 'contacted' => 'bg-blue-50 text-blue-700 border-blue-200', default => 'bg-amber-50 text-amber-700 border-amber-200' } }}">
-                                                    {{ strtoupper($ue['status'] ?? 'PENDING') }}
-                                                </span>
-                                            </td>
-                                            <td class="py-3 px-4 text-right font-black text-gray-900">
-                                                ₹{{ number_format($ue['total'] ?? $ue['package_price'] ?? 0) }}
-                                            </td>
+
+                            <div class="overflow-x-auto w-full">
+                                <table class="w-full text-left text-xs border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-gray-200 text-gray-600 font-bold bg-gray-50">
+                                            <th class="py-3 px-4 uppercase tracking-wider text-[10px]">Booking / ID</th>
+                                            <th class="py-3 px-4 uppercase tracking-wider text-[10px]">Client</th>
+                                            <th class="py-3 px-4 uppercase tracking-wider text-[10px]">Package / Category</th>
+                                            <th class="py-3 px-4 uppercase tracking-wider text-[10px]">Date & Schedule</th>
+                                            <th class="py-3 px-4 uppercase tracking-wider text-[10px]">Status</th>
+                                            <th class="py-3 px-4 uppercase tracking-wider text-[10px] text-right">Amount</th>
+                                            <th class="py-3 px-4 uppercase tracking-wider text-[10px] text-center">Action</th>
                                         </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="6" class="py-6 text-center text-xs text-gray-400 font-medium">
-                                                No upcoming events scheduled for the selected time filter.
-                                            </td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100 font-medium">
+                                        @forelse ($analytics['upcoming_events'] ?? [] as $ue)
+                                            @php
+                                                $cleanMobile = preg_replace('/[^0-9]/', '', $ue['customer_mobile'] ?? $ue['mobile'] ?? '');
+                                                $isToday = ($ue['timing_badge'] ?? '') === 'TODAY';
+                                                $isTomorrow = ($ue['timing_badge'] ?? '') === 'TOMORROW';
+                                            @endphp
+                                            <tr class="hover:bg-gray-50/80 transition-colors group">
+                                                <td class="py-3 px-4 font-bold text-gray-900 whitespace-nowrap">
+                                                    <a href="{{ route('admin.bookings') }}?search={{ urlencode($ue['id']) }}" class="text-indigo-600 hover:text-indigo-800 font-mono text-[11px] flex items-center gap-1 hover:underline">
+                                                        #{{ $ue['id'] }}
+                                                    </a>
+                                                    <span class="text-[9px] text-gray-400 block font-normal">{{ $ue['created_at'] ?? 'Online Request' }}</span>
+                                                </td>
+                                                <td class="py-3 px-4 whitespace-nowrap">
+                                                    <div class="flex items-center gap-2">
+                                                        <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-gray-100 to-gray-200 border border-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-700">
+                                                            {{ strtoupper(substr($ue['customer_name'] ?? $ue['name'] ?? 'C', 0, 1)) }}
+                                                        </div>
+                                                        <div>
+                                                            <span class="font-bold text-gray-900 block leading-tight">{{ $ue['customer_name'] ?? $ue['name'] ?? 'Client' }}</span>
+                                                            <div class="flex items-center gap-1.5 mt-0.5">
+                                                                <span class="text-[10px] text-gray-500 font-mono">{{ $ue['customer_mobile'] ?? $ue['mobile'] ?? '--' }}</span>
+                                                                @if (!empty($cleanMobile))
+                                                                    <a href="https://wa.me/91{{ $cleanMobile }}?text={{ urlencode('Hello ' . ($ue['customer_name'] ?? $ue['name'] ?? 'Client') . ', greeting from Artizen regarding your booking #' . $ue['id'] . '!') }}" target="_blank" rel="noopener noreferrer" title="Chat on WhatsApp" class="text-emerald-600 hover:text-emerald-700 text-[10px]">
+                                                                        <i class="fa-brands fa-whatsapp"></i>
+                                                                    </a>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-4 max-w-[200px]">
+                                                    <span class="font-bold text-gray-800 block truncate" title="{{ $ue['package_name'] ?? $ue['package'] ?? 'Celebration Setup' }}">
+                                                        {{ $ue['package_name'] ?? $ue['package'] ?? 'Celebration Setup' }}
+                                                    </span>
+                                                    <span class="inline-block text-[9px] text-[#EA741D] font-bold bg-[#EA741D]/10 px-1.5 py-0.5 rounded border border-[#EA741D]/20 mt-0.5">
+                                                        {{ $ue['category_name'] ?? $ue['category'] ?? 'Event Setup' }}
+                                                    </span>
+                                                </td>
+                                                <td class="py-3 px-4 whitespace-nowrap">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="font-bold text-gray-900">{{ $ue['date'] ?? $ue['event_date'] ?? 'TBD' }}</span>
+                                                        @if ($isToday)
+                                                            <span class="text-[9px] font-black text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-full border border-emerald-300 animate-pulse flex items-center gap-1">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> TODAY
+                                                            </span>
+                                                        @elseif ($isTomorrow)
+                                                            <span class="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full border border-amber-300">
+                                                                TOMORROW
+                                                            </span>
+                                                        @elseif (!empty($ue['timing_badge']) && $ue['timing_badge'] !== 'Scheduled')
+                                                            <span class="text-[9px] font-semibold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">
+                                                                {{ $ue['timing_badge'] }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                    <span class="text-[10px] text-gray-500 block mt-0.5"><i class="fa-regular fa-clock text-[9px]"></i> {{ $ue['time'] ?? $ue['event_time'] ?? 'Flexible' }}</span>
+                                                </td>
+                                                <td class="py-3 px-4 whitespace-nowrap">
+                                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border inline-flex items-center gap-1 {{ match(strtolower($ue['status'] ?? '')) { 'confirmed' => 'bg-emerald-50 text-emerald-700 border-emerald-200', 'completed' => 'bg-indigo-50 text-indigo-700 border-indigo-200', 'contacted' => 'bg-sky-50 text-sky-700 border-sky-200', default => 'bg-amber-50 text-amber-700 border-amber-200' } }}">
+                                                        <i class="fa-solid {{ match(strtolower($ue['status'] ?? '')) { 'confirmed' => 'fa-circle-check text-emerald-500', 'completed' => 'fa-flag-checkered text-indigo-500', 'contacted' => 'fa-phone text-sky-500', default => 'fa-clock text-amber-500' } }} text-[8px]"></i>
+                                                        {{ strtoupper($ue['status'] ?? 'PENDING') }}
+                                                    </span>
+                                                </td>
+                                                <td class="py-3 px-4 text-right whitespace-nowrap font-black text-gray-900">
+                                                    ₹{{ number_format($ue['total'] ?? $ue['total_amount'] ?? $ue['package_price'] ?? 0) }}
+                                                </td>
+                                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                                    <a href="{{ route('admin.bookings') }}?search={{ urlencode($ue['id']) }}" class="inline-flex items-center gap-1 text-[10px] font-bold text-gray-700 hover:text-indigo-600 bg-gray-100 hover:bg-indigo-50 border border-gray-200 hover:border-indigo-200 px-2 py-1 rounded-lg transition-all" title="Manage Booking">
+                                                        <span>Manage</span> <i class="fa-solid fa-chevron-right text-[7px]"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="7" class="py-10 text-center text-xs text-gray-400 font-medium">
+                                                    <div class="flex flex-col items-center justify-center gap-2">
+                                                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
+                                                            <i class="fa-solid fa-calendar-xmark"></i>
+                                                        </div>
+                                                        <span>No upcoming events scheduled for the selected time filter.</span>
+                                                        <a href="{{ route('admin.bookings') }}" class="text-[11px] font-bold text-[#EA741D] hover:underline mt-1">Browse all bookings</a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Right: Top 5 Packages Ranking (Spans 4 cols) -->
-                    <div class="lg:col-span-4 bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
-                        <h4 class="font-heading font-bold text-xs uppercase tracking-wider text-gray-900 mb-3 border-b border-gray-100 pb-2">
-                            Top 5 Performing Packages
-                        </h4>
-                        <div class="space-y-3">
-                            @forelse ($analytics['top_packages'] ?? [] as $pkgTitle => $pStats)
-                                <div class="p-3 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-between">
-                                    <div>
-                                        <h5 class="font-bold text-xs text-gray-900 line-clamp-1">{{ $pkgTitle }}</h5>
-                                        <span class="text-[10px] text-gray-500 font-medium">{{ $pStats['count'] }} Bookings</span>
-                                    </div>
-                                    <span class="font-black text-xs text-[#EA741D]">
-                                        ₹{{ number_format($pStats['revenue']) }}
-                                    </span>
+                    <div class="lg:col-span-4 bg-white border border-gray-200 rounded-2xl shadow-sm p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center border-b border-gray-100 pb-3 mb-4">
+                                <div>
+                                    <h4 class="font-heading font-bold text-xs uppercase tracking-wider text-gray-900 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-trophy text-amber-500"></i> Top 5 Performing Packages
+                                    </h4>
+                                    <p class="text-[10px] text-gray-500 font-medium mt-0.5">Ranked by booking volume & earnings</p>
                                 </div>
-                            @empty
-                                <p class="text-xs text-gray-400 font-medium text-center py-4">No package stats available.</p>
-                            @endforelse
+                                <a href="{{ route('admin.packages') }}" class="text-[10px] font-bold text-gray-700 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2 py-1 rounded-lg transition-colors flex items-center gap-1">
+                                    All <i class="fa-solid fa-arrow-right text-[8px]"></i>
+                                </a>
+                            </div>
+
+                            <div class="space-y-3">
+                                @php $rank = 1; @endphp
+                                @forelse ($analytics['top_packages'] ?? [] as $pkgTitle => $pStats)
+                                    @php
+                                        $medalBadge = match($rank) {
+                                            1 => 'bg-amber-50 text-amber-900 border-amber-300 ring-1 ring-amber-400/40 font-bold',
+                                            2 => 'bg-slate-50 text-slate-800 border-slate-300 font-bold',
+                                            3 => 'bg-orange-50 text-orange-900 border-orange-300 font-bold',
+                                            default => 'bg-gray-50 text-gray-700 border-gray-200 font-medium',
+                                        };
+                                    @endphp
+                                    <div class="p-3 rounded-xl bg-gray-50/70 hover:bg-gray-50 border border-gray-200 transition-all group">
+                                        <div class="flex items-start justify-between gap-2">
+                                            <div class="flex items-start gap-2.5 min-w-0">
+                                                <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md border {{ $medalBadge }} flex-shrink-0 shadow-xs">
+                                                    @if ($rank === 1)
+                                                        <i class="fa-solid fa-crown text-amber-500 text-[10px]"></i> #1
+                                                    @elseif ($rank === 2)
+                                                        <i class="fa-solid fa-medal text-slate-400 text-[10px]"></i> #2
+                                                    @elseif ($rank === 3)
+                                                        <i class="fa-solid fa-award text-amber-700 text-[10px]"></i> #3
+                                                    @else
+                                                        <i class="fa-solid fa-ranking-star text-gray-400 text-[10px]"></i> #{{ $rank }}
+                                                    @endif
+                                                </span>
+                                                <div class="min-w-0">
+                                                    <a href="{{ route('admin.packages') }}?search={{ urlencode($pkgTitle) }}" class="font-bold text-xs text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-1 block" title="{{ $pkgTitle }}">
+                                                        {{ $pkgTitle }}
+                                                    </a>
+                                                    <div class="flex items-center gap-2 mt-0.5">
+                                                        <span class="text-[9px] text-[#EA741D] font-bold bg-[#EA741D]/10 px-1.5 py-0.2 rounded border border-[#EA741D]/20">
+                                                            {{ $pStats['category'] ?? 'Event Setup' }}
+                                                        </span>
+                                                        <span class="text-[10px] text-gray-500 font-semibold">{{ $pStats['count'] }} Bookings</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="text-right flex-shrink-0">
+                                                <span class="font-black text-xs text-[#EA741D] block">
+                                                    ₹{{ number_format($pStats['revenue']) }}
+                                                </span>
+                                                <span class="text-[9px] text-gray-400 block font-medium">
+                                                    Avg ₹{{ number_format($pStats['avg_price'] ?? 0) }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Share Progress Bar -->
+                                        <div class="w-full bg-gray-200/80 h-1.5 rounded-full overflow-hidden mt-2.5">
+                                            <div class="h-full rounded-full transition-all duration-500 {{ $rank === 1 ? 'bg-gradient-to-r from-amber-500 to-[#EA741D]' : 'bg-gradient-to-r from-indigo-500 to-sky-500' }}" style="width: {{ max(6, $pStats['bar_width'] ?? 0) }}%"></div>
+                                        </div>
+                                    </div>
+                                    @php $rank++; @endphp
+                                @empty
+                                    <div class="text-center py-8">
+                                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm mx-auto mb-2">
+                                            <i class="fa-solid fa-box-open"></i>
+                                        </div>
+                                        <p class="text-xs text-gray-400 font-medium">No package stats available for this filter.</p>
+                                    </div>
+                                @endforelse
+                            </div>
+                        </div>
+
+                        <div class="pt-3 mt-3 border-t border-gray-100 flex items-center justify-between">
+                            <span class="text-[10px] text-gray-500 font-semibold">Ready to add more packages?</span>
+                            <a href="{{ route('admin.packages') }}" class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 hover:underline">
+                                Catalog Manager <i class="fa-solid fa-arrow-right text-[8px]"></i>
+                            </a>
                         </div>
                     </div>
 
@@ -1245,7 +1562,7 @@
                         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center font-bold text-xs">
-                                    <i class="fa-solid fa-shield-halved"></i>
+                                    <i class="fa-solid fa-user-lock"></i>
                                 </div>
                                 <div>
                                     <h3 class="text-base font-bold text-gray-900">1. Privacy Policy</h3>
@@ -1273,7 +1590,7 @@
                             <div class="flex items-center justify-between">
                                 <label class="text-xs text-gray-700 font-bold uppercase tracking-wider">Policy Content</label>
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[10px] font-bold text-amber-700">
-                                    <i class="fa-solid fa-eye text-[9px]"></i> Live Preview — styled like public page
+                                    <i class="fa-solid fa-display text-[9px]"></i> Live Preview — styled like public page
                                 </span>
                             </div>
                             <p class="text-[11px] text-gray-400 font-normal -mt-0.5">Use <strong class="text-gray-600">Section Heading (H2)</strong> for main sections, <strong class="text-gray-600">Sub Heading (H3)</strong> for sub-sections, and <strong class="text-gray-600">Paragraph</strong> for body text.</p>
@@ -1314,7 +1631,7 @@
                             <div class="flex items-center justify-between">
                                 <label class="text-xs text-gray-700 font-bold uppercase tracking-wider">Policy Content</label>
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-[10px] font-bold text-indigo-700">
-                                    <i class="fa-solid fa-eye text-[9px]"></i> Live Preview — styled like public page
+                                    <i class="fa-solid fa-display text-[9px]"></i> Live Preview — styled like public page
                                 </span>
                             </div>
                             <p class="text-[11px] text-gray-400 font-normal -mt-0.5">Use <strong class="text-gray-600">Section Heading (H2)</strong> for main sections, <strong class="text-gray-600">Sub Heading (H3)</strong> for sub-sections, and <strong class="text-gray-600">Paragraph</strong> for body text.</p>
@@ -1355,7 +1672,7 @@
                             <div class="flex items-center justify-between">
                                 <label class="text-xs text-gray-700 font-bold uppercase tracking-wider">Policy Content</label>
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] font-bold text-emerald-700">
-                                    <i class="fa-solid fa-eye text-[9px]"></i> Live Preview — styled like public page
+                                    <i class="fa-solid fa-display text-[9px]"></i> Live Preview — styled like public page
                                 </span>
                             </div>
                             <p class="text-[11px] text-gray-400 font-normal -mt-0.5">Use <strong class="text-gray-600">Section Heading (H2)</strong> for main sections, <strong class="text-gray-600">Sub Heading (H3)</strong> for sub-sections, and <strong class="text-gray-600">Paragraph</strong> for body text.</p>
@@ -1396,7 +1713,7 @@
                             <div class="flex items-center justify-between">
                                 <label class="text-xs text-gray-700 font-bold uppercase tracking-wider">Policy Content</label>
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-[10px] font-bold text-rose-700">
-                                    <i class="fa-solid fa-eye text-[9px]"></i> Live Preview — styled like public page
+                                    <i class="fa-solid fa-display text-[9px]"></i> Live Preview — styled like public page
                                 </span>
                             </div>
                             <p class="text-[11px] text-gray-400 font-normal -mt-0.5">Use <strong class="text-gray-600">Section Heading (H2)</strong> for main sections, <strong class="text-gray-600">Sub Heading (H3)</strong> for sub-sections, and <strong class="text-gray-600">Paragraph</strong> for body text.</p>
@@ -1526,7 +1843,10 @@
             }
 
             // Trigger specific tab render functions to populate dynamic data on switch
-            if (tabId === 'overview') { if (typeof updateOverviewMetrics === 'function') updateOverviewMetrics(); }
+            if (tabId === 'overview') {
+                if (typeof updateOverviewMetrics === 'function') updateOverviewMetrics();
+                if (typeof initAnalyticsCharts === 'function') initAnalyticsCharts();
+            }
             else if (tabId === 'bookings') { if (typeof renderBookingsTables === 'function') renderBookingsTables(); }
             else if (tabId === 'packages') { if (typeof renderPackages === 'function') renderPackages(); }
             else if (tabId === 'categories') { if (typeof renderCategories === 'function') renderCategories(); }
@@ -2992,6 +3312,28 @@
             });
         }
 
+        function initAboutGalleryAspectRatios() {
+            document.querySelectorAll('[id^="about-img-preview-"]').forEach(previewImg => {
+                const index = previewImg.id.replace('about-img-preview-', '');
+                if (previewImg && previewImg.src) {
+                    const img = new Image();
+                    img.src = previewImg.src;
+                    img.onload = function() {
+                        const width = img.naturalWidth;
+                        const height = img.naturalHeight;
+                        const ratio = typeof getAspectRatioLabel === 'function' ? getAspectRatioLabel(width, height) : '';
+                        const badge = document.getElementById(`about-img-ratio-badge-${index}`);
+                        if (badge) {
+                            badge.textContent = `${width}x${height} (${ratio})`;
+                        }
+                    };
+                    if (previewImg.complete) {
+                        img.onload();
+                    }
+                }
+            });
+        }
+
         let slideCount = {{ count($cms['hero_slides']) }};
 
         function addNewSlide() {
@@ -3111,7 +3453,7 @@
             { class: "fa-solid fa-trophy", name: "trophy winner best seller award first prize victory champion" },
             { class: "fa-solid fa-award", name: "award trophy prize reward winner badge medal certificate ribbon" },
             { class: "fa-solid fa-medal", name: "medal award badge honor winner gold star" },
-            { class: "fa-solid fa-shield-halved", name: "shield security guarantee verified safe protection trusted" },
+            { class: "fa-solid fa-handshake-simple", name: "handshake agreement guarantee verified safe deal trusted partnership" },
             { class: "fa-solid fa-certificate", name: "certificate badge verified authorized quality star" },
 
             // ⭐ Popularity & Ratings
@@ -3120,7 +3462,7 @@
             { class: "fa-solid fa-thumbs-up", name: "thumbs up recommend like approved top rated quality" },
             { class: "fa-solid fa-fire", name: "fire sparks hot popular trending sangeet pyro flame sparklers" },
             { class: "fa-solid fa-chart-line", name: "chart trending growth popular rank performance sales" },
-            { class: "fa-solid fa-bolt", name: "bolt flash instant fast express lightning quick speed" },
+            { class: "fa-solid fa-percent", name: "percent discount offer deal promo coupon save" },
             { class: "fa-solid fa-sparkles", name: "sparkles magic glow fairy lights entrance shiny decor" },
             { class: "fa-solid fa-wand-magic-sparkles", name: "magic wand sparkles entrance surprise pyro glow" },
 
@@ -3509,30 +3851,88 @@
             }
         };
 
-        window.showToast = function (message, type = 'success') {
+        window.showToast = function (message, type = 'success', duration = 4500, actionUrl = null) {
+            const configs = {
+                success: {
+                    title: 'Success',
+                    iconBg: 'bg-emerald-50 border border-emerald-200/80',
+                    iconColor: 'text-emerald-600',
+                    icon: 'fa-circle-check',
+                    accentBorder: 'border-l-4 border-l-emerald-500',
+                },
+                error: {
+                    title: 'Error',
+                    iconBg: 'bg-rose-50 border border-rose-200/80',
+                    iconColor: 'text-rose-600',
+                    icon: 'fa-triangle-exclamation',
+                    accentBorder: 'border-l-4 border-l-rose-500',
+                },
+                info: {
+                    title: 'Notice',
+                    iconBg: 'bg-indigo-50 border border-indigo-200/80',
+                    iconColor: 'text-indigo-600',
+                    icon: 'fa-bell',
+                    accentBorder: 'border-l-4 border-l-indigo-500',
+                },
+                warning: {
+                    title: 'Warning',
+                    iconBg: 'bg-amber-50 border border-amber-200/80',
+                    iconColor: 'text-amber-600',
+                    icon: 'fa-circle-exclamation',
+                    accentBorder: 'border-l-4 border-l-amber-500',
+                },
+            };
+
+            const cfg = configs[type] || configs.success;
             const container = document.getElementById('toast-container');
             if (!container) return;
-            
+
             const toast = document.createElement('div');
-            toast.className = `p-4 rounded-xl border border-white/10 backdrop-blur-md shadow-2xl transition-all duration-300 transform translate-y-4 opacity-0 flex items-center gap-3 text-[10px] font-heading uppercase font-bold tracking-wider ${
-                type === 'success' 
-                ? 'bg-green-500/10 border-green-500/30 text-green-400' 
-                : 'bg-red-500/10 border-red-500/30 text-red-400'
-            }`;
+            toast.className = `pointer-events-auto bg-white/95 backdrop-blur-md border border-gray-200/90 shadow-2xl rounded-2xl p-4 flex items-start gap-3.5 transition-all duration-300 transform translate-x-8 opacity-0 ${cfg.accentBorder} relative overflow-hidden select-none cursor-pointer group`;
             
-            const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
-            toast.innerHTML = `<i class="fa-solid ${icon} text-sm"></i><span>${message}</span>`;
-            
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.classList.remove('translate-y-4', 'opacity-0');
-            }, 50);
-            
-            setTimeout(() => {
-                toast.classList.add('translate-y-4', 'opacity-0');
+            const linkBtn = actionUrl ? `<a href="${actionUrl}" class="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-indigo-600 hover:text-indigo-800 mt-2 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition-colors"><span>View Details</span> <i class="fa-solid fa-arrow-right text-[9px]"></i></a>` : '';
+
+            toast.innerHTML = `
+                <div class="w-8 h-8 rounded-xl ${cfg.iconBg} ${cfg.iconColor} flex items-center justify-center shrink-0 text-xs font-bold mt-0.5 shadow-2xs">
+                    <i class="fa-solid ${cfg.icon}"></i>
+                </div>
+                <div class="flex-grow min-w-0 pr-1">
+                    <div class="flex items-center justify-between gap-2">
+                        <h4 class="text-xs font-extrabold text-gray-900 tracking-tight">${cfg.title}</h4>
+                        <span class="text-[10px] text-gray-400 font-medium">Just now</span>
+                    </div>
+                    <p class="text-xs text-gray-600 font-semibold mt-0.5 leading-relaxed break-words">${message}</p>
+                    ${linkBtn}
+                </div>
+                <button type="button" class="w-6 h-6 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-400 hover:text-gray-700 flex items-center justify-center shrink-0 cursor-pointer transition-colors" title="Dismiss">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            `;
+
+            const closeBtn = toast.querySelector('button');
+            const dismiss = (e) => {
+                if (e) e.stopPropagation();
+                toast.classList.add('translate-x-8', 'opacity-0');
                 setTimeout(() => toast.remove(), 300);
-            }, 4000);
+            };
+            if (closeBtn) closeBtn.onclick = dismiss;
+
+            if (actionUrl) {
+                toast.addEventListener('click', (e) => {
+                    if (e.target !== closeBtn && !closeBtn.contains(e.target)) {
+                        window.location.href = actionUrl;
+                    }
+                });
+            }
+
+            container.prepend(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-8', 'opacity-0');
+            });
+
+            if (duration > 0) {
+                setTimeout(dismiss, duration);
+            }
         };
 
         // Initialize lists on load
@@ -3559,136 +3959,198 @@
                 switchTab(tab);
             });
 
-            updateOverviewMetrics();
-            renderBookingsTables();
-            renderCategories();
-            renderCustomers();
-            renderFAQs();
+            // Bulletproof Chart.js Analytics Initialization Engine
+            window.initAnalyticsCharts = function() {
+                if (typeof Chart === 'undefined') {
+                    console.warn('Chart.js library is loading, retrying in 100ms...');
+                    setTimeout(window.initAnalyticsCharts, 100);
+                    return;
+                }
 
-            // Initialize aspect ratios for hero slides and about gallery images
-            initAspectRatios();
-            initAboutGalleryAspectRatios();
+                // 1. Category-Wise Revenue Bar Chart
+                try {
+                    const catCanvas = document.getElementById('categoryRevenueChart');
+                    if (catCanvas) {
+                        const catCtx = catCanvas.getContext('2d');
+                        const catStats = @json($analytics['category_stats'] ?? []);
+                        const labels = Object.keys(catStats);
+                        const revenues = labels.map(k => catStats[k].revenue || 0);
+                        const bookingCounts = labels.map(k => catStats[k].count || 0);
 
-            // Initialize classic editors with live-preview CSS matching the public legal pages
-            window.ckEditors = {};
-
-            document.querySelectorAll('.ck-editor-textarea').forEach(textarea => {
-                ClassicEditor
-                    .create(textarea, {
-                        toolbar: [
-                            'undo', 'redo', '|',
-                            'heading', '|',
-                            'bold', 'italic', '|',
-                            'link', '|',
-                            'bulletedList', 'numberedList', '|',
-                            'blockQuote'
-                        ],
-                        heading: {
-                            options: [
-                                { model: 'paragraph',  title: 'Paragraph',  class: 'ck-heading_paragraph' },
-                                { model: 'heading2',   view: 'h2', title: 'Section Heading (H2)', class: 'ck-heading_heading2' },
-                                { model: 'heading3',   view: 'h3', title: 'Sub Heading (H3)',     class: 'ck-heading_heading3' }
-                            ]
+                        if (window._catRevenueChartInstance) {
+                            window._catRevenueChartInstance.destroy();
                         }
-                    })
-                    .then(editor => {
-                        const id = textarea.id;
-                        if (id) { window.ckEditors[id] = editor; }
-                    })
-                    .catch(error => { console.error(error); });
-            });
 
-            // Initialize Real-Time Dynamic Chart.js Analytics Graphs
-            // 1. Category-Wise Revenue Bar Chart
-                const catCanvas = document.getElementById('categoryRevenueChart');
-                if (catCanvas) {
-                    const catCtx = catCanvas.getContext('2d');
-                    const catStats = @json($analytics['category_stats'] ?? []);
-                    const labels = Object.keys(catStats);
-                    const revenues = labels.map(k => catStats[k].revenue || 0);
-                    const bookingCounts = labels.map(k => catStats[k].count || 0);
-
-                    new Chart(catCtx, {
-                        type: 'bar',
-                        data: {
-                            labels: labels.length ? labels : ['Birthday Party', 'Proposal', 'Anniversary', 'Wedding', 'DJ Night'],
-                            datasets: [
-                                {
-                                    label: 'Confirmed Revenue (₹)',
-                                    data: revenues.length ? revenues : [0, 0, 0, 0, 0],
-                                    backgroundColor: 'rgba(212, 163, 115, 0.85)',
-                                    borderColor: '#EA741D',
-                                    borderWidth: 1.5,
-                                    borderRadius: 6,
-                                    yAxisID: 'y'
-                                },
-                                {
-                                    label: 'Bookings Count',
-                                    data: bookingCounts.length ? bookingCounts : [0, 0, 0, 0, 0],
-                                    backgroundColor: 'rgba(30, 30, 36, 0.7)',
-                                    borderColor: '#1E1E24',
-                                    borderWidth: 1.5,
-                                    borderRadius: 6,
-                                    yAxisID: 'y1'
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { position: 'top', labels: { font: { size: 10, weight: 'bold' } } }
+                        window._catRevenueChartInstance = new Chart(catCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: labels.length ? labels : ['Birthday Party', 'Proposal', 'Anniversary', 'Wedding', 'DJ Night'],
+                                datasets: [
+                                    {
+                                        label: 'Confirmed Revenue (₹)',
+                                        data: revenues.length ? revenues : [0, 0, 0, 0, 0],
+                                        backgroundColor: 'rgba(234, 116, 29, 0.85)',
+                                        borderColor: '#EA741D',
+                                        borderWidth: 1.5,
+                                        borderRadius: 6,
+                                        yAxisID: 'y'
+                                    },
+                                    {
+                                        label: 'Bookings Count',
+                                        data: bookingCounts.length ? bookingCounts : [0, 0, 0, 0, 0],
+                                        backgroundColor: 'rgba(30, 30, 36, 0.75)',
+                                        borderColor: '#1E1E24',
+                                        borderWidth: 1.5,
+                                        borderRadius: 6,
+                                        yAxisID: 'y1'
+                                    }
+                                ]
                             },
-                            scales: {
-                                y: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'left',
-                                    ticks: { font: { size: 9 } }
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { position: 'top', labels: { font: { size: 10, weight: 'bold' } } },
+                                    tooltip: {
+                                        backgroundColor: '#1E1E24',
+                                        padding: 10,
+                                        cornerRadius: 8,
+                                        callbacks: {
+                                            label: function(context) {
+                                                if (context.dataset.yAxisID === 'y') {
+                                                    return ` ${context.dataset.label}: ₹${Number(context.raw).toLocaleString('en-IN')}`;
+                                                }
+                                                return ` ${context.dataset.label}: ${context.raw}`;
+                                            }
+                                        }
+                                    }
                                 },
-                                y1: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'right',
-                                    grid: { drawOnChartArea: false },
-                                    ticks: { font: { size: 9 }, precision: 0 }
+                                scales: {
+                                    y: {
+                                        type: 'linear',
+                                        display: true,
+                                        position: 'left',
+                                        ticks: { font: { size: 9 } }
+                                    },
+                                    y1: {
+                                        type: 'linear',
+                                        display: true,
+                                        position: 'right',
+                                        grid: { drawOnChartArea: false },
+                                        ticks: { font: { size: 9 }, precision: 0 }
+                                    }
                                 }
                             }
-                        }
-                    });
+                        });
+                    }
+                } catch (e) {
+                    console.error('Error rendering Category Revenue Bar Chart:', e);
                 }
 
                 // 2. Booking Status Distribution Doughnut Chart
-                const statusCanvas = document.getElementById('statusDistributionChart');
-                if (statusCanvas) {
-                    const statusCtx = statusCanvas.getContext('2d');
-                    const pending = {{ $analytics['pending_count'] ?? 0 }};
-                    const contacted = {{ $analytics['contacted_count'] ?? 0 }};
-                    const confirmed = {{ $analytics['confirmed_count'] ?? 0 }};
-                    const completed = {{ $analytics['completed_count'] ?? 0 }};
-                    const cancelled = {{ $analytics['cancelled_count'] ?? 0 }};
+                try {
+                    const statusCanvas = document.getElementById('statusDistributionChart');
+                    if (statusCanvas) {
+                        const statusCtx = statusCanvas.getContext('2d');
+                        const pending = {{ $analytics['pending_count'] ?? 0 }};
+                        const contacted = {{ $analytics['contacted_count'] ?? 0 }};
+                        const confirmed = {{ $analytics['confirmed_count'] ?? 0 }};
+                        const completed = {{ $analytics['completed_count'] ?? 0 }};
+                        const cancelled = {{ $analytics['cancelled_count'] ?? 0 }};
+                        const totalBookings = {{ $analytics['total_bookings'] ?? 0 }};
 
-                    new Chart(statusCtx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Pending', 'Contacted', 'Confirmed', 'Completed', 'Cancelled'],
-                            datasets: [{
-                                data: [pending, contacted, confirmed, completed, cancelled],
-                                backgroundColor: ['#F59E0B', '#3B82F6', '#10B981', '#A855F7', '#EF4444'],
-                                borderWidth: 2,
-                                borderColor: '#FFFFFF'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { position: 'right', labels: { font: { size: 10, weight: 'bold' } } }
-                            }
+                        if (window._statusDistChartInstance) {
+                            window._statusDistChartInstance.destroy();
                         }
-                    });
+
+                        window._statusDistChartInstance = new Chart(statusCtx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Pending', 'Contacted', 'Confirmed', 'Completed', 'Cancelled'],
+                                datasets: [{
+                                    data: [pending, contacted, confirmed, completed, cancelled],
+                                    backgroundColor: ['#F59E0B', '#0284C7', '#10B981', '#6366F1', '#EF4444'],
+                                    hoverBackgroundColor: ['#D97706', '#0369A1', '#059669', '#4F46E5', '#DC2626'],
+                                    borderWidth: 3,
+                                    borderColor: '#FFFFFF',
+                                    hoverOffset: 4
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                cutout: '72%',
+                                plugins: {
+                                    legend: {
+                                        display: false // Handled cleanly by interactive status badges below
+                                    },
+                                    tooltip: {
+                                        backgroundColor: '#1E1E24',
+                                        titleFont: { size: 11, weight: 'bold' },
+                                        bodyFont: { size: 11 },
+                                        padding: 10,
+                                        cornerRadius: 8,
+                                        callbacks: {
+                                            label: function(context) {
+                                                const val = context.raw || 0;
+                                                const pct = totalBookings > 0 ? ((val / totalBookings) * 100).toFixed(1) : 0;
+                                                return ` ${context.label}: ${val} (${pct}%)`;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.error('Error rendering Booking Status Doughnut Chart:', e);
                 }
-            });
+            };
+
+            // Call analytics charts initialization immediately
+            window.initAnalyticsCharts();
+
+            // Safe initialization of dashboard helper modules
+            try { if (typeof updateOverviewMetrics === 'function') updateOverviewMetrics(); } catch(e) { console.error(e); }
+            try { if (typeof renderBookingsTables === 'function') renderBookingsTables(); } catch(e) { console.error(e); }
+            try { if (typeof renderCategories === 'function') renderCategories(); } catch(e) { console.error(e); }
+            try { if (typeof renderCustomers === 'function') renderCustomers(); } catch(e) { console.error(e); }
+            try { if (typeof renderFAQs === 'function') renderFAQs(); } catch(e) { console.error(e); }
+
+            // Initialize aspect ratios for hero slides and about gallery images
+            try { if (typeof initAspectRatios === 'function') initAspectRatios(); } catch(e) { console.error(e); }
+            try { if (typeof initAboutGalleryAspectRatios === 'function') initAboutGalleryAspectRatios(); } catch(e) { console.error(e); }
+
+            // Initialize classic editors safely
+            window.ckEditors = window.ckEditors || {};
+            if (typeof ClassicEditor !== 'undefined') {
+                document.querySelectorAll('.ck-editor-textarea').forEach(textarea => {
+                    ClassicEditor
+                        .create(textarea, {
+                            toolbar: [
+                                'undo', 'redo', '|',
+                                'heading', '|',
+                                'bold', 'italic', '|',
+                                'link', '|',
+                                'bulletedList', 'numberedList', '|',
+                                'blockQuote'
+                            ],
+                            heading: {
+                                options: [
+                                    { model: 'paragraph',  title: 'Paragraph',  class: 'ck-heading_paragraph' },
+                                    { model: 'heading2',   view: 'h2', title: 'Section Heading (H2)', class: 'ck-heading_heading2' },
+                                    { model: 'heading3',   view: 'h3', title: 'Sub Heading (H3)',     class: 'ck-heading_heading3' }
+                                ]
+                            }
+                        })
+                        .then(editor => {
+                            const id = textarea.id;
+                            if (id) { window.ckEditors[id] = editor; }
+                        })
+                        .catch(error => { console.error(error); });
+                });
+            }
+        });
     </script>
 
     <!-- GLOBAL ICON PICKER MODAL -->
@@ -3786,8 +4248,248 @@
         </div>
     </div>
 
-    <!-- TOAST NOTIFICATION CONTAINER -->
-    <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-3"></div>
+    <!-- MODERN FLOATING TOASTER NOTIFICATION CONTAINER (Top Right) -->
+    <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none max-w-sm w-full px-4 sm:px-0"></div>
+
+    <script>
+        /**
+         * Web Audio Notification Chime
+         */
+        function playNotificationChime() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.45);
+            } catch (e) {
+                // AudioContext blocked or unsupported
+            }
+        }
+
+        /**
+         * Real-time Notifications Polling Engine
+         */
+        let lastNotificationCheckTime = Math.floor(Date.now() / 1000);
+        let lastKnownBookingId = null;
+        let isInitialPoll = true;
+
+        async function pollAdminNotifications() {
+            try {
+                let url = '{{ route("admin.notifications.poll") }}';
+                const params = new URLSearchParams();
+                if (!isInitialPoll && lastNotificationCheckTime) {
+                    params.append('since', lastNotificationCheckTime);
+                }
+                if (lastKnownBookingId) {
+                    params.append('last_id', lastKnownBookingId);
+                }
+                const fullUrl = url + (params.toString() ? '?' + params.toString() : '');
+                const res = await fetch(fullUrl, {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                
+                if (data.server_time) {
+                    lastNotificationCheckTime = data.server_time;
+                }
+
+                const badge = document.getElementById('admin-bell-badge');
+                const pill  = document.getElementById('admin-notif-count-pill');
+                if (badge) {
+                    if (data.pending_count > 0) {
+                        badge.textContent = data.pending_count > 99 ? '99+' : data.pending_count;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+                if (pill) {
+                    pill.textContent = `${data.pending_count} Pending`;
+                }
+
+                if (data.latest_bookings && data.latest_bookings.length > 0) {
+                    renderNotificationsList(data.latest_bookings);
+                    if (isInitialPoll && data.latest_id) {
+                        lastKnownBookingId = data.latest_id;
+                    }
+                }
+
+                if (!isInitialPoll && data.new_bookings && data.new_bookings.length > 0) {
+                    data.new_bookings.forEach(b => {
+                        playNotificationChime();
+                        if (typeof showToast === 'function') {
+                            showToast(`🎉 New Booking: ${b.customer_name} booked ${b.package_name} (₹${Number(b.total_amount).toLocaleString('en-IN')})`, 'info');
+                        }
+                    });
+                    if (data.latest_id) {
+                        lastKnownBookingId = data.latest_id;
+                    }
+                }
+
+                isInitialPoll = false;
+            } catch (err) {
+                // Ignore transient errors
+            }
+        }
+
+        function renderNotificationsList(bookings) {
+            const list = document.getElementById('admin-notifications-list');
+            if (!list) return;
+            if (!bookings || bookings.length === 0) {
+                list.innerHTML = `
+                    <div class="p-6 text-center text-gray-400">
+                        <i class="fa-regular fa-bell text-gray-300 text-2xl mb-2 block"></i>
+                        <p class="text-xs font-semibold text-gray-600">No new notifications</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5">New bookings and requests will appear here</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const statusColors = {
+                'Pending': 'bg-amber-50 text-amber-700 border-amber-200',
+                'Confirmed': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                'Completed': 'bg-blue-50 text-blue-700 border-blue-200',
+                'Cancelled': 'bg-rose-50 text-rose-700 border-rose-200',
+            };
+
+            list.innerHTML = bookings.map(b => {
+                const badgeClass = statusColors[b.status] || 'bg-gray-50 text-gray-700 border-gray-200';
+                return `
+                    <a href="{{ route('admin.bookings') }}?search=${encodeURIComponent(b.id)}" class="p-3.5 hover:bg-gray-50/80 transition-colors flex items-start gap-3 block border-b border-gray-50 last:border-b-0">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 text-xs font-bold mt-0.5 shadow-2xs">
+                            <i class="fa-solid fa-calendar-check"></i>
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <div class="flex items-center justify-between gap-1">
+                                <p class="font-extrabold text-gray-900 truncate text-xs">${b.customer_name}</p>
+                                <span class="text-[10px] text-gray-400 shrink-0 font-medium">${b.created_diff}</span>
+                            </div>
+                            <p class="text-[11px] text-gray-500 truncate mt-0.5">${b.package_name} • ₹${Number(b.total_amount).toLocaleString('en-IN')}</p>
+                            <div class="flex items-center gap-1.5 mt-1.5">
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold border ${badgeClass}">${b.status}</span>
+                                <span class="text-[9px] font-mono text-gray-400 font-bold">${b.id}</span>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            pollAdminNotifications();
+            setInterval(pollAdminNotifications, 15000);
+        });
+
+        /* Admin Notification Dropdown Toggle */
+        function toggleAdminNotificationsDropdown(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('admin-notifications-menu');
+            const trigger = document.getElementById('admin-notifications-trigger');
+            if (!menu) return;
+
+            const userMenu = document.getElementById('admin-user-dropdown-menu');
+            const userChevron = document.getElementById('admin-dropdown-chevron');
+            const userTrigger = document.getElementById('admin-dropdown-trigger');
+            if (userMenu && !userMenu.classList.contains('hidden')) {
+                userMenu.classList.add('hidden');
+                if (userChevron) userChevron.classList.remove('rotate-180');
+                if (userTrigger) userTrigger.setAttribute('aria-expanded', 'false');
+            }
+            
+            const isHidden = menu.classList.contains('hidden');
+            if (isHidden) {
+                menu.classList.remove('hidden');
+                if (trigger) trigger.setAttribute('aria-expanded', 'true');
+            } else {
+                menu.classList.add('hidden');
+                if (trigger) trigger.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        /* Admin User Dropdown Toggle */
+        function toggleAdminUserDropdown(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('admin-user-dropdown-menu');
+            const chevron = document.getElementById('admin-dropdown-chevron');
+            const trigger = document.getElementById('admin-dropdown-trigger');
+            if (!menu) return;
+
+            const notifMenu = document.getElementById('admin-notifications-menu');
+            const notifTrigger = document.getElementById('admin-notifications-trigger');
+            if (notifMenu && !notifMenu.classList.contains('hidden')) {
+                notifMenu.classList.add('hidden');
+                if (notifTrigger) notifTrigger.setAttribute('aria-expanded', 'false');
+            }
+            
+            const isHidden = menu.classList.contains('hidden');
+            if (isHidden) {
+                menu.classList.remove('hidden');
+                if (chevron) chevron.classList.add('rotate-180');
+                if (trigger) trigger.setAttribute('aria-expanded', 'true');
+            } else {
+                menu.classList.add('hidden');
+                if (chevron) chevron.classList.remove('rotate-180');
+                if (trigger) trigger.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        document.addEventListener('click', function(event) {
+            const notifContainer = document.getElementById('admin-notifications-container');
+            const notifMenu = document.getElementById('admin-notifications-menu');
+            const notifTrigger = document.getElementById('admin-notifications-trigger');
+            if (notifContainer && !notifContainer.contains(event.target)) {
+                if (notifMenu && !notifMenu.classList.contains('hidden')) {
+                    notifMenu.classList.add('hidden');
+                    if (notifTrigger) notifTrigger.setAttribute('aria-expanded', 'false');
+                }
+            }
+
+            const userContainer = document.getElementById('admin-user-dropdown-container');
+            const userMenu = document.getElementById('admin-user-dropdown-menu');
+            const chevron = document.getElementById('admin-dropdown-chevron');
+            const trigger = document.getElementById('admin-dropdown-trigger');
+            if (userContainer && !userContainer.contains(event.target)) {
+                if (userMenu && !userMenu.classList.contains('hidden')) {
+                    userMenu.classList.add('hidden');
+                    if (chevron) chevron.classList.remove('rotate-180');
+                    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const notifMenu = document.getElementById('admin-notifications-menu');
+                const notifTrigger = document.getElementById('admin-notifications-trigger');
+                if (notifMenu && !notifMenu.classList.contains('hidden')) {
+                    notifMenu.classList.add('hidden');
+                    if (notifTrigger) notifTrigger.setAttribute('aria-expanded', 'false');
+                }
+
+                const userMenu = document.getElementById('admin-user-dropdown-menu');
+                const chevron = document.getElementById('admin-dropdown-chevron');
+                const trigger = document.getElementById('admin-dropdown-trigger');
+                if (userMenu && !userMenu.classList.contains('hidden')) {
+                    userMenu.classList.add('hidden');
+                    if (chevron) chevron.classList.remove('rotate-180');
+                    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+    </script>
 
     @if(session('success'))
         <script>
@@ -3803,6 +4505,7 @@
             });
         </script>
     @endif
+
 </body>
 
 </html>

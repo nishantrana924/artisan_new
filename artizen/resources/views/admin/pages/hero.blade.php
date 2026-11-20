@@ -9,18 +9,7 @@
 {{-- ===================================================================
      1. FLASH NOTIFICATIONS
      =================================================================== --}}
-@if(session('success'))
-    <div class="mb-5 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded-2xl flex items-center gap-2.5 shadow-2xs">
-        <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
-        <span>{{ session('success') }}</span>
-    </div>
-@endif
-@if(session('error'))
-    <div class="mb-5 px-4 py-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold rounded-2xl flex items-center gap-2.5 shadow-2xs">
-        <i class="fa-solid fa-triangle-exclamation text-rose-500 text-sm"></i>
-        <span>{{ session('error') }}</span>
-    </div>
-@endif
+
 @if($errors->any())
     <div class="mb-5 px-4 py-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold rounded-2xl flex flex-col gap-1 shadow-2xs">
         <div class="flex items-center gap-2 text-rose-700 font-bold">

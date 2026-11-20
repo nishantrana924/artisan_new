@@ -210,7 +210,7 @@
                             <!-- Fact 2 -->
                             <div class="border border-[#E8E5DF] dark:border-white/10 rounded-xl p-3 flex items-center gap-3 bg-[#FAF9F5] dark:bg-white/[0.04]">
                                 <div class="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-white/10 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-white/10 flex items-center justify-center shrink-0 text-xs">
-                                    <i class="fa-solid fa-shield-halved"></i>
+                                    <i class="fa-solid fa-circle-check"></i>
                                 </div>
                                 <div class="min-w-0">
                                     <h4 class="font-heading font-bold text-xs text-main-text truncate">Hassle Free</h4>
@@ -317,7 +317,7 @@
                         <div class="grid grid-cols-2 gap-2 sm:gap-2.5 pt-3.5 border-t border-[#E8E5DF] dark:border-white/10 text-left">
                             <div class="flex items-center gap-2 sm:gap-2.5 p-2.5 rounded-xl bg-[#FAF9F5] dark:bg-white/[0.04] border border-[#EFECE6] dark:border-white/10 min-w-0">
                                 <div class="w-7 h-7 rounded-lg bg-neutral-100 dark:bg-white/10 text-neutral-800 dark:text-neutral-200 border border-neutral-200 dark:border-white/10 flex items-center justify-center shrink-0 text-xs">
-                                    <i class="fa-solid fa-bolt-lightning"></i>
+                                    <i class="fa-solid fa-calendar-check"></i>
                                 </div>
                                 <div class="min-w-0 flex-1 leading-none">
                                     <div class="text-[11px] font-bold text-main-text leading-tight truncate">Instant Confirm</div>

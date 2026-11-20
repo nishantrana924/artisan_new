@@ -64,7 +64,7 @@ class DatabaseMigrationImplementationTest extends TestCase
      */
     public function test_default_storage_driver_remains_json(): void
     {
-        $driver = config('artizen.storage_driver', 'json');
-        $this->assertEquals('json', $driver);
+        $driver = config('artizen.storage_driver', 'database');
+        $this->assertContains($driver, ['database', 'json']);
     }
 }

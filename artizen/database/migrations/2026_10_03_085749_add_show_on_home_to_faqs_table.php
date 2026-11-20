@@ -9,7 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('faqs', function (Blueprint $table) {
-            $table->boolean('show_on_home')->default(false)->after('is_active');
+            if (!Schema::hasColumn('faqs', 'show_on_home') && !Schema::hasColumn('faqs', 'show_on_homepage')) {
+                $table->boolean('show_on_home')->default(false)->after('is_active');
+            }
         });
     }
 

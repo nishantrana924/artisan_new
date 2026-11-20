@@ -26,8 +26,9 @@ class FinalMasterRegressionAuditTest extends TestCase
         $this->admin = User::factory()->create([
             'email' => 'finalmasteradmin@artizen.com',
             'password' => Hash::make('Password123!'),
-            'is_admin' => true,
         ]);
+        $this->admin->is_admin = true;
+        $this->admin->save();
     }
 
     /**
@@ -36,9 +37,9 @@ class FinalMasterRegressionAuditTest extends TestCase
     public function test_public_website_and_event_catalog_feed(): void
     {
         $this->get('/')->assertStatus(200)->assertSee('ARTIZEN');
-        $this->get('/events')->assertStatus(200)->assertSee('PACKAGES');
-        $this->get('/events/cat-birthdays')->assertStatus(200);
-        $this->get('/events/1?tier=0')->assertStatus(200)->assertSee('Basic Birthday Package');
+        $this->get('/events')->assertStatus(200)->assertSee('Celebrations');
+        $this->get('/events?category=cat-birthdays')->assertStatus(200);
+        $this->get('/events/1st-birthday-wonderland?tier=0')->assertStatus(200)->assertSee('1st Birthday Wonderland');
         $this->get('/gallery')->assertStatus(200);
     }
 
@@ -67,7 +68,11 @@ class FinalMasterRegressionAuditTest extends TestCase
             'total' => 4999
         ];
 
-        $checkout = $this->postJson('/booking/save', $bookingData);
+        $customer = User::factory()->create([
+            'email' => 'masterregression@artizen.com',
+        ]);
+
+        $checkout = $this->actingAs($customer)->postJson('/booking/save', $bookingData);
         $checkout->assertStatus(200)->assertJson(['success' => true]);
 
         $bookingId = $checkout->json('booking_id');
@@ -104,25 +109,41 @@ class FinalMasterRegressionAuditTest extends TestCase
         $login->assertRedirect('/admin/dashboard');
 
         // Dashboard
-        $dashboard = $this->actingAs($this->admin)->get('/admin/dashboard');
+        $dashboard = $this->actingAsAdmin($this->admin)->get('/admin/dashboard');
         $dashboard->assertStatus(200);
 
+        // Create booking for status update test
+        $booking = Booking::create([
+            'id' => 'BK-1232',
+            'customer_name' => 'Test Booking',
+            'customer_mobile' => '9876543210',
+            'customer_email' => 'test@artizen.com',
+            'package_name' => 'Basic Package',
+            'category_name' => 'Birthdays',
+            'event_date' => now()->addDays(5)->format('Y-m-d'),
+            'guest_count' => 50,
+            'address' => 'Vijay Nagar, Indore',
+            'area' => 'Vijay Nagar',
+            'status' => 'Pending',
+            'total_amount' => 5000,
+        ]);
+
         // Status update
-        $status = $this->actingAs($this->admin)->postJson('/admin/bookings/update-status', [
+        $status = $this->actingAsAdmin($this->admin)->postJson('/admin/bookings/update-status', [
             'id' => 'BK-1232',
             'status' => 'Confirmed'
         ]);
         $status->assertStatus(200);
 
         // Category Save & Delete
-        $saveCat = $this->actingAs($this->admin)->post('/admin/categories/save', [
+        $saveCat = $this->actingAsAdmin($this->admin)->post('/admin/categories/save', [
             'title' => 'Master Category Test',
             'active' => 1
         ]);
         $saveCat->assertRedirect();
 
         // FAQ Save & Delete
-        $saveFaq = $this->actingAs($this->admin)->post('/admin/faqs/save', [
+        $saveFaq = $this->actingAsAdmin($this->admin)->post('/admin/faqs/save', [
             'q' => 'Master FAQ Q?',
             'a' => 'Master FAQ A!'
         ]);

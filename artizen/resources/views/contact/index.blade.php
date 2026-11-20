@@ -159,6 +159,9 @@
                         @enderror
                     </div>
 
+                    <!-- Cloudflare Turnstile Verification -->
+                    <x-turnstile action="contact" />
+
                     <!-- Submit Button -->
                     <div class="pt-1">
                         <button type="submit" 

@@ -178,6 +178,9 @@
                             </label>
                         </div>
 
+                        <!-- Cloudflare Turnstile Verification -->
+                        <x-turnstile action="login" />
+
                         <!-- Submit CTA Button -->
                         <button type="submit" id="login-submit-btn" class="w-full py-3 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] font-heading font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer mt-2 {{ session('lockout_seconds') ? 'opacity-60 cursor-not-allowed' : '' }}" {{ session('lockout_seconds') ? 'disabled' : '' }}>
                             <i class="fa-solid fa-right-to-bracket text-xs"></i>

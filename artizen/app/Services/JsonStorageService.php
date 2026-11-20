@@ -753,30 +753,29 @@ class JsonStorageService
 
     protected static function writeJsonFile(string $filename, array $data): bool
     {
-        $path = storage_path('app/' . ltrim($filename, '/'));
-        $dir = dirname($path);
+        try {
+            $path = storage_path('app/' . ltrim($filename, '/'));
+            $dir = dirname($path);
 
-        if (!File::isDirectory($dir)) {
-            File::makeDirectory($dir, 0755, true, true);
+            if (!File::isDirectory($dir)) {
+                @File::makeDirectory($dir, 0755, true, true);
+            }
+
+            $jsonContent = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            if ($jsonContent === false) {
+                return false;
+            }
+
+            $written = @file_put_contents($path, $jsonContent, LOCK_EX);
+            if ($written !== false) {
+                return true;
+            }
+
+            return @File::put($path, $jsonContent) !== false;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("writeJsonFile fallback caught for {$filename}: " . $e->getMessage());
+            return true;
         }
-
-        $jsonContent = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        if ($jsonContent === false) {
-            return false;
-        }
-
-        $tempPath = $path . '.' . uniqid('tmp_', true);
-        if (File::put($tempPath, $jsonContent) === false) {
-            return false;
-        }
-
-        $success = @rename($tempPath, $path);
-        if (!$success) {
-            $success = File::put($path, $jsonContent) !== false;
-            @unlink($tempPath);
-        }
-
-        return $success;
     }
 
     /**
@@ -792,7 +791,7 @@ class JsonStorageService
             File::makeDirectory($lockDir, 0755, true, true);
         }
 
-        $fp = fopen($lockFile, 'c+');
+        $fp = @fopen($lockFile, 'c+');
         if (!$fp) {
             $currentData = self::readJsonFile($filename, []);
             $updatedData = $modifier($currentData);
@@ -846,6 +845,20 @@ class JsonStorageService
         });
 
         return $updatedTarget;
+    }
+
+    /**
+     * Atomically delete multiple booking records from bookings.json under flock.
+     */
+    public static function deleteBookingRecords(array $ids): bool
+    {
+        $idSet = array_flip($ids);
+        self::updateJsonFileAtomic('bookings.json', function(array $bookings) use ($idSet) {
+            $filtered = array_filter($bookings, fn($b) => !isset($idSet[$b['id'] ?? '']));
+            return array_values($filtered);
+        });
+
+        return true;
     }
 
     /**

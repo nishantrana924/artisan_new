@@ -66,4 +66,9 @@ class Booking extends Model
     {
         return $this->belongsTo(Package::class);
     }
+
+    public function whatsappNotifications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(WhatsAppNotification::class, 'booking_id', 'id');
+    }
 }

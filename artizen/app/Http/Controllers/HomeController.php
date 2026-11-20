@@ -119,8 +119,17 @@ class HomeController extends Controller
         $cms = JsonStorageService::read('cms.json', $defaultCms);
         $categories = JsonStorageService::read('categories.json');
         $packages = JsonStorageService::read('packages.json');
-        $faqs = Faq::active()->forHomepage()->ordered()->get();
-        $testimonials = \App\Models\Testimonial::active()->forHome()->ordered()->get();
+        try {
+            $faqs = Faq::active()->forHomepage()->ordered()->get();
+        } catch (\Throwable $e) {
+            $faqs = collect();
+        }
+
+        try {
+            $testimonials = \App\Models\Testimonial::active()->forHome()->ordered()->get();
+        } catch (\Throwable $e) {
+            $testimonials = collect();
+        }
 
         return view('home.index', compact('cms', 'categories', 'packages', 'faqs', 'testimonials'));
     }

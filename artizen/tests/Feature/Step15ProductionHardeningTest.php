@@ -45,13 +45,19 @@ class Step15ProductionHardeningTest extends TestCase
             'landmark' => 'Omaxe City',
             'area' => 'Bypass Road',
             'city' => 'Indore',
-            'state' => 'Madhya Pradesh',
+            'event_date' => date('Y-m-d', strtotime('+3 days')),
+            'event_time' => '18:00',
             'pincode' => '452010',
             'package_price' => 4999,
             'total' => 4999
         ];
 
-        $response = $this->postJson('/booking/save', $bookingData);
+        $customer = \App\Models\User::factory()->create([
+            'name'  => 'Atomic Hardened Customer',
+            'email' => 'atomic@artizen.com',
+        ]);
+
+        $response = $this->actingAs($customer)->postJson('/booking/save', $bookingData);
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
     }

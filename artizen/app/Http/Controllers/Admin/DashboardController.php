@@ -11,6 +11,9 @@ use App\Services\JsonStorageService;
 use App\Services\ImageOptimizationService;
 use Illuminate\Support\Facades\Log;
 use App\Models\Booking;
+use App\Http\Controllers\Admin\AdminCategoryController;
+use App\Http\Controllers\Admin\AdminPackageController;
+use App\Http\Controllers\Admin\AdminCmsController;
 
 class DashboardController extends Controller
 {
@@ -169,13 +172,19 @@ class DashboardController extends Controller
         $categoryStats = [];
         $packageStats = [];
         $upcomingEventsList = [];
+        $activePipelineEvents = [];
 
         foreach ($filteredBookings as $b) {
             $status = $b['status'] ?? 'Pending';
-            $price = (int)($b['total'] ?? $b['package_price'] ?? 0);
-            $bDate = !empty($b['date']) ? strtotime($b['date']) : 0;
-            $catName = $b['category'] ?? 'Event Setup';
-            $pkgName = $b['package'] ?? 'Custom Package';
+            $price = (int)($b['total'] ?? $b['total_amount'] ?? $b['package_price'] ?? 0);
+            $dateStr = $b['date'] ?? $b['event_date'] ?? null;
+            $bDate = !empty($dateStr) ? strtotime($dateStr) : 0;
+            $catName = $b['category_name'] ?? $b['category'] ?? 'Event Setup';
+            $pkgName = $b['package_name'] ?? $b['package'] ?? 'Celebration Package';
+            $custName = $b['customer_name'] ?? $b['name'] ?? 'Client';
+            $custMobile = $b['customer_mobile'] ?? $b['mobile'] ?? '';
+            $custWa = $b['customer_whatsapp'] ?? $b['whatsapp'] ?? $custMobile;
+            $timeStr = $b['event_time'] ?? $b['time'] ?? 'Flexible';
 
             if (strcasecmp($status, 'Pending') === 0) {
                 $pendingCount++;
@@ -207,9 +216,57 @@ class DashboardController extends Controller
                 $nonCancelledSum += $price;
             }
 
-            if (strcasecmp($status, 'Cancelled') !== 0 && $bDate >= $todayTimestamp) {
-                $upcomingCount++;
-                $upcomingEventsList[] = $b;
+            // Calculate timing badge
+            $daysDiff = $bDate > 0 ? (int)round(($bDate - $todayTimestamp) / 86400) : null;
+            $timingBadge = 'Scheduled';
+            if ($daysDiff !== null) {
+                if ($daysDiff === 0) {
+                    $timingBadge = 'TODAY';
+                } elseif ($daysDiff === 1) {
+                    $timingBadge = 'TOMORROW';
+                } elseif ($daysDiff > 1 && $daysDiff <= 7) {
+                    $timingBadge = "In {$daysDiff} days";
+                } elseif ($daysDiff > 7) {
+                    $timingBadge = date('d M', $bDate);
+                } elseif ($daysDiff === -1) {
+                    $timingBadge = 'Yesterday';
+                } else {
+                    $timingBadge = 'Past Event';
+                }
+            }
+
+            $normalizedEvent = array_merge($b, [
+                'id' => $b['id'] ?? '',
+                'name' => $custName,
+                'customer_name' => $custName,
+                'mobile' => $custMobile,
+                'customer_mobile' => $custMobile,
+                'whatsapp' => $custWa,
+                'customer_whatsapp' => $custWa,
+                'package' => $pkgName,
+                'package_name' => $pkgName,
+                'category' => $catName,
+                'category_name' => $catName,
+                'date' => $dateStr ?? 'TBD',
+                'event_date' => $dateStr ?? 'TBD',
+                'time' => $timeStr,
+                'event_time' => $timeStr,
+                'total' => $price,
+                'total_amount' => $price,
+                'status' => $status,
+                'timestamp' => $bDate,
+                'days_diff' => $daysDiff,
+                'timing_badge' => $timingBadge,
+                'is_future' => ($bDate >= $todayTimestamp),
+            ]);
+
+            if (strcasecmp($status, 'Cancelled') !== 0) {
+                $activePipelineEvents[] = $normalizedEvent;
+
+                if ($bDate >= $todayTimestamp) {
+                    $upcomingCount++;
+                    $upcomingEventsList[] = $normalizedEvent;
+                }
             }
 
             // Group Category Stats (excluding cancelled)
@@ -222,28 +279,75 @@ class DashboardController extends Controller
 
                 // Group Package Stats (excluding cancelled)
                 if (!isset($packageStats[$pkgName])) {
-                    $packageStats[$pkgName] = ['count' => 0, 'revenue' => 0];
+                    $packageStats[$pkgName] = [
+                        'count' => 0,
+                        'revenue' => 0,
+                        'category' => $catName,
+                    ];
                 }
                 $packageStats[$pkgName]['count']++;
                 $packageStats[$pkgName]['revenue'] += $price;
+                if (!empty($catName) && $catName !== 'Event Setup') {
+                    $packageStats[$pkgName]['category'] = $catName;
+                }
             }
         }
 
         // Average Booking Value: valid non-cancelled bookings sum / count
         $avgBookingValue = $nonCancelledCount > 0 ? (int)round($nonCancelledSum / $nonCancelledCount) : 0;
 
-        // Sort Top 5 Packages by count descending
-        uasort($packageStats, fn($a, $b) => $b['count'] <=> $a['count']);
+        // Sort Top 5 Packages by count descending, then revenue descending
+        uasort($packageStats, function($a, $b) {
+            if ($b['count'] === $a['count']) {
+                return $b['revenue'] <=> $a['revenue'];
+            }
+            return $b['count'] <=> $a['count'];
+        });
         $topPackages = array_slice($packageStats, 0, 5, true);
 
-        // Sort Upcoming Events by date ascending
-        usort($upcomingEventsList, fn($a, $b) => strtotime($a['date'] ?? '') <=> strtotime($b['date'] ?? ''));
-        $upcomingEventsList = array_slice($upcomingEventsList, 0, 10);
+        // Calculate share percentage for each top package
+        $maxPackageBookings = 0;
+        foreach ($topPackages as $pkg) {
+            if ($pkg['count'] > $maxPackageBookings) {
+                $maxPackageBookings = $pkg['count'];
+            }
+        }
+        foreach ($topPackages as $name => &$pkgData) {
+            $pkgData['percentage'] = $totalBookings > 0 ? round(($pkgData['count'] / $totalBookings) * 100, 1) : 0;
+            $pkgData['bar_width'] = $maxPackageBookings > 0 ? round(($pkgData['count'] / $maxPackageBookings) * 100) : 0;
+            $pkgData['avg_price'] = $pkgData['count'] > 0 ? (int)round($pkgData['revenue'] / $pkgData['count']) : 0;
+        }
+        unset($pkgData);
+
+        // Sort Upcoming Events by date ascending (closest first)
+        usort($upcomingEventsList, fn($a, $b) => ($a['timestamp'] ?? 0) <=> ($b['timestamp'] ?? 0));
+        $trueUpcomingCount = count($upcomingEventsList);
+
+        $isPipelineFallback = false;
+        if (!empty($upcomingEventsList)) {
+            $displayUpcomingEvents = array_slice($upcomingEventsList, 0, 10);
+        } elseif (!empty($activePipelineEvents)) {
+            // Graceful fallback to recent active bookings so the schedule view is never a dead empty screen
+            usort($activePipelineEvents, fn($a, $b) => ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0));
+            $displayUpcomingEvents = array_slice($activePipelineEvents, 0, 10);
+            $isPipelineFallback = true;
+        } else {
+            $displayUpcomingEvents = [];
+        }
 
         // Recent Activity sorted by creation timestamp descending
         $recentActivity = $filteredBookings;
         usort($recentActivity, fn($a, $b) => strtotime($b['created_at'] ?? $b['date'] ?? '') <=> strtotime($a['created_at'] ?? $a['date'] ?? ''));
         $recentActivity = array_slice($recentActivity, 0, 8);
+
+        // Compute Status Percentages
+        $statusPercentages = [
+            'pending' => $totalBookings > 0 ? round(($pendingCount / $totalBookings) * 100, 1) : 0,
+            'contacted' => $totalBookings > 0 ? round(($contactedCount / $totalBookings) * 100, 1) : 0,
+            'confirmed' => $totalBookings > 0 ? round(($confirmedCount / $totalBookings) * 100, 1) : 0,
+            'completed' => $totalBookings > 0 ? round(($completedCount / $totalBookings) * 100, 1) : 0,
+            'cancelled' => $totalBookings > 0 ? round(($cancelledCount / $totalBookings) * 100, 1) : 0,
+        ];
 
         return [
             'time_filter' => $timeFilter,
@@ -255,13 +359,16 @@ class DashboardController extends Controller
             'confirmed_count' => $confirmedCount,
             'completed_count' => $completedCount,
             'cancelled_count' => $cancelledCount,
+            'status_percentages' => $statusPercentages,
             'pipeline_value' => $pipelineValue,
             'confirmed_revenue' => $confirmedRevenue,
             'avg_booking_value' => $avgBookingValue,
             'upcoming_count' => $upcomingCount,
+            'true_upcoming_count' => $trueUpcomingCount,
+            'is_pipeline_fallback' => $isPipelineFallback,
             'category_stats' => $categoryStats,
             'top_packages' => $topPackages,
-            'upcoming_events' => $upcomingEventsList,
+            'upcoming_events' => $displayUpcomingEvents,
             'recent_activity' => $recentActivity,
             'total_customers' => \App\Models\Customer::count(),
         ];
@@ -270,79 +377,11 @@ class DashboardController extends Controller
     /**
      * Save dynamic CMS settings.
     /**
-     * Save Hero Banners.
+     * Save Hero Banners (delegated to AdminCmsController).
      */
     public function saveHeroSlides(Request $request)
     {
-        $request->validate([
-            'hero_slides'                 => ['nullable', 'array'],
-            'hero_slides.*.id'            => ['nullable'],
-            'hero_slides.*.image_file'    => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'],
-            'hero_slides.*.image'         => ['nullable', 'string', 'max:255'],
-            'hero_slides.*.badge'         => ['nullable', 'string', 'max:100'],
-            'hero_slides.*.title'         => ['nullable', 'string', 'max:255'],
-            'hero_slides.*.desc'          => [
-                'nullable',
-                'string',
-                function ($attribute, $value, $fail) {
-                    $cleaned = trim(strip_tags((string)$value));
-                    $wordCount = $cleaned === '' ? 0 : count(preg_split('/\s+/', $cleaned));
-                    if ($wordCount > 50) {
-                        $fail("The description must not exceed 50 words (currently {$wordCount} words).");
-                    }
-                },
-            ],
-            'hero_slides.*.btn1Text'      => ['nullable', 'string', 'max:100'],
-            'hero_slides.*.link1'         => ['nullable', 'string', 'max:255'],
-            'hero_slides.*.btn2Text'      => ['nullable', 'string', 'max:100'],
-            'hero_slides.*.link2'         => ['nullable', 'string', 'max:255'],
-            'hero_slides.*.display_order' => ['nullable', 'integer'],
-        ]);
-
-        $currentCms = JsonStorageService::read('cms.json', []);
-        $heroSlidesInput = $request->input('hero_slides', []);
-        $heroSlides = [];
-
-        foreach ($heroSlidesInput as $idx => $slideData) {
-            if ($request->hasFile("hero_slides.{$idx}.image_file")) {
-                try {
-                    $slideData['image'] = app(ImageOptimizationService::class)->optimize(
-                        file: $request->file("hero_slides.{$idx}.image_file"),
-                        targetSubdir: 'uploads',
-                        profile: 'hero_slide',
-                        prefix: 'hero_' . $idx,
-                        quality: ImageOptimizationService::DEFAULT_QUALITY
-                    );
-                } catch (\Throwable $e) {
-                    Log::warning("Hero slide {$idx} optimization failed: " . $e->getMessage());
-                    $slideData['image'] = $slideData['image'] ?? ($currentCms['hero_slides'][$idx]['image'] ?? '/assets/images/hero/1.jpg');
-                }
-            } else {
-                $slideData['image'] = $slideData['image'] ?? ($currentCms['hero_slides'][$idx]['image'] ?? '/assets/images/hero/1.jpg');
-            }
-            unset($slideData['image_file']);
-            unset($slideData['badge']);
-
-            $slideData['id'] = !empty($slideData['id']) ? (int)$slideData['id'] : null;
-            $slideData['title'] = trim((string)($slideData['title'] ?? ''));
-            $slideData['desc'] = trim(strip_tags((string)($slideData['desc'] ?? '')));
-            $slideData['btn1Text'] = trim((string)($slideData['btn1Text'] ?? 'Explore Packages'));
-            $slideData['link1'] = trim((string)($slideData['link1'] ?? '/events'));
-
-            if (isset($slideData['is_active'])) {
-                $slideData['is_active'] = in_array($slideData['is_active'], [true, 1, '1', 'on', 'true'], true);
-            } else {
-                $slideData['is_active'] = true;
-            }
-
-            $slideData['display_order'] = (int)($slideData['display_order'] ?? $idx);
-            $heroSlides[] = $slideData;
-        }
-
-        $currentCms['hero_slides'] = $heroSlides;
-        JsonStorageService::write('cms.json', $currentCms);
-
-        return redirect()->route('admin.hero')->with('success', 'Hero banners updated successfully!');
+        return app(AdminCmsController::class)->saveHeroSlides($request);
     }
 
     /**
@@ -350,209 +389,23 @@ class DashboardController extends Controller
      */
     public function saveOffers(Request $request)
     {
-        $request->validate([
-            'offers'                        => ['nullable', 'array'],
-            'offers.section_title'          => ['nullable', 'string', 'max:150'],
-            'offers.items'                  => ['nullable', 'array'],
-            'offers.items.*.category_name'  => ['nullable', 'string', 'max:150'],
-            'offers.items.*.discount_title' => ['nullable', 'string', 'max:100'],
-            'offers.items.*.subheading'     => ['nullable', 'string', 'max:150'],
-            'offers.items.*.terms'          => ['nullable', 'string', 'max:255'],
-            'offers.items.*.link'           => ['nullable', 'string', 'max:255'],
-            'offers.items.*.icon'           => ['nullable', 'string', 'max:100'],
-            'offers.items.*.icon_color'     => ['nullable', 'string', 'max:50'],
-        ]);
-
-        $currentCms = JsonStorageService::read('cms.json', []);
-        $offersInput = $request->input('offers', []);
-        $items = [];
-
-        foreach ($offersInput['items'] ?? [] as $oIdx => $item) {
-            $items[] = [
-                'id'             => !empty($item['id']) ? (int)$item['id'] : ($oIdx + 1),
-                'category_name'  => trim($item['category_name'] ?? 'Celebration Offer'),
-                'icon'           => trim($item['icon'] ?? 'fa-solid fa-cake-candles'),
-                'icon_color'     => trim($item['icon_color'] ?? 'text-amber-600'),
-                'subheading'     => trim($item['subheading'] ?? ''),
-                'discount_title' => trim($item['discount_title'] ?? 'Special Offer'),
-                'terms'          => trim($item['terms'] ?? 'T&C Apply'),
-                'link'           => trim($item['link'] ?? '/events'),
-                'is_active'      => isset($item['is_active']) ? (bool)$item['is_active'] : true,
-                'display_order'  => (int)($item['display_order'] ?? ($oIdx + 1)),
-            ];
-        }
-
-        $currentCms['offers'] = [
-            'section_title' => trim($offersInput['section_title'] ?? 'Save More with Offers'),
-            'is_active'     => isset($offersInput['is_active']) ? (bool)$offersInput['is_active'] : true,
-            'items'         => $items,
-        ];
-
-        JsonStorageService::write('cms.json', $currentCms);
-
-        return redirect()->route('admin.offers')->with('success', 'Offers section updated successfully!');
+        return app(AdminCmsController::class)->saveOffers($request);
     }
 
     /**
-     * Save Promise Banner.
+     * Save Promise Banner (delegated to AdminCmsController).
      */
     public function savePromiseBanner(Request $request)
     {
-        $request->validate([
-            'promise_banner'            => ['nullable', 'array'],
-            'promise_banner.image_file' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'],
-            'promise_banner.title'      => ['nullable', 'string', 'max:255'],
-            'promise_banner.link'       => ['nullable', 'string', 'max:255'],
-        ]);
-
-        $currentCms = JsonStorageService::read('cms.json', []);
-        $pbInput = $request->input('promise_banner', []);
-        $pbImage = $pbInput['image'] ?? ($currentCms['promise_banner']['image'] ?? '/images/banners/artizen-promise-banner.webp');
-
-        if ($request->hasFile('promise_banner.image_file')) {
-            try {
-                $pbImage = app(ImageOptimizationService::class)->optimize(
-                    file: $request->file('promise_banner.image_file'),
-                    targetSubdir: 'uploads',
-                    profile: 'hero_slide',
-                    prefix: 'promise_banner',
-                    quality: ImageOptimizationService::DEFAULT_QUALITY
-                );
-            } catch (\Throwable $e) {
-                Log::warning("Promise banner optimization failed: " . $e->getMessage());
-            }
-        }
-
-        $currentCms['promise_banner'] = [
-            'image'     => $pbImage,
-            'title'     => trim($pbInput['title'] ?? 'Artizen Promise'),
-            'link'      => trim($pbInput['link'] ?? '/events'),
-            'is_active' => isset($pbInput['is_active']) ? (bool)$pbInput['is_active'] : true,
-        ];
-
-        JsonStorageService::write('cms.json', $currentCms);
-
-        return redirect()->route('admin.promise-banner')->with('success', 'Promise banner updated successfully!');
+        return app(AdminCmsController::class)->savePromiseBanner($request);
     }
 
     /**
-     * Save dynamic CMS settings (backward-compatible master handler).
+     * Save dynamic CMS settings (delegated to AdminCmsController).
      */
     public function saveCms(Request $request)
     {
-        $request->validate([
-            'hero_slides'                      => ['nullable', 'array'],
-            'hero_slides.*.id'                 => ['nullable'],
-            'hero_slides.*.image_file'         => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'],
-            'hero_slides.*.badge'              => ['nullable', 'string', 'max:100'],
-            'hero_slides.*.title'              => ['nullable', 'string', 'max:255'],
-            'hero_slides.*.desc'               => ['nullable', 'string'],
-            'hero_slides.*.btn1Text'           => ['nullable', 'string', 'max:100'],
-            'hero_slides.*.link1'              => ['nullable', 'string', 'max:255'],
-            'hero_slides.*.btn2Text'           => ['nullable', 'string', 'max:100'],
-            'hero_slides.*.link2'              => ['nullable', 'string', 'max:255'],
-            'offers'                           => ['nullable', 'array'],
-            'offers.section_title'             => ['nullable', 'string', 'max:150'],
-            'offers.items'                     => ['nullable', 'array'],
-            'offers.items.*.category_name'     => ['nullable', 'string', 'max:150'],
-            'offers.items.*.discount_title'    => ['nullable', 'string', 'max:100'],
-            'offers.items.*.subheading'        => ['nullable', 'string', 'max:150'],
-            'offers.items.*.terms'             => ['nullable', 'string', 'max:255'],
-            'offers.items.*.link'              => ['nullable', 'string', 'max:255'],
-            'promise_banner'                   => ['nullable', 'array'],
-            'promise_banner.image_file'        => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'],
-            'promise_banner.title'             => ['nullable', 'string', 'max:255'],
-            'promise_banner.link'              => ['nullable', 'string', 'max:255'],
-        ]);
-
-        $currentCms = JsonStorageService::read('cms.json', []);
-
-        // 1. Process Hero Slides if provided in request
-        if ($request->has('hero_slides')) {
-            $heroSlidesInput = $request->input('hero_slides', []);
-            $heroSlides = [];
-
-            foreach ($heroSlidesInput as $idx => $slideData) {
-                if ($request->hasFile("hero_slides.{$idx}.image_file")) {
-                    try {
-                        $slideData['image'] = app(ImageOptimizationService::class)->optimize(
-                            file: $request->file("hero_slides.{$idx}.image_file"),
-                            targetSubdir: 'uploads',
-                            profile: 'hero_slide',
-                            prefix: 'hero_' . $idx,
-                            quality: ImageOptimizationService::DEFAULT_QUALITY
-                        );
-                    } catch (\Throwable $e) {
-                        Log::warning("Hero slide {$idx} optimization failed: " . $e->getMessage());
-                        $slideData['image'] = $slideData['image'] ?? ($currentCms['hero_slides'][$idx]['image'] ?? '/assets/images/hero/1.jpg');
-                    }
-                } else {
-                    $slideData['image'] = $slideData['image'] ?? ($currentCms['hero_slides'][$idx]['image'] ?? '/assets/images/hero/1.jpg');
-                }
-                unset($slideData['image_file']);
-                $slideData['id'] = !empty($slideData['id']) ? (int)$slideData['id'] : null;
-                $slideData['is_active'] = isset($slideData['is_active']) ? (bool)$slideData['is_active'] : true;
-                $slideData['display_order'] = (int)($slideData['display_order'] ?? $idx);
-                $heroSlides[] = $slideData;
-            }
-            $currentCms['hero_slides'] = $heroSlides;
-        }
-
-        // 2. Process Offers if provided in request
-        if ($request->has('offers')) {
-            $offersInput = $request->input('offers', []);
-            $items = [];
-            foreach ($offersInput['items'] ?? [] as $oIdx => $item) {
-                $items[] = [
-                    'id'             => (int)($item['id'] ?? ($oIdx + 1)),
-                    'category_name'  => trim($item['category_name'] ?? 'Celebration Offer'),
-                    'icon'           => trim($item['icon'] ?? 'fa-solid fa-tag'),
-                    'icon_color'     => trim($item['icon_color'] ?? 'text-amber-600'),
-                    'subheading'     => trim($item['subheading'] ?? ''),
-                    'discount_title' => trim($item['discount_title'] ?? 'Special Offer'),
-                    'terms'          => trim($item['terms'] ?? 'T&C Apply'),
-                    'link'           => trim($item['link'] ?? '/events'),
-                    'is_active'      => isset($item['is_active']) ? (bool)$item['is_active'] : true,
-                    'display_order'  => (int)($item['display_order'] ?? ($oIdx + 1)),
-                ];
-            }
-
-            $currentCms['offers'] = [
-                'section_title' => trim($offersInput['section_title'] ?? 'Save More with Offers'),
-                'is_active'     => isset($offersInput['is_active']) ? (bool)$offersInput['is_active'] : true,
-                'items'         => $items,
-            ];
-        }
-
-        // 3. Process Promise Banner if provided in request
-        if ($request->has('promise_banner')) {
-            $pbInput = $request->input('promise_banner', []);
-            $pbImage = $pbInput['image'] ?? ($currentCms['promise_banner']['image'] ?? '/images/banners/artizen-promise-banner.webp');
-
-            if ($request->hasFile('promise_banner.image_file')) {
-                try {
-                    $pbImage = app(ImageOptimizationService::class)->optimize(
-                        file: $request->file('promise_banner.image_file'),
-                        targetSubdir: 'uploads',
-                        profile: 'hero_slide',
-                        prefix: 'promise_banner',
-                        quality: ImageOptimizationService::DEFAULT_QUALITY
-                    );
-                } catch (\Throwable $e) {
-                    Log::warning("Promise banner optimization failed: " . $e->getMessage());
-                }
-            }
-
-            $currentCms['promise_banner'] = [
-                'image'     => $pbImage,
-                'title'     => trim($pbInput['title'] ?? 'Artizen Promise'),
-                'link'      => trim($pbInput['link'] ?? '/events'),
-                'is_active' => isset($pbInput['is_active']) ? (bool)$pbInput['is_active'] : true,
-            ];
-        }
-
-        JsonStorageService::write('cms.json', $currentCms);
-        return redirect()->route('admin.hero')->with('success', 'Homepage CMS configuration updated successfully!');
+        return app(AdminCmsController::class)->saveCms($request);
     }
 
     /**
@@ -658,619 +511,35 @@ class DashboardController extends Controller
     }
 
     /**
-     * Save dynamic categories.
+     * Save dynamic categories (delegated to AdminCategoryController).
      */
     public function saveCategory(Request $request)
     {
-        $request->validate([
-            'title'               => 'required|string|max:255',
-            'nav_slug'            => 'nullable|string|max:100',
-            'icon'                => 'nullable|string|max:100',
-            'bg_color'            => 'nullable|string|max:20',
-            'dropdown_badge'      => 'nullable|string|max:100',
-            'display_order'       => 'nullable|integer',
-            'slider_image_file'   => 'nullable|file|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
-            'dropdown_image_file' => 'nullable|file|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
-        ]);
-
-        $allowedImageExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-        $id = $request->input('id');
-        $targetOrder = max(1, (int) $request->input('display_order', 1));
-        $dbCat = null;
-
-        // ------------------------------------------------------------------
-        // Shift existing category display orders
-        // ------------------------------------------------------------------
-        if (!$id) {
-            // New category: shift any existing categories at or after $targetOrder by +1
-            \App\Models\Category::where('display_order', '>=', $targetOrder)
-                ->increment('display_order');
-        } else {
-            // Existing category: shift intermediate categories
-            $dbCat = \App\Models\Category::find($id);
-            if ($dbCat) {
-                $oldOrder = (int) $dbCat->display_order;
-                if ($oldOrder !== $targetOrder) {
-                    if ($targetOrder < $oldOrder) {
-                        // Moving up (e.g. from 5 to 1): shift intermediate items down (+1)
-                        \App\Models\Category::where('id', '!=', $dbCat->id)
-                            ->where('display_order', '>=', $targetOrder)
-                            ->where('display_order', '<', $oldOrder)
-                            ->increment('display_order');
-                    } else {
-                        // Moving down (e.g. from 1 to 5): shift intermediate items up (-1)
-                        \App\Models\Category::where('id', '!=', $dbCat->id)
-                            ->where('display_order', '>', $oldOrder)
-                            ->where('display_order', '<=', $targetOrder)
-                            ->decrement('display_order');
-                    }
-                }
-            }
-        }
-
-        // ------------------------------------------------------------------
-        // Build DB payload
-        // ------------------------------------------------------------------
-        $dbPayload = [
-            'title'          => trim($request->input('title')),
-            'icon'           => $request->input('icon', null),
-            'bg_color'       => $request->input('bg_color', '#F6CFB2'),
-            'nav_slug'       => $request->input('nav_slug', null),
-            'dropdown_badge' => $request->input('dropdown_badge', null),
-            'display_order'  => $targetOrder,
-            'active'         => $request->boolean('active', true),
-        ];
-
-        // Slider Image upload or URL
-        if ($request->hasFile('slider_image_file')) {
-            try {
-                $dbPayload['slider_image'] = app(ImageOptimizationService::class)->optimize(
-                    file: $request->file('slider_image_file'),
-                    targetSubdir: 'uploads/categories',
-                    profile: 'category',
-                    prefix: 'slider',
-                    quality: ImageOptimizationService::DEFAULT_QUALITY
-                );
-            } catch (\Throwable $e) {
-                Log::warning('Slider image optimization failed: ' . $e->getMessage());
-                return redirect()->back()->withInput()->with('error', 'Slider image processing failed: ' . $e->getMessage());
-            }
-        } else {
-            $dbPayload['slider_image'] = $request->input('slider_image') ?: null;
-        }
-
-        // Dropdown Image upload or URL
-        if ($request->hasFile('dropdown_image_file')) {
-            try {
-                $dbPayload['dropdown_image'] = app(ImageOptimizationService::class)->optimize(
-                    file: $request->file('dropdown_image_file'),
-                    targetSubdir: 'uploads/categories',
-                    profile: 'category',
-                    prefix: 'dropdown',
-                    quality: ImageOptimizationService::DEFAULT_QUALITY
-                );
-            } catch (\Throwable $e) {
-                Log::warning('Dropdown image optimization failed: ' . $e->getMessage());
-                return redirect()->back()->withInput()->with('error', 'Dropdown image processing failed: ' . $e->getMessage());
-            }
-        } else {
-            $dbPayload['dropdown_image'] = $request->input('dropdown_image') ?: null;
-        }
-
-        // ------------------------------------------------------------------
-        // Persist to DB
-        // ------------------------------------------------------------------
-        if ($id) {
-            if ($dbCat) {
-                $dbCat->update($dbPayload);
-            } else {
-                $dbCat = \App\Models\Category::find($id);
-                if ($dbCat) $dbCat->update($dbPayload);
-            }
-        } else {
-            $dbPayload['slug'] = \Illuminate\Support\Str::slug($dbPayload['title']) . '-' . time();
-            $dbPayload['count'] = 0;
-            $dbCat = \App\Models\Category::create($dbPayload);
-        }
-
-        // Normalize full sequence to guarantee contiguous 1, 2, 3, ... N
-        $allCategories = \App\Models\Category::orderBy('display_order')->orderBy('updated_at', 'desc')->get();
-        foreach ($allCategories as $index => $catItem) {
-            $expected = $index + 1;
-            if ($catItem->display_order != $expected) {
-                $catItem->update(['display_order' => $expected]);
-            }
-        }
-
-        // ------------------------------------------------------------------
-        // Handle Subcategories JSON (Strictly capped to 18 for mega-menu balance)
-        // ------------------------------------------------------------------
-        $subcatsJson = $request->input('subcategories_json', null);
-        if ($subcatsJson && $dbCat) {
-            $subcats = json_decode($subcatsJson, true);
-            if (is_array($subcats)) {
-                // Strict limit: maximum 18 subcategories (3 columns x 6 links max) to prevent navbar overflow
-                $subcats = array_slice($subcats, 0, 18);
-                $existingIds = [];
-                foreach ($subcats as $idx => $sub) {
-                    $name = trim($sub['name'] ?? '');
-                    if (!$name) continue;
-                    $group = trim($sub['group_name'] ?? '');
-                    if (!$group) {
-                        $group = 'Setup Themes'; // Always guarantee a valid group name
-                    }
-                    $subModel = \App\Models\Subcategory::updateOrCreate(
-                        ['category_id' => $dbCat->id, 'name' => $name],
-                        [
-                            'slug'          => \Illuminate\Support\Str::slug($name),
-                            'group_name'    => $group,
-                            'badge'         => trim($sub['badge'] ?? '') ?: null,
-                            'display_order' => $idx + 1,
-                            'is_active'     => true,
-                        ]
-                    );
-                    $existingIds[] = $subModel->id;
-                }
-                // Remove subcategories not in the updated list
-                if (!empty($existingIds)) {
-                    \App\Models\Subcategory::where('category_id', $dbCat->id)
-                        ->whereNotIn('id', $existingIds)
-                        ->delete();
-                }
-            }
-        }
-
-        // ------------------------------------------------------------------
-        // Also maintain JSON legacy fallback (for JSON storage driver mode)
-        // ------------------------------------------------------------------
-        $path = storage_path('app/categories.json');
-        $categories = [];
-        if (File::exists($path)) {
-            $categories = json_decode(File::get($path), true) ?? [];
-        }
-
-        $catData = [
-            'id'     => $dbCat ? $dbCat->id : time(),
-            'title'  => $dbPayload['title'],
-            'active' => $dbPayload['active'],
-            'image'  => $dbPayload['slider_image'] ?? ($categories[0]['image'] ?? ''),
-        ];
-
-        $existingIndex = -1;
-        foreach ($categories as $index => $c) {
-            if ((string)($c['id'] ?? '') === (string)($id ?? '')) {
-                $existingIndex = $index;
-                break;
-            }
-        }
-        if ($existingIndex !== -1) {
-            $categories[$existingIndex] = array_merge($categories[$existingIndex], $catData);
-        } else {
-            $catData['count'] = 0;
-            $categories[] = $catData;
-        }
-        JsonStorageService::write('categories.json', $categories);
-        \App\Services\CelebrationCatalogService::clearCache();
-
-        return redirect()->route('admin.categories')->with('success', 'Category saved successfully!');
+        return app(AdminCategoryController::class)->saveCategory($request);
     }
 
     /**
-     * Render the create package page.
+     * Render the create package page (delegated to AdminPackageController).
      */
     public function createPackagePage()
     {
-        $categories = JsonStorageService::read('categories.json');
-
-        return view('admin.packages.edit', [
-            'categories' => $categories,
-            'isEdit' => false,
-            'catId' => null,
-            'tierIdx' => null,
-            'tier' => [
-                'name' => '',
-                'slug' => '',
-                'badge' => 'PREMIUM PACKAGE',
-                'sub_category' => 'decor',
-                'display_order' => 1,
-                'switches' => [
-                    'featured' => false,
-                    'recommended' => false,
-                    'popular' => false,
-                    'best_seller' => false,
-                    'trending' => false
-                ],
-                'internal_notes' => '',
-                'price' => '',
-                'original_price' => '',
-                'discount_pct' => 0,
-                'advance_deposit' => 2000,
-                'setup_charge' => 0,
-                'travel_charge' => 0,
-                'extra_guest_rate' => 150,
-                'gst_pct' => 18,
-                'gst_inclusive' => true,
-                'short_desc' => '',
-                'detailed_desc' => '',
-                'highlights' => [],
-                'important_notes' => '',
-                'terms' => '',
-                'specifications' => [
-                    'guest_capacity' => '50 - 100 Guests',
-                    'setup_time' => '3-4 Hours',
-                    'duration' => '4-5 Hours',
-                    'space_req' => '12ft x 8ft Stage',
-                    'location_type' => 'Indoor & Outdoor',
-                    'power_req' => '220V 15A Power Socket',
-                    'crew_count' => '3 Members'
-                ],
-                'video_url' => '',
-                'virtual_tour_url' => '',
-                'pdf_brochure' => '',
-                'exclusions' => [],
-                'addons' => [],
-                'faqs' => [],
-                'seo' => [
-                    'meta_title' => '',
-                    'meta_description' => '',
-                    'meta_keywords' => ''
-                ],
-                'availability' => [
-                    'lead_time_hours' => 24,
-                    'max_daily_bookings' => 3
-                ],
-                'service_area' => [
-                    'city' => 'Indore',
-                    'outstation_allowed' => true,
-                    'outstation_charge' => 1500
-                ],
-                'status' => 'published',
-                'desc' => '',
-                'inclusions' => [],
-                'image' => '/assets/images/hero/1.jpg'
-            ]
-        ]);
+        return app(AdminPackageController::class)->createPackagePage();
     }
 
     /**
-     * Render the edit package page.
+     * Render the edit package page (delegated to AdminPackageController).
      */
     public function editPackagePage($catId, $tierIdx)
     {
-        $categoriesPath = storage_path('app/categories.json');
-        $categories = [];
-        if (File::exists($categoriesPath)) {
-            $categories = json_decode(File::get($categoriesPath), true) ?? [];
-        }
-
-        $packagesPath = storage_path('app/packages.json');
-        $tier = null;
-        if (File::exists($packagesPath)) {
-            $packages = json_decode(File::get($packagesPath), true) ?? [];
-            if (isset($packages[$catId]['tiers'][$tierIdx])) {
-                $tier = $packages[$catId]['tiers'][$tierIdx];
-            }
-        }
-
-        if (!$tier) {
-            return redirect()->route('admin.packages')->with('error', 'Package tier plan not found!');
-        }
-
-        // Apply defaults for Phase 1 basic information fields if not set
-        $tier['slug'] = $tier['slug'] ?? \Illuminate\Support\Str::slug($tier['name'] ?? '');
-        $tier['badge'] = $tier['badge'] ?? 'PREMIUM PACKAGE';
-        $tier['sub_category'] = $tier['sub_category'] ?? 'decor';
-        $tier['display_order'] = $tier['display_order'] ?? 1;
-        $tier['switches'] = $tier['switches'] ?? [
-            'featured' => false,
-            'recommended' => false,
-            'popular' => false,
-            'best_seller' => false,
-            'trending' => false
-        ];
-        $tier['internal_notes'] = $tier['internal_notes'] ?? '';
-
-        // Apply defaults for Phase 2 Pricing matrix fields if not set
-        $tier['original_price'] = $tier['original_price'] ?? ($tier['price'] ? (int)round($tier['price'] * 1.25) : '');
-        $tier['discount_pct'] = $tier['discount_pct'] ?? (($tier['original_price'] && $tier['price']) ? (int)round((($tier['original_price'] - $tier['price']) / $tier['original_price']) * 100) : 0);
-        $tier['advance_deposit'] = $tier['advance_deposit'] ?? (int)round(($tier['price'] ?? 0) * 0.2);
-        $tier['setup_charge'] = $tier['setup_charge'] ?? 0;
-        $tier['travel_charge'] = $tier['travel_charge'] ?? 0;
-        $tier['extra_guest_rate'] = $tier['extra_guest_rate'] ?? 150;
-        $tier['gst_pct'] = $tier['gst_pct'] ?? 18;
-        $tier['gst_inclusive'] = $tier['gst_inclusive'] ?? true;
-
-        // Apply defaults for Phase 3 Descriptions & Guidelines fields if not set
-        $tier['short_desc'] = $tier['short_desc'] ?? ($tier['desc'] ?? '');
-        $tier['detailed_desc'] = $tier['detailed_desc'] ?? ($tier['desc'] ?? '');
-        $tier['highlights'] = $tier['highlights'] ?? [];
-        $tier['important_notes'] = $tier['important_notes'] ?? '';
-        $tier['terms'] = $tier['terms'] ?? '';
-
-        // Apply defaults for Phase 4 Technical Specifications if not set
-        $tier['specifications'] = array_merge([
-            'guest_capacity' => '50 - 100 Guests',
-            'setup_time' => '3-4 Hours',
-            'duration' => '4-5 Hours',
-            'space_req' => '12ft x 8ft Stage',
-            'location_type' => 'Indoor & Outdoor',
-            'power_req' => '220V 15A Power Socket',
-            'crew_count' => '3 Members'
-        ], $tier['specifications'] ?? []);
-
-        // Apply defaults for Phase 5 Gallery & Media fields if not set
-        $tier['video_url'] = $tier['video_url'] ?? '';
-        $tier['virtual_tour_url'] = $tier['virtual_tour_url'] ?? '';
-        $tier['pdf_brochure'] = $tier['pdf_brochure'] ?? '';
-
-        // Apply defaults for remaining modules (exclusions, addons, faqs, seo, availability, service_area, status)
-        $tier['exclusions'] = $tier['exclusions'] ?? [];
-        $tier['addons'] = $tier['addons'] ?? [];
-        $tier['faqs'] = $tier['faqs'] ?? [];
-        $tier['seo'] = array_merge([
-            'meta_title' => $tier['name'] ?? '',
-            'meta_description' => $tier['short_desc'] ?? ($tier['desc'] ?? ''),
-            'meta_keywords' => 'event decoration indore, birthday package'
-        ], $tier['seo'] ?? []);
-        $tier['availability'] = array_merge([
-            'lead_time_hours' => 24,
-            'max_daily_bookings' => 3
-        ], $tier['availability'] ?? []);
-        $tier['service_area'] = array_merge([
-            'city' => 'Indore',
-            'outstation_allowed' => true,
-            'outstation_charge' => 1500
-        ], $tier['service_area'] ?? []);
-        $tier['status'] = $tier['status'] ?? 'published';
-
-        // Ensure gallery array has at least 4 items for UI preview
-        $gallery = $tier['gallery'] ?? [];
-        if (!is_array($gallery)) $gallery = [$tier['image'] ?? '/assets/images/hero/1.jpg'];
-        while (count($gallery) < 4) {
-            $gallery[] = $tier['image'] ?? '/assets/images/hero/1.jpg';
-        }
-        $tier['gallery'] = array_slice($gallery, 0, 4);
-
-        return view('admin.packages.edit', [
-            'categories' => $categories,
-            'isEdit' => true,
-            'catId' => $catId,
-            'tierIdx' => $tierIdx,
-            'tier' => $tier
-        ]);
+        return app(AdminPackageController::class)->editPackagePage($catId, $tierIdx);
     }
 
     /**
-     * Save/Create a package and its tiers in MySQL database and sync subcategories.
+     * Save/Create a package (delegated to AdminPackageController).
      */
     public function savePackage(Request $request)
     {
-        $request->validate([
-            'title'           => 'required|string|max:255',
-            'category_id'     => 'required|exists:categories,id',
-            'slug'            => 'nullable|string|max:255',
-            'badge'           => 'nullable|string|max:50',
-            'tag'             => 'nullable|string|max:50',
-            'recipients'      => 'nullable',
-            'price'           => 'nullable|numeric|min:0',
-            'original_price'  => 'nullable|numeric|min:0',
-            'description'     => 'nullable|string',
-            'image_file'      => 'nullable|file|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
-            'gallery_files'   => 'nullable|array|max:10',
-            'gallery_files.*' => 'nullable|file|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
-        ]);
-
-        $id = $request->input('id') ?: $request->input('package_id');
-        $title = trim($request->input('title'));
-        $slug = $request->input('slug') ? Str::slug($request->input('slug')) : Str::slug($title);
-
-        // Ensure unique slug
-        $existingSlug = \App\Models\Package::where('slug', $slug)
-            ->when($id, fn($q) => $q->where('id', '!=', $id))
-            ->exists();
-        if ($existingSlug) {
-            $slug .= '-' . time();
-        }
-
-        $package = $id ? \App\Models\Package::findOrFail($id) : new \App\Models\Package();
-
-        // 1. Process Main Cover Image
-        $image = $request->input('image') ?: null;
-        if ($request->hasFile('image_file')) {
-            try {
-                $image = app(ImageOptimizationService::class)->optimize(
-                    file: $request->file('image_file'),
-                    targetSubdir: 'uploads/packages',
-                    profile: 'package',
-                    prefix: 'pkg',
-                    quality: ImageOptimizationService::DEFAULT_QUALITY
-                );
-            } catch (\Throwable $e) {
-                Log::warning('Package cover image optimization failed: ' . $e->getMessage());
-                return redirect()->back()->withInput()->with('error', 'Package image processing failed: ' . $e->getMessage());
-            }
-        }
-
-        // 2. Process Gallery Banners
-        $galleryImages = [];
-        $galleryInputs = $request->input('gallery', []);
-        $galleryFiles  = $request->file('gallery_files', []);
-
-        for ($i = 0; $i < 4; $i++) {
-            if (isset($galleryFiles[$i]) && $galleryFiles[$i]->isValid()) {
-                try {
-                    $galleryImages[] = app(ImageOptimizationService::class)->optimize(
-                        file: $galleryFiles[$i],
-                        targetSubdir: 'uploads/packages',
-                        profile: 'gallery',
-                        prefix: 'pkg_gal_' . $i,
-                        quality: ImageOptimizationService::DEFAULT_QUALITY
-                    );
-                } catch (\Throwable $e) {
-                    Log::warning("Package gallery image {$i} optimization failed: " . $e->getMessage());
-                    if (!empty($galleryInputs[$i])) {
-                        $galleryImages[] = trim($galleryInputs[$i]);
-                    }
-                }
-            } elseif (!empty($galleryInputs[$i])) {
-                $galleryImages[] = trim($galleryInputs[$i]);
-            }
-        }
-        $galleryImages = array_values(array_filter($galleryImages));
-
-        // 3. Populate and Save Package
-        $package->category_id    = (int) $request->input('category_id');
-        $package->title          = $title;
-        $package->slug           = $slug;
-        $package->description    = $request->input('description', '');
-        $package->price          = $request->input('price') ? (float)$request->input('price') : null;
-        $package->original_price = $request->input('original_price') ? (float)$request->input('original_price') : null;
-        $package->badge          = $request->input('badge') ?: null;
-        $package->tag            = $request->input('tag', 'decor');
-        $recipientsInput         = $request->input('recipients', []);
-        if (is_string($recipientsInput)) {
-            $recipientsInput = json_decode($recipientsInput, true) ?? [];
-        }
-        $package->recipients     = !empty($recipientsInput) ? array_values(array_filter(array_map('trim', (array)$recipientsInput))) : null;
-        $package->image          = $image;
-        $package->gallery        = !empty($galleryImages) ? $galleryImages : null;
-        $package->active         = $request->boolean('active', true);
-        $package->save();
-
-        // 4. Sync Subcategories Pivot
-        $subcatIds = $request->input('subcategories', []);
-        if (is_string($subcatIds)) {
-            $subcatIds = json_decode($subcatIds, true) ?? [];
-        }
-        $validSubcatIds = \App\Models\Subcategory::whereIn('id', (array)$subcatIds)
-            ->where('category_id', $package->category_id)
-            ->pluck('id')
-            ->toArray();
-        $package->subcategories()->sync($validSubcatIds);
-
-        // 5. Process Tiers
-        $tiersInput = $request->input('tiers', []);
-        if (is_string($tiersInput)) {
-            $tiersInput = json_decode($tiersInput, true) ?? [];
-        }
-
-        if (!empty($tiersInput) && is_array($tiersInput)) {
-            $existingTierIds = [];
-            foreach ($tiersInput as $idx => $t) {
-                if (empty($t['name'])) continue;
-                $tierSlug = Str::slug($t['name']) . '-' . ($idx + 1);
-                $tierInclusions = [];
-                if (!empty($t['inclusions'])) {
-                    if (is_array($t['inclusions'])) {
-                        $tierInclusions = array_values(array_filter(array_map('trim', $t['inclusions'])));
-                    } else {
-                        $tierInclusions = array_values(array_filter(array_map('trim', explode("\n", str_replace("\r", "", strip_tags($t['inclusions']))))));
-                    }
-                }
-
-                $tierData = [
-                    'package_id'    => $package->id,
-                    'name'          => trim($t['name']),
-                    'slug'          => $tierSlug,
-                    'price'         => (float)($t['price'] ?? 0),
-                    'description'   => trim($t['description'] ?? ''),
-                    'image'         => !empty($t['image']) ? $t['image'] : $package->image,
-                    'inclusions'    => $tierInclusions,
-                    'active'        => true,
-                    'display_order' => $idx,
-                ];
-
-                if (!empty($t['id'])) {
-                    $tierModel = \App\Models\PackageTier::where('id', $t['id'])->where('package_id', $package->id)->first();
-                    if ($tierModel) {
-                        $tierModel->update($tierData);
-                        $existingTierIds[] = $tierModel->id;
-                        continue;
-                    }
-                }
-
-                $newTier = \App\Models\PackageTier::create($tierData);
-                $existingTierIds[] = $newTier->id;
-            }
-
-            // Remove tiers that were removed by user
-            if (!empty($existingTierIds)) {
-                \App\Models\PackageTier::where('package_id', $package->id)->whereNotIn('id', $existingTierIds)->delete();
-            }
-
-            // Update package base price to lowest tier price if not explicitly set
-            $minTierPrice = \App\Models\PackageTier::where('package_id', $package->id)->min('price');
-            if ($minTierPrice > 0 && (!$package->price || $package->price <= 0)) {
-                $package->price = (float)$minTierPrice;
-                $package->save();
-            }
-        } else {
-            // Default Standard tier if no tiers submitted
-            $standardTier = $package->tiers()->first();
-            $tierPrice = $package->price ?: 4999;
-            if (!$standardTier) {
-                \App\Models\PackageTier::create([
-                    'package_id'    => $package->id,
-                    'name'          => 'Standard Setup',
-                    'slug'          => Str::slug($package->title) . '-standard',
-                    'price'         => $tierPrice,
-                    'description'   => $package->description ?: 'Complete setup including on-site decor, lighting, and coordination.',
-                    'image'         => $package->image,
-                    'inclusions'    => ['On-site Setup & Decor', 'LED Ambient Lighting', 'Standard Logistics Fee Included'],
-                    'active'        => true,
-                    'display_order' => 0,
-                ]);
-            } else {
-                $standardTier->update([
-                    'price'       => $tierPrice,
-                    'image'       => $package->image ?: $standardTier->image,
-                    'description' => $package->description ?: $standardTier->description,
-                ]);
-            }
-        }
-
-        // 6. Sync legacy packages.json snapshot (mirror for backwards-compatibility)
-        try {
-            $jsonPath = storage_path('app/packages.json');
-            $packagesJson = [];
-            if (File::exists($jsonPath)) {
-                $packagesJson = json_decode(File::get($jsonPath), true) ?? [];
-            }
-            $catId = $package->category_id;
-            $catTitle = $package->category ? $package->category->title : 'Category';
-
-            $legacyTiers = [];
-            foreach ($package->tiers as $t) {
-                $legacyTiers[] = [
-                    'name'           => $t->name,
-                    'slug'           => $t->slug,
-                    'price'          => (int)$t->price,
-                    'original_price' => (int)($package->original_price ?: round($t->price * 1.2)),
-                    'desc'           => $t->description,
-                    'image'          => $t->image ?: $package->image,
-                    'inclusions'     => $t->inclusions ?: [],
-                    'badge'          => $package->badge ?: 'POPULAR',
-                ];
-            }
-
-            $packagesJson[$catId] = [
-                'id'      => (int)$catId,
-                'title'   => $catTitle,
-                'desc'    => $package->description ?: ('Custom packages for ' . $catTitle),
-                'image'   => $package->image ?: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?q=80&w=800',
-                'tag'     => $package->tag ?: 'decor',
-                'active'  => $package->active,
-                'gallery' => $package->gallery ?: [],
-                'tiers'   => $legacyTiers,
-            ];
-            JsonStorageService::write('packages.json', $packagesJson);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('packages.json sync warning: ' . $e->getMessage());
-        }
-
-        \App\Services\CelebrationCatalogService::clearCache();
-
-        return redirect()->route('admin.packages')->with('success', 'Package saved successfully!');
+        return app(AdminPackageController::class)->savePackage($request);
     }
 
     /**
@@ -1437,18 +706,30 @@ class DashboardController extends Controller
                 return null;
             }
 
-            $bookingData = $updatedJsonBooking ?? [
-                'id' => $bookingModel->id,
-                'name' => $bookingModel->customer_name,
-                'mobile' => $bookingModel->customer_mobile,
-                'whatsapp' => $bookingModel->customer_whatsapp,
-                'email' => $bookingModel->customer_email,
-                'package' => $bookingModel->package_name,
-                'date' => $bookingModel->event_date,
-                'status' => $status,
-                'total' => $bookingModel->total_amount,
-                'notifications_sent' => $sentList
-            ];
+            $bookingData = $updatedJsonBooking ?? [];
+            if ($bookingModel) {
+                $bookingData['id'] = $bookingData['id'] ?? $bookingModel->id;
+                $bookingData['name'] = $bookingData['name'] ?? $bookingModel->customer_name;
+                $bookingData['mobile'] = $bookingData['mobile'] ?? $bookingModel->customer_mobile;
+                $bookingData['whatsapp'] = $bookingData['whatsapp'] ?? $bookingModel->customer_whatsapp;
+                $bookingData['email'] = $bookingData['email'] ?? $bookingModel->customer_email;
+                $bookingData['package'] = $bookingData['package'] ?? $bookingModel->package_name;
+                $bookingData['category'] = $bookingData['category'] ?? $bookingModel->category_name;
+                $bookingData['tier'] = $bookingData['tier'] ?? $bookingModel->tier_name;
+                $bookingData['date'] = $bookingData['date'] ?? $bookingModel->event_date;
+                $bookingData['time'] = $bookingData['time'] ?? $bookingModel->event_time;
+                $bookingData['guest_count'] = $bookingData['guest_count'] ?? $bookingModel->guest_count;
+                $bookingData['address'] = $bookingData['address'] ?? $bookingModel->address;
+                $bookingData['area'] = $bookingData['area'] ?? $bookingModel->area;
+                $bookingData['city'] = $bookingData['city'] ?? $bookingModel->city;
+                $bookingData['landmark'] = $bookingData['landmark'] ?? $bookingModel->landmark;
+                $bookingData['pincode'] = $bookingData['pincode'] ?? $bookingModel->pincode;
+                $bookingData['total'] = $bookingData['total'] ?? $bookingModel->total_amount;
+                $bookingData['package_price'] = $bookingData['package_price'] ?? $bookingModel->package_price;
+                $bookingData['surcharge'] = $bookingData['surcharge'] ?? $bookingModel->surcharge_amount;
+                $bookingData['status'] = $status;
+                $bookingData['notifications_sent'] = $sentList;
+            }
 
             return [
                 'booking' => $bookingData,
@@ -1492,12 +773,11 @@ class DashboardController extends Controller
             }
 
             try {
-                $waSmsService = new \App\Services\WhatsAppSmsService();
                 if (strcasecmp($status, 'Confirmed') === 0 && !in_array('confirmed_wa', $sentList)) {
-                    $waSmsService->sendCustomerBookingConfirmed($updatedBooking);
+                    \App\Jobs\SendWhatsAppBookingNotificationJob::dispatch($id, 'customer_confirmed', $updatedBooking);
                     $sentList[] = 'confirmed_wa';
                 } else if (strcasecmp($status, 'Cancelled') === 0 && !in_array('cancelled_wa', $sentList)) {
-                    $waSmsService->sendCustomerBookingCancelled($updatedBooking);
+                    \App\Jobs\SendWhatsAppBookingNotificationJob::dispatch($id, 'customer_cancelled', $updatedBooking);
                     $sentList[] = 'cancelled_wa';
                 }
             } catch (\Throwable $e) {
@@ -1526,11 +806,11 @@ class DashboardController extends Controller
 
         $msg = "";
         if (strcasecmp($status, 'Confirmed') === 0) {
-            $msg = "Hello " . ($updatedBooking['name'] ?? 'Customer') . "! Your Artizen event booking request (" . $id . ") for " . ($updatedBooking['package'] ?? 'Setup') . " on " . ($updatedBooking['date'] ?? '') . " has been CONFIRMED. Our team will reach your venue on time.\n\n📷 Setup Photo: " . $imgUrl;
+            $msg = "🎉 Great news, " . ($updatedBooking['name'] ?? 'Customer') . "! Your Artizen event booking #" . $id . " for " . ($updatedBooking['package'] ?? 'Setup') . " on " . ($updatedBooking['date'] ?? '') . " has been officially CONFIRMED! ✨ Our setup crew is reserved and will reach your venue on time. Settle payment offline post-setup. Thank you for celebrating with us!\n\n📷 Setup Photo: " . $imgUrl;
         } else if (strcasecmp($status, 'Cancelled') === 0) {
-            $msg = "Hello " . ($updatedBooking['name'] ?? 'Customer') . ". Your Artizen event booking request (" . $id . ") has been CANCELLED. Please contact us on +91 9131668156 for assistance.";
+            $msg = "Hello " . ($updatedBooking['name'] ?? 'Customer') . ". We wanted to let you know that your Artizen booking request #" . $id . " has been cancelled. If you wish to reschedule or need any custom celebration assistance, please feel free to message us here anytime. Warm regards, Artizen Events.";
         } else {
-            $msg = "Hello " . ($updatedBooking['name'] ?? 'Customer') . "! Your Artizen booking (" . $id . ") status is now " . strtoupper($status) . ".\n\n📷 Setup Photo: " . $imgUrl;
+            $msg = "Hello " . ($updatedBooking['name'] ?? 'Customer') . "! Your Artizen celebration request #" . $id . " status has been updated to " . strtoupper($status) . ". Our team is at your service.\n\n📷 Setup Photo: " . $imgUrl;
         }
 
         $notifyUrl = !empty($custPhone) ? ("https://wa.me/" . $custPhone . "?text=" . urlencode($msg)) : null;
@@ -1541,6 +821,53 @@ class DashboardController extends Controller
             'notify_url' => $notifyUrl,
             'message' => 'Booking ' . $id . ' status updated to ' . $status
         ]);
+    }
+
+    /**
+     * Bulk delete bookings from Database and JSON storage.
+     */
+    public function bulkDeleteBookings(Request $request)
+    {
+        $validated = $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'required|string',
+        ]);
+
+        $ids = $validated['ids'];
+
+        DB::transaction(function() use ($ids) {
+            \App\Models\WhatsAppNotification::whereIn('booking_id', $ids)->delete();
+            Booking::whereIn('id', $ids)->delete();
+            JsonStorageService::deleteBookingRecords($ids);
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => count($ids) . ' booking(s) deleted successfully!',
+            'deleted_ids' => $ids
+        ]);
+    }
+
+    /**
+     * Delete an individual booking.
+     */
+    public function deleteBooking($id)
+    {
+        $ids = [$id];
+        DB::transaction(function() use ($ids) {
+            \App\Models\WhatsAppNotification::whereIn('booking_id', $ids)->delete();
+            Booking::whereIn('id', $ids)->delete();
+            JsonStorageService::deleteBookingRecords($ids);
+        });
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking ' . $id . ' deleted successfully!'
+            ]);
+        }
+
+        return redirect()->route('admin.bookings')->with('success', 'Booking ' . $id . ' deleted successfully!');
     }
 
     /**
@@ -1556,49 +883,19 @@ class DashboardController extends Controller
     }
 
     /**
-     * Delete a package tier.
+     * Delete a package tier (delegated to AdminPackageController).
      */
     public function deletePackage($catId, $tierIdx)
     {
-        $path = storage_path('app/packages.json');
-        if (File::exists($path)) {
-            $packages = json_decode(File::get($path), true) ?? [];
-            if (isset($packages[$catId]['tiers'][$tierIdx])) {
-                // Remove tier from index
-                array_splice($packages[$catId]['tiers'], $tierIdx, 1);
-                File::put($path, json_encode($packages, JSON_PRETTY_PRINT));
-                \App\Services\CelebrationCatalogService::clearCache();
-            }
-        }
-        return redirect()->route('admin.packages')->with('success', 'Package tier deleted successfully!');
+        return app(AdminPackageController::class)->deletePackage($catId, $tierIdx);
     }
 
     /**
-     * Delete Category.
+     * Delete Category (delegated to AdminCategoryController).
      */
     public function deleteCategory($id)
     {
-        $dbCat = \App\Models\Category::find($id);
-        if ($dbCat) {
-            \App\Models\Subcategory::where('category_id', $dbCat->id)->delete();
-            $dbCat->delete();
-
-            // Re-normalize display_order sequence after deletion
-            $remaining = \App\Models\Category::orderBy('display_order')->orderBy('id')->get();
-            foreach ($remaining as $idx => $item) {
-                $expected = $idx + 1;
-                if ($item->display_order != $expected) {
-                    $item->update(['display_order' => $expected]);
-                }
-            }
-        }
-
-        $cats = JsonStorageService::read('categories.json', []);
-        $updatedCats = array_values(array_filter($cats, fn($c) => (string)($c['id'] ?? '') !== (string)$id));
-        JsonStorageService::write('categories.json', $updatedCats);
-        \App\Services\CelebrationCatalogService::clearCache();
-
-        return redirect()->route('admin.categories')->with('success', 'Category deleted successfully!');
+        return app(AdminCategoryController::class)->deleteCategory($id);
     }
 
     /**
@@ -1769,73 +1066,26 @@ class DashboardController extends Controller
     }
 
     /**
-     * Save dynamic Legal Policy Pages.
+     * Save dynamic Legal Policy Pages (delegated to AdminCmsController).
      */
     public function saveLegalPages(Request $request)
     {
-        $defaultLegalPages = app(\App\Http\Controllers\LegalController::class)->getDefaultLegalPages();
-
-        $legalPages = [
-            'privacy' => [
-                'title' => $request->input('privacy_title', $defaultLegalPages['privacy']['title']),
-                'subtitle' => $request->input('privacy_subtitle', $defaultLegalPages['privacy']['subtitle']),
-                'content' => $request->input('privacy_content', $defaultLegalPages['privacy']['content']),
-            ],
-            'terms' => [
-                'title' => $request->input('terms_title', $defaultLegalPages['terms']['title']),
-                'subtitle' => $request->input('terms_subtitle', $defaultLegalPages['terms']['subtitle']),
-                'content' => $request->input('terms_content', $defaultLegalPages['terms']['content']),
-            ],
-            'cancellation' => [
-                'title' => $request->input('cancellation_title', $defaultLegalPages['cancellation']['title']),
-                'subtitle' => $request->input('cancellation_subtitle', $defaultLegalPages['cancellation']['subtitle']),
-                'content' => $request->input('cancellation_content', $defaultLegalPages['cancellation']['content']),
-            ],
-            'booking_policy' => [
-                'title' => $request->input('booking_policy_title', $defaultLegalPages['booking_policy']['title']),
-                'subtitle' => $request->input('booking_policy_subtitle', $defaultLegalPages['booking_policy']['subtitle']),
-                'content' => $request->input('booking_policy_content', $defaultLegalPages['booking_policy']['content']),
-            ],
-        ];
-
-        JsonStorageService::write('legal_pages.json', $legalPages);
-
-        return redirect()->route('admin.legal')->with('success', 'Legal Policy pages updated successfully!');
+        return app(AdminCmsController::class)->saveLegalPages($request);
     }
 
     /**
-     * Toggle active/draft status of a database package.
+     * Toggle active/draft status of a database package (delegated to AdminPackageController).
      */
     public function togglePackageStatus($id)
     {
-        $package = \App\Models\Package::findOrFail($id);
-        $package->active = !$package->active;
-        $package->save();
-        \App\Services\CelebrationCatalogService::clearCache();
-
-        if (request()->ajax() || request()->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'active'  => $package->active,
-                'message' => 'Package status updated to ' . ($package->active ? 'Published' : 'Draft') . '.'
-            ]);
-        }
-
-        return redirect()->back()->with('success', 'Package status updated.');
+        return app(AdminPackageController::class)->togglePackageStatus($id);
     }
 
     /**
-     * Delete a database package and its tiers.
+     * Delete a database package and its tiers (delegated to AdminPackageController).
      */
     public function destroyPackage($id)
     {
-        $package = \App\Models\Package::findOrFail($id);
-        $title = $package->title;
-        $package->tiers()->delete();
-        $package->subcategories()->detach();
-        $package->delete();
-        \App\Services\CelebrationCatalogService::clearCache();
-
-        return redirect()->route('admin.packages')->with('success', "Package '{$title}' and its tiers deleted successfully.");
+        return app(AdminPackageController::class)->destroyPackage($id);
     }
 }

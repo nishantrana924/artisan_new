@@ -49,6 +49,7 @@ class LoginController extends Controller
         $credentials = $request->validate([
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
+            'cf-turnstile-response' => ['nullable', new \App\Rules\TurnstileRule],
         ], [
             'email.required' => 'Email address is required.',
             'password.required' => 'Password is required.',
@@ -74,18 +75,40 @@ class LoginController extends Controller
 
         $remember = $request->boolean('remember');
 
+        $authCredentials = [
+            'email' => $credentials['email'],
+            'password' => $credentials['password'],
+        ];
+
         // 2. Attempt authentication
-        if (Auth::attempt($credentials, $remember)) {
+        if (Auth::attempt($authCredentials, $remember)) {
+            $user = Auth::user();
+
+            // Check if user is an Administrator
+            $isAdmin = $user && $user->isAdmin();
+
+            // Enforce email verification for customers
+            if (!$isAdmin && is_null($user->email_verified_at)) {
+                $registerCtrl = app(\App\Http\Controllers\Auth\RegisterController::class);
+                $registerCtrl->sendVerificationOtp($user);
+
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                session([
+                    'verify_email' => $user->email,
+                    'verify_redirect' => $request->input('redirect'),
+                ]);
+
+                return redirect()->route('verification.notice')->with('warning', 'Please verify your email address before logging in. A 6-digit verification code has been sent to your inbox.');
+            }
+
             $request->session()->regenerate();
 
             // Clear throttle on successful login
             \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
             \Illuminate\Support\Facades\Cache::forget('login_lockout_count_' . $throttleKey);
-
-            $user = Auth::user();
-
-            // Check if user is an Administrator
-            $isAdmin = $user && $user->isAdmin();
 
             if ($isAdmin) {
                 session([

@@ -148,6 +148,37 @@
                                 <i id="reg-eye-1" class="fa-solid fa-eye text-xs"></i>
                             </button>
                         </div>
+
+                        <!-- Real-time Password Strength & Special Character Checklist -->
+                        <div id="password-requirements" class="mt-2.5 p-3 rounded-xl bg-gray-50/80 dark:bg-white/[0.03] border border-gray-200/70 dark:border-white/10 space-y-1.5 text-left select-none">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Password Security</span>
+                                <span id="strength-label" class="text-[10px] font-extrabold text-gray-400">Too Weak</span>
+                            </div>
+                            <!-- Strength Meter Bar -->
+                            <div class="h-1.5 w-full bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden mb-2">
+                                <div id="strength-bar" class="h-full w-0 bg-red-500 rounded-full transition-all duration-300"></div>
+                            </div>
+                            <!-- Checklist Criteria -->
+                            <div class="grid grid-cols-2 gap-1 text-[10.5px]">
+                                <div id="req-length" class="flex items-center gap-1.5 text-gray-400 font-medium transition-colors">
+                                    <i class="fa-solid fa-circle-xmark text-[10px]"></i>
+                                    <span>Min. 8 characters</span>
+                                </div>
+                                <div id="req-case" class="flex items-center gap-1.5 text-gray-400 font-medium transition-colors">
+                                    <i class="fa-solid fa-circle-xmark text-[10px]"></i>
+                                    <span>Uppercase & lowercase</span>
+                                </div>
+                                <div id="req-number" class="flex items-center gap-1.5 text-gray-400 font-medium transition-colors">
+                                    <i class="fa-solid fa-circle-xmark text-[10px]"></i>
+                                    <span>At least 1 number (0-9)</span>
+                                </div>
+                                <div id="req-special" class="flex items-center gap-1.5 text-gray-400 font-medium transition-colors">
+                                    <i class="fa-solid fa-circle-xmark text-[10px]"></i>
+                                    <span>Special character (@#$!%*)</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Confirm Password -->
@@ -163,6 +194,9 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- Cloudflare Turnstile Verification -->
+                    <x-turnstile action="register" />
 
                     <!-- Submit CTA Button -->
                     <button type="submit" class="w-full py-3 bg-[#FFD600] hover:bg-[#E6C200] text-[#171719] font-heading font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer mt-2">
@@ -197,5 +231,86 @@
             }
         }
     }
+
+    // Dynamic Password Complexity & Special Character Validator
+    document.addEventListener('DOMContentLoaded', function () {
+        const pwdInput = document.getElementById('reg-password');
+        const bar = document.getElementById('strength-bar');
+        const label = document.getElementById('strength-label');
+
+        const reqs = {
+            length: document.getElementById('req-length'),
+            case: document.getElementById('req-case'),
+            number: document.getElementById('req-number'),
+            special: document.getElementById('req-special')
+        };
+
+        if (pwdInput) {
+            pwdInput.addEventListener('input', function () {
+                const val = this.value || '';
+                
+                const hasLength = val.length >= 8;
+                const hasCase = /[A-Z]/.test(val) && /[a-z]/.test(val);
+                const hasNumber = /[0-9]/.test(val);
+                const hasSpecial = /[@$!%*?&#^()_\-+=\[\]{}|~]/.test(val);
+
+                updateRequirement(reqs.length, hasLength);
+                updateRequirement(reqs.case, hasCase);
+                updateRequirement(reqs.number, hasNumber);
+                updateRequirement(reqs.special, hasSpecial);
+
+                let score = 0;
+                if (hasLength) score++;
+                if (hasCase) score++;
+                if (hasNumber) score++;
+                if (hasSpecial) score++;
+
+                if (val.length === 0) {
+                    bar.style.width = '0%';
+                    bar.className = 'h-full w-0 bg-red-500 rounded-full transition-all duration-300';
+                    label.textContent = 'Too Weak';
+                    label.className = 'text-[10px] font-extrabold text-gray-400';
+                } else if (score <= 1) {
+                    bar.style.width = '25%';
+                    bar.className = 'h-full bg-red-500 rounded-full transition-all duration-300';
+                    label.textContent = 'Weak';
+                    label.className = 'text-[10px] font-extrabold text-red-500';
+                } else if (score === 2) {
+                    bar.style.width = '50%';
+                    bar.className = 'h-full bg-amber-500 rounded-full transition-all duration-300';
+                    label.textContent = 'Fair';
+                    label.className = 'text-[10px] font-extrabold text-amber-500';
+                } else if (score === 3) {
+                    bar.style.width = '75%';
+                    bar.className = 'h-full bg-blue-500 rounded-full transition-all duration-300';
+                    label.textContent = 'Good';
+                    label.className = 'text-[10px] font-extrabold text-blue-500';
+                } else if (score === 4) {
+                    bar.style.width = '100%';
+                    bar.className = 'h-full bg-emerald-500 rounded-full transition-all duration-300';
+                    label.textContent = 'Strong & Secure';
+                    label.className = 'text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400';
+                }
+            });
+        }
+
+        function updateRequirement(el, passed) {
+            if (!el) return;
+            const icon = el.querySelector('i');
+            if (passed) {
+                el.classList.remove('text-gray-400');
+                el.classList.add('text-emerald-600', 'dark:text-emerald-400', 'font-bold');
+                if (icon) {
+                    icon.className = 'fa-solid fa-circle-check text-[10px] text-emerald-600 dark:text-emerald-400';
+                }
+            } else {
+                el.classList.remove('text-emerald-600', 'dark:text-emerald-400', 'font-bold');
+                el.classList.add('text-gray-400');
+                if (icon) {
+                    icon.className = 'fa-solid fa-circle-xmark text-[10px] text-gray-400';
+                }
+            }
+        }
+    });
 </script>
 @endsection

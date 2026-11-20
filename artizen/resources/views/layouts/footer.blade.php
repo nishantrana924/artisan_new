@@ -150,7 +150,7 @@
                 <!-- Offline Payment Trust Note -->
                 <div class="mt-4 pt-4 border-t border-[#E5E7EB] dark:border-[#222226] text-[11px] text-[#6B7280] dark:text-[#9CA3AF] leading-relaxed">
                     <div class="flex items-center gap-1.5 font-semibold text-[#111827] dark:text-white mb-1">
-                        <i class="fa-solid fa-shield-halved text-emerald-600 dark:text-emerald-400"></i>
+                        <i class="fa-solid fa-handshake-simple text-emerald-600 dark:text-emerald-400"></i>
                         <span>Zero Online Risk</span>
                     </div>
                     <span>No online advance required. Pay offline only after your event booking is confirmed by our manager.</span>

@@ -127,7 +127,7 @@
                     </label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                            <i class="fa-solid fa-shield-check text-xs"></i>
+                            <i class="fa-solid fa-key text-xs"></i>
                         </span>
                         <input type="password" id="password-confirm" name="password_confirmation" required minlength="8" placeholder="Repeat new password"
                             class="w-full pl-9 pr-10 py-2.5 bg-[#FAF9F6] dark:bg-[#292929] border border-gray-200 dark:border-white/10 rounded-xl text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-[#FFD600] focus:ring-1 focus:ring-[#FFD600]">

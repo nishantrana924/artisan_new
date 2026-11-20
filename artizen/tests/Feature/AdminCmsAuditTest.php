@@ -15,12 +15,18 @@ class AdminCmsAuditTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->admin = new User([
-            'name' => 'Artizen Admin',
-            'email' => 'cmsauditadmin@artizen.com',
-            'is_admin' => true,
-        ]);
-        $this->admin->id = 1;
+        $this->admin = User::firstOrCreate(
+            ['email' => 'cmsauditadmin@artizen.com'],
+            [
+                'name' => 'Artizen Admin',
+                'password' => Hash::make('CorrectPass123!'),
+                'is_admin' => 1,
+            ]
+        );
+        if (!$this->admin->is_admin) {
+            $this->admin->is_admin = 1;
+            $this->admin->save();
+        }
     }
 
     /**
@@ -28,7 +34,7 @@ class AdminCmsAuditTest extends TestCase
      */
     public function test_overview_module_renders_real_metrics(): void
     {
-        $response = $this->actingAs($this->admin)->get('/admin/dashboard');
+        $response = $this->actingAsAdmin($this->admin)->get('/admin/dashboard');
         $response->assertStatus(200);
         $response->assertViewHas('analytics');
     }
@@ -54,7 +60,7 @@ class AdminCmsAuditTest extends TestCase
         JsonStorageService::write('bookings.json', [$mockBooking]);
 
         try {
-            $response = $this->actingAs($this->admin)->postJson('/admin/bookings/update-status', [
+            $response = $this->actingAsAdmin($this->admin)->postJson('/admin/bookings/update-status', [
                 'id' => $testId,
                 'status' => 'Confirmed'
             ]);
@@ -78,7 +84,7 @@ class AdminCmsAuditTest extends TestCase
 
         try {
             // Save category
-            $response = $this->actingAs($this->admin)->post('/admin/categories/save', [
+            $response = $this->actingAsAdmin($this->admin)->post('/admin/categories/save', [
                 'title' => 'Audit Category',
                 'active' => 1
             ]);
@@ -97,7 +103,7 @@ class AdminCmsAuditTest extends TestCase
             $this->assertNotNull($catId);
 
             // Delete category
-            $delResponse = $this->actingAs($this->admin)->post("/admin/categories/delete/{$catId}");
+            $delResponse = $this->actingAsAdmin($this->admin)->post("/admin/categories/delete/{$catId}");
             $delResponse->assertRedirect();
 
             $finalCats = JsonStorageService::read('categories.json', []);
@@ -117,7 +123,7 @@ class AdminCmsAuditTest extends TestCase
         $originalFaqs = JsonStorageService::read('faqs.json', []);
 
         try {
-            $response = $this->actingAs($this->admin)->post('/admin/faqs/save', [
+            $response = $this->actingAsAdmin($this->admin)->post('/admin/faqs/save', [
                 'q' => 'Is venue setup included?',
                 'a' => 'Yes, our on-site team handles full setup and teardown.'
             ]);
@@ -129,7 +135,7 @@ class AdminCmsAuditTest extends TestCase
             $this->assertNotNull($faqId);
 
             // Delete FAQ
-            $delResponse = $this->actingAs($this->admin)->post("/admin/faqs/delete/{$faqId}");
+            $delResponse = $this->actingAsAdmin($this->admin)->post("/admin/faqs/delete/{$faqId}");
             $delResponse->assertRedirect();
 
         } finally {
@@ -145,7 +151,7 @@ class AdminCmsAuditTest extends TestCase
         $originalTestimonials = JsonStorageService::read('testimonials.json', []);
 
         try {
-            $response = $this->actingAs($this->admin)->post('/admin/testimonials/save', [
+            $response = $this->actingAsAdmin($this->admin)->post('/admin/testimonials/save', [
                 'author' => 'Rahul Sharma',
                 'review' => 'Stunning birthday decor setup!',
                 'rating' => 5,
@@ -159,7 +165,7 @@ class AdminCmsAuditTest extends TestCase
             $this->assertNotNull($tId);
 
             // Delete Testimonial
-            $delResponse = $this->actingAs($this->admin)->post("/admin/testimonials/delete/{$tId}");
+            $delResponse = $this->actingAsAdmin($this->admin)->post("/admin/testimonials/delete/{$tId}");
             $delResponse->assertRedirect();
 
         } finally {
@@ -175,7 +181,7 @@ class AdminCmsAuditTest extends TestCase
         $originalGallery = JsonStorageService::read('gallery.json', []);
 
         try {
-            $response = $this->actingAs($this->admin)->post('/admin/gallery/save', [
+            $response = $this->actingAsAdmin($this->admin)->post('/admin/gallery/save', [
                 'title' => 'Mandap Floral Setup',
                 'category' => 'Wedding',
                 'image' => '/assets/images/hero/3.jpg',
@@ -189,7 +195,7 @@ class AdminCmsAuditTest extends TestCase
             $this->assertNotNull($gId);
 
             // Delete Gallery item
-            $delResponse = $this->actingAs($this->admin)->post("/admin/gallery/delete/{$gId}");
+            $delResponse = $this->actingAsAdmin($this->admin)->post("/admin/gallery/delete/{$gId}");
             $delResponse->assertRedirect();
 
         } finally {
@@ -205,7 +211,7 @@ class AdminCmsAuditTest extends TestCase
         $originalCms = JsonStorageService::read('cms.json', []);
 
         try {
-            $response = $this->actingAs($this->admin)->post('/admin/cms/save', [
+            $response = $this->actingAsAdmin($this->admin)->post('/admin/cms/save', [
                 'hero_slides' => [
                     [
                         'badge' => 'TEST BADGE',
@@ -223,7 +229,7 @@ class AdminCmsAuditTest extends TestCase
             $response->assertRedirect();
 
             $updatedCms = JsonStorageService::read('cms.json', []);
-            $this::assertEquals('TEST BADGE', $updatedCms['hero_slides'][0]['badge']);
+            $this::assertEquals('TEST TITLE', $updatedCms['hero_slides'][0]['title']);
 
         } finally {
             JsonStorageService::write('cms.json', $originalCms);
@@ -237,10 +243,10 @@ class AdminCmsAuditTest extends TestCase
      */
     public function test_guest_blocked_from_all_admin_cms_routes(): void
     {
-        $this->get('/admin/dashboard')->assertRedirect('/admin/login');
-        $this->post('/admin/cms/save')->assertRedirect('/admin/login');
-        $this->post('/admin/categories/save')->assertRedirect('/admin/login');
-        $this->post('/admin/faqs/save')->assertRedirect('/admin/login');
-        $this->post('/admin/settings/save')->assertRedirect('/admin/login');
+        $this->get('/admin/dashboard')->assertRedirect(route('login', ['redirect' => url('/admin/dashboard')]));
+        $this->post('/admin/cms/save')->assertRedirect(route('login', ['redirect' => url('/admin/cms/save')]));
+        $this->post('/admin/categories/save')->assertRedirect(route('login', ['redirect' => url('/admin/categories/save')]));
+        $this->post('/admin/faqs/save')->assertRedirect(route('login', ['redirect' => url('/admin/faqs/save')]));
+        $this->post('/admin/settings/save')->assertRedirect(route('login', ['redirect' => url('/admin/settings/save')]));
     }
 }

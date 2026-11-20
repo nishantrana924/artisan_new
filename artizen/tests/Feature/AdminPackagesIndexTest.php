@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Booking;
 use App\Models\Category;
 use App\Models\Package;
 use App\Models\PackageTier;
@@ -47,7 +48,7 @@ class AdminPackagesIndexTest extends TestCase
             'active'     => true,
         ]);
 
-        $response = $this->withSession(['admin_logged_in' => true])
+        $response = $this->actingAsAdmin()
             ->get(route('admin.packages'));
 
         $response->assertStatus(200);
@@ -67,7 +68,7 @@ class AdminPackagesIndexTest extends TestCase
             'active'      => true,
         ]);
 
-        $response = $this->withSession(['admin_logged_in' => true])
+        $response = $this->actingAsAdmin()
             ->postJson(route('admin.packages.toggle-status', $package->id));
 
         $response->assertStatus(200);
@@ -89,7 +90,7 @@ class AdminPackagesIndexTest extends TestCase
             'active'      => true,
         ]);
 
-        $response = $this->withSession(['admin_logged_in' => true])
+        $response = $this->actingAsAdmin()
             ->post(route('admin.packages.destroy', $package->id));
 
         $response->assertRedirect(route('admin.packages'));
@@ -111,7 +112,7 @@ class AdminPackagesIndexTest extends TestCase
             'is_active'   => true,
         ]);
 
-        $response = $this->withSession(['admin_logged_in' => true])
+        $response = $this->actingAsAdmin()
             ->get(route('admin.packages.create'));
 
         $response->assertStatus(200);
@@ -145,7 +146,7 @@ class AdminPackagesIndexTest extends TestCase
 
         $package->subcategories()->attach($subcat->id);
 
-        $response = $this->withSession(['admin_logged_in' => true])
+        $response = $this->actingAsAdmin()
             ->get(route('admin.packages.edit', $package->id));
 
         $response->assertStatus(200);
@@ -201,7 +202,7 @@ class AdminPackagesIndexTest extends TestCase
             ],
         ];
 
-        $response = $this->withSession(['admin_logged_in' => true])
+        $response = $this->actingAsAdmin()
             ->post(route('admin.packages.save'), $payload);
 
         $response->assertRedirect(route('admin.packages'));
@@ -218,7 +219,7 @@ class AdminPackagesIndexTest extends TestCase
 
     public function test_accessing_dashboard_tab_packages_redirects_to_packages_index(): void
     {
-        $response = $this->withSession(['admin_logged_in' => true])
+        $response = $this->actingAsAdmin()
             ->get('/admin/dashboard?tab=packages');
 
         $response->assertRedirect(route('admin.packages'));
@@ -241,7 +242,7 @@ class AdminPackagesIndexTest extends TestCase
         $this->assertEquals(4999, (int)$wonderland->price);
 
         // Check Admin Packages index lists them
-        $response = $this->withSession(['admin_logged_in' => true])
+        $response = $this->actingAsAdmin()
             ->get(route('admin.packages'));
 
         $response->assertStatus(200);
@@ -249,5 +250,145 @@ class AdminPackagesIndexTest extends TestCase
         $response->assertSee('1st Birthday Wonderland');
         $response->assertSee('Kids Jungle Safari Theme');
         $response->assertSee('Pastel Balloon Arch &amp; Teddy Bear', false);
+    }
+
+    public function test_package_validation_fails_when_title_or_category_missing(): void
+    {
+        $response = $this->actingAsAdmin()
+            ->post(route('admin.packages.save'), [
+                'title' => '',
+                'category_id' => '',
+            ]);
+
+        $response->assertSessionHasErrors(['title', 'category_id']);
+    }
+
+    public function test_package_validation_fails_when_original_price_is_less_than_selling_price(): void
+    {
+        $category = Category::create([
+            'title'  => 'Decorations',
+            'slug'   => 'decorations',
+            'active' => true,
+        ]);
+
+        $response = $this->actingAsAdmin()
+            ->post(route('admin.packages.save'), [
+                'title'          => 'Invalid Price Package',
+                'category_id'    => $category->id,
+                'price'          => 10000,
+                'original_price' => 5000, // Invalid: original price lower than price
+            ]);
+
+        $response->assertSessionHasErrors(['original_price']);
+    }
+
+    public function test_package_update_preserves_existing_image_when_no_new_image_provided(): void
+    {
+        $category = Category::create([
+            'title'  => 'Outdoor Events',
+            'slug'   => 'outdoor-events',
+            'active' => true,
+        ]);
+
+        $package = Package::create([
+            'category_id' => $category->id,
+            'title'       => 'Garden Gala',
+            'slug'        => 'garden-gala',
+            'image'       => 'https://example.com/original-garden.jpg',
+            'price'       => 15000,
+            'active'      => true,
+        ]);
+
+        $response = $this->actingAsAdmin()
+            ->post(route('admin.packages.save'), [
+                'id'          => $package->id,
+                'title'       => 'Garden Gala Updated',
+                'category_id' => $category->id,
+                'price'       => 16000,
+            ]);
+
+        $response->assertRedirect(route('admin.packages'));
+        $package->refresh();
+        $this->assertEquals('Garden Gala Updated', $package->title);
+        $this->assertEquals('https://example.com/original-garden.jpg', $package->image);
+    }
+
+    public function test_destroy_package_safely_disassociates_existing_bookings(): void
+    {
+        $category = Category::create([
+            'title'  => 'Corporate',
+            'slug'   => 'corporate',
+            'active' => true,
+        ]);
+
+        $package = Package::create([
+            'category_id' => $category->id,
+            'title'       => 'Annual Gala',
+            'slug'        => 'annual-gala',
+            'active'      => true,
+        ]);
+
+        $booking = Booking::create([
+            'id'               => 'BK-TESTAUDIT01',
+            'package_id'       => $package->id,
+            'customer_name'    => 'Rahul Sharma',
+            'customer_mobile'  => '9876543210',
+            'package_name'     => 'Annual Gala',
+            'category_name'    => 'Corporate',
+            'tier_name'        => 'Executive',
+            'event_date'       => '2026-12-15',
+            'event_time'       => 'Evening',
+            'guest_count'      => 100,
+            'address'          => 'Brilliant Convention Centre',
+            'area'             => 'Vijay Nagar',
+            'city'             => 'Indore',
+            'pincode'          => '452010',
+            'package_price'    => 25000,
+            'surcharge_amount' => 0,
+            'total_amount'     => 25000,
+            'status'           => 'pending',
+        ]);
+
+        $this->assertEquals($package->id, $booking->package_id);
+
+        $response = $this->actingAsAdmin()
+            ->post(route('admin.packages.destroy', $package->id));
+
+        $response->assertRedirect(route('admin.packages'));
+        $this->assertDatabaseMissing('packages', ['id' => $package->id]);
+
+        $booking->refresh();
+        $this->assertNull($booking->package_id);
+        $this->assertEquals('Annual Gala', $booking->package_name);
+        $this->assertEquals('Rahul Sharma', $booking->customer_name);
+    }
+
+    public function test_package_slug_uniqueness_auto_resolves_collision(): void
+    {
+        $category = Category::create([
+            'title'  => 'Parties',
+            'slug'   => 'parties',
+            'active' => true,
+        ]);
+
+        $existing = Package::create([
+            'category_id' => $category->id,
+            'title'       => 'Neon Disco Party',
+            'slug'        => 'neon-disco-party',
+            'active'      => true,
+        ]);
+
+        $response = $this->actingAsAdmin()
+            ->post(route('admin.packages.save'), [
+                'title'       => 'Neon Disco Party',
+                'category_id' => $category->id,
+                'slug'        => 'neon-disco-party', // Exact collision
+            ]);
+
+        $response->assertRedirect(route('admin.packages'));
+
+        $newPackage = Package::where('id', '!=', $existing->id)->first();
+        $this->assertNotNull($newPackage);
+        $this->assertStringStartsWith('neon-disco-party-', $newPackage->slug);
     }
 }

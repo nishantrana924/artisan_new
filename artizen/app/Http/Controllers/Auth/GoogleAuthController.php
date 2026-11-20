@@ -148,20 +148,32 @@ class GoogleAuthController extends Controller
                 ->orWhere('email', $email)
                 ->first();
 
+            $isAdminEmail = in_array($email, ['admin@artizen.com', 'admin@artizen.in'], true);
+
             if ($user) {
                 $user->update([
                     'google_id' => $googleId,
                     'avatar'    => $avatar ?: $user->avatar,
                     'name'      => $user->name ?: $name,
+                    'email_verified_at' => $user->email_verified_at ?: now(),
                 ]);
+                if ($isAdminEmail && !$user->is_admin) {
+                    $user->is_admin = true;
+                    $user->save();
+                }
             } else {
-                $user = User::create([
+                $user = new User([
                     'name'      => $name,
                     'email'     => $email,
                     'google_id' => $googleId,
                     'avatar'    => $avatar,
+                    'email_verified_at' => now(),
                     'password'  => Hash::make(Str::random(32)),
                 ]);
+                if ($isAdminEmail) {
+                    $user->is_admin = true;
+                }
+                $user->save();
             }
 
             // Log user in

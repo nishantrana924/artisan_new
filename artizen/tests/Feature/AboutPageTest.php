@@ -40,14 +40,7 @@ class AboutPageTest extends TestCase
      */
     public function test_admin_about_route_redirects(): void
     {
-        $admin = new User([
-            'name' => 'Artizen Admin',
-            'email' => 'admin_about_test@artizen.com',
-            'is_admin' => true,
-        ]);
-        $admin->id = 99;
-
-        $response = $this->actingAs($admin)->get('/admin/about');
+        $response = $this->actingAsAdmin()->get('/admin/about');
         $response->assertRedirect('/admin/dashboard');
     }
 
@@ -56,14 +49,7 @@ class AboutPageTest extends TestCase
      */
     public function test_admin_sidebar_does_not_contain_about_page_link(): void
     {
-        $admin = new User([
-            'name' => 'Artizen Admin',
-            'email' => 'admin_about_test2@artizen.com',
-            'is_admin' => true,
-        ]);
-        $admin->id = 100;
-
-        $response = $this->actingAs($admin)->get('/admin/dashboard');
+        $response = $this->actingAsAdmin()->get('/admin/dashboard');
         $response->assertStatus(200);
         $response->assertDontSee('admin/about');
         $response->assertDontSee('About Page');

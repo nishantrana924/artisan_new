@@ -274,6 +274,11 @@ class SecurityPhase1AuditTest extends TestCase
 
     public function test_google_oauth_redirect_sanitizes_external_urls(): void
     {
+        if (!class_exists('Laravel\Socialite\Facades\Socialite')) {
+            $this->markTestSkipped('laravel/socialite package is not installed.');
+            return;
+        }
+
         Config::set('services.google.client_id', 'dummy-client-id');
         Config::set('services.google.client_secret', 'dummy-client-secret');
 

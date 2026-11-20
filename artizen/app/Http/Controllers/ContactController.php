@@ -35,7 +35,8 @@ class ContactController extends Controller
             'phone' => 'required|string|max:20',
             'email' => 'required|email|max:255',
             'subject' => 'required|string|max:255',
-            'message' => 'required|string|max:2000'
+            'message' => 'required|string|max:2000',
+            'cf-turnstile-response' => ['nullable', new \App\Rules\TurnstileRule]
         ]);
 
         // Duplicate submission debounce (prevents exact duplicate submissions within 60 seconds)

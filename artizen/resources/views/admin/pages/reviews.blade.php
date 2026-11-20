@@ -392,7 +392,10 @@
 <script>
     // Quick toggle handler for inline card buttons
     window.quickToggleVisibility = function(reviewId, field) {
-        const btn = document.getElementById(`btn-vis-${field.replace("show_on_", "")}-${reviewId}`) || document.getElementById(`btn-vis-${field}-${reviewId}`);
+        const shortField = field.replace("show_on_", "").replace("is_", "");
+        const btn = document.getElementById(`btn-vis-${shortField}-${reviewId}`) || 
+                    document.getElementById(`btn-vis-${field.replace("show_on_", "")}-${reviewId}`) || 
+                    document.getElementById(`btn-vis-${field}-${reviewId}`);
         if (btn) btn.classList.add("opacity-50");
 
         fetch("{{ route('admin.reviews.toggle-visibility') }}", {
